@@ -1,0 +1,346 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIUB Sports Portal - Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+        }
+
+        .logo-section {
+            margin-bottom: 30px;
+        }
+
+        .logo-placeholder {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #1976d2 0%, #2196f3 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+            font-weight: bold;
+            border: 4px solid #f5f5f5;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .university-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+            line-height: 1.4;
+        }
+
+        .tagline {
+            font-size: 14px;
+            color: #666;
+            font-style: italic;
+            margin-bottom: 30px;
+        }
+
+        .portal-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1976d2;
+            margin-bottom: 30px;
+        }
+
+        .login-instruction {
+            font-size: 15px;
+            color: #555;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 15px;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #1976d2;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
+        }
+
+        .login-button:hover:not(:disabled) {
+            background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
+        .login-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin-top: 25px;
+            text-align: left;
+            border-radius: 4px;
+        }
+
+        .info-box-title {
+            font-weight: 600;
+            color: #1976d2;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .info-box-text {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .email-format {
+            font-family: 'Courier New', monospace;
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #d32f2f;
+            font-weight: 600;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo-section">
+            <div class="logo-placeholder">🏆</div>
+            <div class="university-name">AMERICAN INTERNATIONAL<br>UNIVERSITY-BANGLADESH</div>
+            <div class="tagline">— where leaders are created.</div>
+        </div>
+
+        <div class="portal-title">AIUB Sports Portal</div>
+
+        <div class="login-instruction">
+            Sign in with your AIUB student email
+        </div>
+
+        <div id="alertBox" class="hidden"></div>
+
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="email">Student Email</label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    placeholder="XX-XXXXX-X@student.aiub.edu"
+                    required
+                >
+            </div>
+
+            <button type="submit" class="login-button" id="loginBtn">
+                <span id="loginBtnText">Login</span>
+            </button>
+        </form>
+
+        <div class="info-box">
+            <div class="info-box-title">📌 Access Requirements</div>
+            <div class="info-box-text">
+                Only students with AIUB email format <span class="email-format">XX-XXXXX-X@student.aiub.edu</span> can access this portal.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        const EMAIL_PATTERN = /^\d{2}-\d{5}-\d@student\.aiub\.edu$/;
+
+        const form = document.getElementById('loginForm');
+        const emailInput = document.getElementById('email');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginBtnText = document.getElementById('loginBtnText');
+        const alertBox = document.getElementById('alertBox');
+
+        // Show alert message
+        function showAlert(message, type = 'success') {
+            alertBox.className = `alert alert-${type}`;
+            alertBox.textContent = message;
+            alertBox.classList.remove('hidden');
+            
+            setTimeout(() => {
+                alertBox.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Validate email
+        function validateEmail(email) {
+            return EMAIL_PATTERN.test(email);
+        }
+
+        // Extract student ID
+        function extractStudentId(email) {
+            return email.split('@')[0];
+        }
+
+        // Handle login
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = emailInput.value.trim();
+
+            // Validate email format
+            if (!validateEmail(email)) {
+                showAlert('Invalid email format. Use XX-XXXXX-X@student.aiub.edu', 'error');
+                return;
+            }
+
+            // Disable button and show loading
+            loginBtn.disabled = true;
+            loginBtnText.innerHTML = '<div class="spinner"></div> Logging in...';
+
+            try {
+                // Call login API
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Store user data
+                    localStorage.setItem('userEmail', email);
+                    localStorage.setItem('studentId', extractStudentId(email));
+                    localStorage.setItem('isAuthenticated', 'true');
+                    localStorage.setItem('userData', JSON.stringify(data.user));
+
+                    showAlert(data.message, 'success');
+
+                    // Redirect to dashboard
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1000);
+                } else {
+                    showAlert(data.message || 'Login failed', 'error');
+                    loginBtn.disabled = false;
+                    loginBtnText.textContent = 'Login';
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showAlert('Connection error. Make sure the backend server is running.', 'error');
+                loginBtn.disabled = false;
+                loginBtnText.textContent = 'Login';
+            }
+        });
+
+        // Check if already logged in
+        window.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('isAuthenticated') === 'true') {
+                window.location.href = 'dashboard.html';
+            }
+        });
+    </script>
+</body>
+</html>
