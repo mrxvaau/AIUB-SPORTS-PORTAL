@@ -11,6 +11,7 @@ const PORT = process.env.PORT || 3000;
 
 // Import routes
 const authRoutes = require('./routes/auth');
+const msAuthRoutes = require('./routes/msauth');
 
 // Middleware
 app.use(cors());
@@ -25,6 +26,7 @@ app.use((req, res, next) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/msauth', msAuthRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

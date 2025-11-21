@@ -4,6 +4,7 @@
 const oracledb = require('oracledb');
 require('dotenv').config();
 
+// Force Thick mode for Oracle 10g compatibility
 oracledb.initOracleClient({ libDir: 'C:\\oraclexe\\instantclient_23_9' });
 
 // Oracle configuration
@@ -97,16 +98,19 @@ async function executeQuery(sql, params = [], options = {}) {
     }
 }
 
-// Call stored procedure helper
+// Call stored procedure helper - FIXED VERSION
 async function callProcedure(procedureName, params) {
     let connection;
     try {
         connection = await getConnection();
-        const result = await connection.execute(
-            `BEGIN ${procedureName}; END;`,
-            params,
-            { autoCommit: true }
-        );
+        
+        // Build the PL/SQL block
+        const plsql = `BEGIN ${procedureName}; END;`;
+        
+        const result = await connection.execute(plsql, params, { 
+            autoCommit: true 
+        });
+        
         return result;
     } catch (err) {
         console.error('Procedure call error:', err);

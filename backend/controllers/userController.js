@@ -18,6 +18,7 @@ function extractStudentId(email) {
 }
 
 // Login user (register if first time)
+// Login user (register if first time)
 exports.login = async (req, res) => {
     try {
         const { email } = req.body;
@@ -32,25 +33,24 @@ exports.login = async (req, res) => {
 
         const studentId = extractStudentId(email);
 
-        // Call register_user procedure
-        const result = await db.callProcedure(
-            'register_user(:student_id, :email, :user_id, :status)',
-            {
-                student_id: studentId,
-                email: email,
-                user_id: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT },
-                status: { type: oracledb.STRING, dir: oracledb.BIND_OUT, maxSize: 100 }
-            }
-        );
+        // Check if user exists using direct query instead of procedure
+        const checkQuery = `SELECT COUNT(*) as user_count FROM users WHERE student_id = :student_id`;
+        const checkResult = await db.executeQuery(checkQuery, [studentId]);
+        const userExists = checkResult.rows[0].USER_COUNT > 0;
 
-        const status = result.outBinds.status;
-        const userId = result.outBinds.user_id;
-
-        if (status === 'INVALID_EMAIL') {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid AIUB email format'
-            });
+        if (!userExists) {
+            // Insert new user directly
+            const insertQuery = `
+                INSERT INTO users (student_id, email, is_first_login, last_login)
+                VALUES (:student_id, :email, 1, CURRENT_TIMESTAMP)
+            `;
+            await db.executeQuery(insertQuery, [studentId, email]);
+        } else {
+            // Update last login
+            const updateQuery = `
+                UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE student_id = :student_id
+            `;
+            await db.executeQuery(updateQuery, [studentId]);
         }
 
         // Get user profile
@@ -58,8 +58,8 @@ exports.login = async (req, res) => {
 
         return res.json({
             success: true,
-            message: status === 'SUCCESS' ? 'New user registered' : 'User logged in',
-            isNewUser: status === 'SUCCESS',
+            message: userExists ? 'User logged in' : 'New user registered',
+            isNewUser: !userExists,
             user: userProfile
         });
 

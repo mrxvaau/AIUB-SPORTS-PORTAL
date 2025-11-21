@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authenticating - AIUB Sports Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .callback-container {
+            background: white;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #1976d2 0%, #2196f3 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 40px;
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .status-message {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #1976d2;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-box {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .success-box {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .back-link {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .back-link a {
+            color: #1976d2;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="callback-container">
+        <img src="images/logo.svg" alt="AIUB Logo" style="width: 50px; height: 50px; border-radius: 50%;">
+        <h1>Authenticating with Microsoft</h1>
+        <div class="status-message" id="statusMessage">Please wait while we verify your credentials...</div>
+        <div class="spinner" id="spinner"></div>
+        <div class="error-box" id="errorBox"></div>
+        <div class="success-box" id="successBox"></div>
+        <div class="back-link" id="backLink">
+            <a href="login.html">← Back to Login</a>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+
+        async function handleCallback() {
+            try {
+                // Get URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const code = urlParams.get('code');
+                const state = urlParams.get('state');
+                const error = urlParams.get('error');
+                const errorDescription = urlParams.get('error_description');
+
+                // Check for errors from Microsoft
+                if (error) {
+                    showError(`Authentication failed: ${errorDescription || error}`);
+                    return;
+                }
+
+                if (!code) {
+                    showError('No authorization code received. Please try again.');
+                    return;
+                }
+
+                updateStatus('Exchanging authorization code...');
+
+                // Exchange code for token and user info
+                const callbackResponse = await fetch(`${API_URL}/msauth/callback`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ code, state })
+                });
+
+                const callbackData = await callbackResponse.json();
+
+                if (!callbackData.success) {
+                    showError(callbackData.message || 'Authentication failed');
+                    return;
+                }
+
+                updateStatus('Registering user in database...');
+
+                // Register/login user in our system
+                const loginResponse = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        email: callbackData.user.email 
+                    })
+                });
+
+                const loginData = await loginResponse.json();
+
+                if (!loginData.success) {
+                    showError(loginData.message || 'Failed to complete registration');
+                    return;
+                }
+
+                // Store user data
+                localStorage.setItem('userEmail', callbackData.user.email);
+                localStorage.setItem('studentId', callbackData.user.studentId);
+                localStorage.setItem('isAuthenticated', 'true');
+                localStorage.setItem('userData', JSON.stringify(loginData.user));
+                localStorage.setItem('msAccessToken', callbackData.accessToken);
+                localStorage.setItem('userName', callbackData.user.name);
+
+                // Show success
+                showSuccess(`Welcome ${callbackData.user.name}! Redirecting to dashboard...`);
+
+                // Redirect to dashboard
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1500);
+
+            } catch (error) {
+                console.error('Callback error:', error);
+                showError('An unexpected error occurred. Please try again.');
+            }
+        }
+
+        function updateStatus(message) {
+            document.getElementById('statusMessage').textContent = message;
+        }
+
+        function showError(message) {
+            document.getElementById('spinner').style.display = 'none';
+            document.getElementById('statusMessage').style.display = 'none';
+            const errorBox = document.getElementById('errorBox');
+            errorBox.textContent = message;
+            errorBox.style.display = 'block';
+            document.getElementById('backLink').style.display = 'block';
+        }
+
+        function showSuccess(message) {
+            document.getElementById('spinner').style.display = 'none';
+            document.getElementById('statusMessage').style.display = 'none';
+            const successBox = document.getElementById('successBox');
+            successBox.textContent = message;
+            successBox.style.display = 'block';
+        }
+
+        // Start callback handling on page load
+        window.addEventListener('DOMContentLoaded', handleCallback);
+    </script>
+</body>
+</html>
