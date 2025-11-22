@@ -1,4 +1,4 @@
-﻿# AIUB Sports Portal - Version 1.0
+﻿# AIUB Sports Portal - Version 1.1
 
 Full-stack web application for AIUB Sports Management
 
@@ -24,8 +24,8 @@ See `docs/SETUP_GUIDE.md` for complete installation instructions.
 2. Install backend: `cd backend && npm install`
 3. Configure: Edit `backend/.env`
 4. Start backend: `npm start`
-5. Start frontend: `npx http-server frontend -p 8080`
-6. Open: http://localhost:8080
+5. Start frontend: `npx http-server frontend -p 3031`
+6. Open: http://localhost:3031
 
 ## Version History
-- v1.0 (Current) - Initial release with login and profile management
+- v1.1 (Current) - Initial release with login and profile management
