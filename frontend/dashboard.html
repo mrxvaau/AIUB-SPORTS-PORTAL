@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AIUB Sports Portal - Dashboard</title>
+    <link rel="icon" type="image/svg+xml" href="images/logo.svg">
     <style>
         * {
             margin: 0;
@@ -13,208 +14,407 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
+            background-color: #f9fafb;
             min-height: 100vh;
         }
 
+        /* Header */
         .header {
-            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
-            color: white;
-            padding: 15px 30px;
+            background: white;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            margin: 16px;
+            margin-bottom: 8px;
+            padding: 12px 24px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            justify-content: space-between;
         }
 
         .header-left {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 16px;
         }
 
-        .logo-small {
-            width: 50px;
-            height: 50px;
-            background: white;
-            border-radius: 50%;
+        .logo-container {
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 24px;
+            gap: 16px;
         }
 
-        .portal-name {
-            font-size: 22px;
+        .logo-img {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+        }
+
+        .logo-text h1 {
+            color: #1e3a8a;
+            font-size: 40px;
             font-weight: 700;
+            line-height: 1;
+        }
+
+        .logo-text p {
+            color: #6b7280;
+            font-size: 12px;
+            margin-top: 2px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-left: 32px;
+        }
+
+        .nav-link {
+            color: #3b82f6;
+            font-size: 14px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: not-allowed;
+            opacity: 0.6;
         }
 
         .header-right {
             display: flex;
             align-items: center;
-            gap: 20px;
-        }
-
-        .user-info {
-            text-align: right;
+            gap: 16px;
         }
 
         .welcome-text {
             font-size: 14px;
-            opacity: 0.9;
+            color: #6b7280;
         }
 
-        .user-email {
-            font-size: 16px;
-            font-weight: 600;
+        .icon-btn {
+            position: relative;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .icon-btn:hover {
+            background: #f3f4f6;
+        }
+
+        .icon-btn svg {
+            width: 20px;
+            height: 20px;
+            color: #6b7280;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .logout-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid white;
-            color: white;
-            padding: 8px 20px;
-            border-radius: 5px;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s ease;
         }
 
-        .logout-btn:hover {
-            background: white;
-            color: #1976d2;
+        /* Main Layout */
+        .main-container {
+            display: flex;
+            gap: 16px;
+            padding: 0 16px;
         }
 
-        .container {
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 0 20px;
+        /* Sidebar */
+        .sidebar {
+            width: 224px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
 
-        .dashboard-card {
-            background: white;
-            border-radius: 10px;
-            padding: 30px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
-        }
-
-        .card-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .card-subtitle {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 25px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 14px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 8px;
-        }
-
-        .form-group input,
-        .form-group select {
+        .sidebar-btn {
             width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 6px;
-            font-size: 15px;
-            transition: border-color 0.3s ease;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #1976d2;
-        }
-
-        .form-group input:disabled {
-            background-color: #f5f5f5;
-            cursor: not-allowed;
-            color: #666;
-        }
-
-        .field-locked {
-            background-color: #f5f5f5 !important;
-            cursor: not-allowed !important;
-        }
-
-        .help-text {
-            font-size: 12px;
-            color: #666;
-            margin-top: 5px;
-        }
-
-        .edit-limit-warning {
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            color: #856404;
-            padding: 10px 15px;
-            border-radius: 5px;
-            font-size: 13px;
-            margin-top: 5px;
-        }
-
-        .edit-limit-error {
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+            background: #1e40af;
             color: white;
+            padding: 12px 16px;
             border: none;
-            padding: 12px 30px;
             border-radius: 6px;
-            font-size: 16px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: not-allowed;
+            transition: background 0.2s;
+        }
+
+        .sidebar-btn:hover {
+            background: #1e3a8a;
+        }
+
+        .sidebar-btn-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Content Area */
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Announcement Box */
+        .announcement {
+            background: #dbeafe;
+            border: 1px solid #93c5fd;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .announcement p {
+            font-size: 14px;
+            color: #1e3a8a;
+            line-height: 1.6;
+        }
+
+        /* Player Info Card */
+        .player-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .edit-btn, .save-btn, .cancel-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
         }
 
-        .btn-primary:hover:not(:disabled) {
-            background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
-            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.4);
-            transform: translateY(-2px);
+        .edit-btn {
+            background: white;
+            border: 1px solid #d1d5db;
+            color: #374151;
         }
 
-        .btn-primary:disabled {
-            opacity: 0.6;
+        .edit-btn:hover {
+            background: #f9fafb;
+        }
+
+        .save-btn {
+            background: #1e40af;
+            border: none;
+            color: white;
+        }
+
+        .save-btn:hover {
+            background: #1e3a8a;
+        }
+
+        .cancel-btn {
+            background: white;
+            border: 1px solid #d1d5db;
+            color: #374151;
+            margin-left: 8px;
+        }
+
+        .cancel-btn:hover {
+            background: #f9fafb;
+        }
+
+        .player-info-grid {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            padding: 16px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .info-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 14px;
+            color: #374151;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 14px;
+            color: #1f2937;
+        }
+
+        .info-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+        }
+
+        .info-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .info-input:disabled {
+            background: #f3f4f6;
             cursor: not-allowed;
+        }
+
+        .locked-badge {
+            display: none;
+            background: #3b82f6;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .editable-badge {
+            display: none;
+            background: #10b981;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .editing .locked-badge,
+        .editing .editable-badge {
+            display: inline-block;
+        }
+
+        /* Warning Box */
+        .warning-box {
+            background: #fef3c7;
+            border: 1px solid #fde047;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .warning-box p {
+            font-size: 14px;
+            color: #374151;
+        }
+
+        /* Action Button */
+        .action-button {
+            display: flex;
+            justify-content: center;
+            padding: 16px 0;
+        }
+
+        .disabled-btn {
+            background: #fca5a5;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: not-allowed;
+        }
+
+        /* Schedule Card */
+        .schedule-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .schedule-header {
+            background: #1d4ed8;
+            color: white;
+            padding: 12px 16px;
+        }
+
+        .schedule-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .schedule-body {
+            padding: 16px;
+        }
+
+        .schedule-row {
+            display: flex;
+            gap: 16px;
+            padding: 8px 0;
+        }
+
+        .schedule-day {
+            width: 96px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .schedule-info {
+            flex: 1;
+            font-size: 14px;
+            color: #6b7280;
         }
 
         .alert {
-            padding: 12px 15px;
+            padding: 12px 16px;
             border-radius: 6px;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             font-size: 14px;
         }
 
         .alert-success {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
+            background: #d1fae5;
+            border: 1px solid #6ee7b7;
+            color: #065f46;
         }
 
         .alert-error {
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            color: #991b1b;
         }
 
         .hidden {
@@ -223,143 +423,308 @@
 
         .spinner {
             display: inline-block;
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
             border: 2px solid rgba(255, 255, 255, 0.3);
             border-top-color: white;
             border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+            animation: spin 0.6s linear infinite;
         }
 
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
 
-        .info-badge {
-            display: inline-block;
-            background: #e3f2fd;
-            color: #1976d2;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-left: 10px;
+        /* Welcome Screen */
+        .welcome-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            animation: fadeIn 0.5s ease;
         }
 
-        .locked-icon {
-            display: inline-block;
-            margin-left: 8px;
-            font-size: 12px;
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .welcome-content {
+            text-align: center;
+            color: white;
+            animation: slideUp 0.8s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .welcome-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .welcome-title {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .welcome-message {
+            font-size: 24px;
+            opacity: 0.9;
         }
     </style>
 </head>
 <body>
+    <!-- Header -->
     <div class="header">
         <div class="header-left">
-            <img src="images/logo.svg" alt="AIUB Logo" style="width: 50px; height: 50px; border-radius: 50%;">
-            <div class="portal-name">AIUB Sports Portal</div>
+            <div class="logo-container">
+                <img src="images/logo.svg" alt="AIUB Logo" class="logo-img">
+                <div class="logo-text">
+                    <h1>AIUB</h1>
+                    <p>SPORTS PORTAL</p>
+                </div>
+            </div>
+            <div class="nav-links">
+                <a href="#" class="nav-link">
+                    <span>⚡ Registration</span>
+                </a>
+            </div>
         </div>
         <div class="header-right">
-            <div class="user-info">
-                <div class="welcome-text">Welcome</div>
-                <div class="user-email" id="headerEmail">Loading...</div>
+            <span class="welcome-text" id="welcomeText">Welcome</span>
+            <div class="icon-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                <span class="notification-badge">1</span>
             </div>
-            <button class="logout-btn" onclick="logout()">Logout</button>
+            <div class="icon-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            </div>
+            <div class="icon-btn logout-btn" onclick="logout()">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+            </div>
         </div>
     </div>
 
-    <div class="container">
-        <div class="dashboard-card">
-            <div class="card-title">User Profile</div>
-            <div class="card-subtitle" id="cardSubtitle">Complete your profile information</div>
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <button class="sidebar-btn">
+                <div class="sidebar-btn-content">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>Dashboard</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            <button class="sidebar-btn">
+                <div class="sidebar-btn-content">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                    </svg>
+                    <span>Registration</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            <button class="sidebar-btn">
+                <div class="sidebar-btn-content">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                    </svg>
+                    <span>Featured</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            <button class="sidebar-btn">
+                <div class="sidebar-btn-content">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+                    </svg>
+                    <span>Messages</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            <button class="sidebar-btn">
+                <div class="sidebar-btn-content">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Bug Report</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+        </div>
 
+        <!-- Content -->
+        <div class="content">
+            <!-- Announcement -->
+            <div class="announcement">
+                <p>Dear Students & Faculty members, Welcome to the new AIUB Sports Portal. This platform is designed to make your sports activities easier to access, manage, and enjoy. Stay updated, stay connected, and be a part of AIUB's growing sports community.</p>
+            </div>
+
+            <!-- Alert Box -->
             <div id="alertBox" class="hidden"></div>
 
-            <form id="profileForm">
-                <div class="form-group">
-                    <label for="studentId">
-                        Student ID 
-                        <span class="locked-icon">🔒</span>
-                    </label>
-                    <input 
-                        type="text" 
-                        id="studentId" 
-                        name="studentId" 
-                        class="field-locked"
-                        readonly
-                        disabled
-                    >
-                    <div class="help-text">Automatically extracted from your email</div>
+            <!-- Player Info Card -->
+            <div class="player-card">
+                <div class="card-header">
+                    <span></span>
+                    <div id="editButtons">
+                        <button class="edit-btn" onclick="enableEdit()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            Edit Profile
+                        </button>
+                    </div>
+                    <div id="saveButtons" class="hidden">
+                        <button class="save-btn" onclick="saveProfile()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Save
+                        </button>
+                        <button class="cancel-btn" onclick="cancelEdit()">Cancel</button>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="email">
-                        Email 
-                        <span class="locked-icon">🔒</span>
-                    </label>
-                    <input 
-                        type="email" 
-                        id="email" 
-                        name="email" 
-                        class="field-locked"
-                        readonly
-                        disabled
-                    >
-                    <div class="help-text">Your AIUB student email</div>
-                </div>
+                <div class="player-info-grid">
+                    <!-- Left Column -->
+                    <div class="info-field">
+                        <label class="info-label">Player Name <span id="nameBadge" class="editable-badge">EDITABLE</span></label>
+                        <input type="text" id="fullName" class="info-input" disabled>
+                        <div id="nameWarning" class="hidden" style="margin-top: 4px; font-size: 12px; color: #dc2626;"></div>
+                    </div>
 
-                <div class="form-group">
-                    <label for="fullName">
-                        Full Name
-                        <span class="info-badge" id="editBadge">Editable</span>
-                    </label>
-                    <input 
-                        type="text" 
-                        id="fullName" 
-                        name="fullName" 
-                        placeholder="Enter your full name"
-                        required
-                    >
-                    <div id="nameEditWarning" class="hidden"></div>
-                </div>
+                    <div class="info-field">
+                        <label class="info-label">Program <span class="locked-badge">LOCKED</span></label>
+                        <input type="text" id="programLevel" class="info-input" disabled>
+                    </div>
 
-                <div class="form-group">
-                    <label for="gender">
-                        Gender
-                        <span id="genderLockIcon" class="hidden locked-icon">🔒</span>
-                    </label>
-                    <select id="gender" name="gender" required>
-                        <option value="">Select Gender</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                    </select>
-                    <div class="help-text" id="genderHelp">Can only be set once during first login</div>
-                </div>
+                    <div class="info-field">
+                        <label class="info-label">Player ID <span class="locked-badge">LOCKED</span></label>
+                        <input type="text" id="studentId" class="info-input" disabled>
+                    </div>
 
-                <button type="submit" class="btn-primary" id="submitBtn">
-                    <span id="submitBtnText">Save Profile</span>
-                </button>
-            </form>
+                    <div class="info-field">
+                        <label class="info-label">Department <span class="locked-badge">LOCKED</span></label>
+                        <input type="text" id="department" class="info-input" disabled>
+                    </div>
+
+                    <div class="info-field">
+                        <label class="info-label">Player Email <span class="locked-badge">LOCKED</span></label>
+                        <input type="text" id="email" class="info-input" disabled>
+                    </div>
+
+                    <div class="info-field">
+                        <label class="info-label">Number <span class="editable-badge">EDITABLE</span></label>
+                        <input type="text" id="phoneNumber" class="info-input" disabled>
+                    </div>
+
+                    <div class="info-field">
+                        <label class="info-label">Gender <span class="locked-badge">LOCKED</span></label>
+                        <input type="text" id="gender" class="info-input" disabled>
+                    </div>
+
+                    <div class="info-field">
+                        <label class="info-label">Blood Group <span class="editable-badge">EDITABLE</span></label>
+                        <select id="bloodGroup" class="info-input" disabled>
+                            <option value="">Select Blood Group</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Warning -->
+            <div class="warning-box">
+                <p>No games available at the moment. You will be notified once a tournament is scheduled.</p>
+            </div>
+
+            <!-- Action Button -->
+            <div class="action-button">
+                <button class="disabled-btn">You are not allowed to do registration Today.</button>
+            </div>
+
+            <!-- Game Schedule -->
+            <div class="schedule-card">
+                <div class="schedule-header">
+                    <h2>Game Schedule</h2>
+                </div>
+                <div class="schedule-body">
+                    <div class="schedule-row">
+                        <span class="schedule-day">Today</span>
+                        <span class="schedule-info">No Games Available</span>
+                    </div>
+                    <div class="schedule-row" style="border-top: 1px solid #e5e7eb; padding-top: 12px;">
+                        <span class="schedule-day">Tomorrow</span>
+                        <div class="schedule-info">
+                            <div style="margin-bottom: 8px;">
+                                <a href="#" style="color: #3b82f6; text-decoration: none;">No Games Available</a>
+                                <p style="font-size: 12px; color: #6b7280;">TBA</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Welcome Screen -->
+    <div id="welcomeScreen" class="welcome-overlay">
+        <div class="welcome-content">
+            <div class="welcome-icon">🎉</div>
+            <div class="welcome-title">Welcome!</div>
+            <div class="welcome-message" id="welcomeName"></div>
         </div>
     </div>
 
     <script>
         const API_URL = 'http://localhost:3000/api';
         let currentUser = null;
-        let isFirstLogin = true;
-
-        // Show alert
-        function showAlert(message, type = 'success') {
-            const alertBox = document.getElementById('alertBox');
-            alertBox.className = `alert alert-${type}`;
-            alertBox.textContent = message;
-            alertBox.classList.remove('hidden');
-            
-            setTimeout(() => {
-                alertBox.classList.add('hidden');
-            }, 5000);
-        }
+        let originalData = null;
+        let isEditing = false;
 
         // Load user profile
         async function loadProfile() {
@@ -372,140 +737,166 @@
                     return;
                 }
 
-                // Display basic info
-                document.getElementById('headerEmail').textContent = email;
-                document.getElementById('studentId').value = studentId;
-                document.getElementById('email').value = email;
-
-                // Fetch profile from backend
                 const response = await fetch(`${API_URL}/auth/profile/${studentId}`);
                 const data = await response.json();
 
                 if (data.success && data.user) {
                     currentUser = data.user;
-                    isFirstLogin = data.user.IS_FIRST_LOGIN === 1;
-
-                    // Update UI based on user data
-                    if (data.user.FULL_NAME) {
-                        document.getElementById('fullName').value = data.user.FULL_NAME;
-                    }
-
-                    if (data.user.GENDER) {
-                        document.getElementById('gender').value = data.user.GENDER;
-                        document.getElementById('gender').disabled = true;
-                        document.getElementById('gender').classList.add('field-locked');
-                        document.getElementById('genderLockIcon').classList.remove('hidden');
-                        document.getElementById('genderHelp').textContent = 'Gender is locked after first submission';
-                    }
-
-                    // Update name edit warning
-                    updateNameEditWarning(data.user.NAME_EDIT_COUNT);
-
-                    // Update subtitle
-                    if (!isFirstLogin) {
-                        document.getElementById('cardSubtitle').textContent = 'View and update your profile';
-                        document.getElementById('submitBtnText').textContent = 'Update Profile';
-                    }
+                    originalData = { ...data.user };
+                    displayProfile(data.user);
+                    
+                    // Update welcome text
+                    document.getElementById('welcomeText').textContent = 
+                        `Welcome ${data.user.FULL_NAME || data.user.STUDENT_ID}`;
                 }
             } catch (error) {
                 console.error('Error loading profile:', error);
-                showAlert('Error loading profile. Please try again.', 'error');
+                showAlert('Error loading profile', 'error');
             }
         }
 
-        // Update name edit warning
-        function updateNameEditWarning(editCount) {
-            const warning = document.getElementById('nameEditWarning');
-            const badge = document.getElementById('editBadge');
-            const remainingEdits = 3 - editCount;
+        // Display profile data
+        function displayProfile(user) {
+            document.getElementById('studentId').value = user.STUDENT_ID || '';
+            document.getElementById('email').value = user.EMAIL || '';
+            document.getElementById('fullName').value = user.FULL_NAME || '';
+            document.getElementById('gender').value = user.GENDER || '';
+            document.getElementById('phoneNumber').value = user.PHONE_NUMBER || '';
+            document.getElementById('bloodGroup').value = user.BLOOD_GROUP || '';
+            document.getElementById('programLevel').value = user.PROGRAM_LEVEL || '';
+            document.getElementById('department').value = user.DEPARTMENT || '';
+
+            // Update name edit badge
+            updateNameBadge(user.NAME_EDIT_COUNT || 0);
+        }
+
+        // Update name edit badge
+        function updateNameBadge(editCount) {
+            const badge = document.getElementById('nameBadge');
+            const remaining = 3 - editCount;
 
             if (editCount >= 3) {
-                warning.className = 'edit-limit-warning edit-limit-error';
-                warning.textContent = '❌ Name edit limit reached. You cannot change your name anymore.';
-                warning.classList.remove('hidden');
-                badge.textContent = 'Locked';
-                badge.style.background = '#f8d7da';
-                badge.style.color = '#721c24';
-                document.getElementById('fullName').disabled = true;
-                document.getElementById('fullName').classList.add('field-locked');
+                badge.className = 'locked-badge';
+                badge.textContent = 'LOCKED';
             } else if (editCount > 0) {
-                warning.className = 'edit-limit-warning';
-                warning.textContent = `⚠️ You have ${remainingEdits} edit${remainingEdits > 1 ? 's' : ''} remaining for your name.`;
-                warning.classList.remove('hidden');
-                badge.textContent = `${remainingEdits} edits left`;
+                badge.className = 'editable-badge';
+                badge.textContent = `${remaining} EDIT${remaining > 1 ? 'S' : ''} LEFT`;
+            } else {
+                badge.className = 'editable-badge';
+                badge.textContent = 'EDITABLE';
             }
         }
 
-        // Handle form submission
-        document.getElementById('profileForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const submitBtn = document.getElementById('submitBtn');
-            const submitBtnText = document.getElementById('submitBtnText');
-            const studentId = localStorage.getItem('studentId');
-
-            const formData = {
-                fullName: document.getElementById('fullName').value.trim(),
-                gender: document.getElementById('gender').value,
-                isFirstTime: isFirstLogin
-            };
-
-            // Validation
-            if (!formData.fullName || !formData.gender) {
-                showAlert('Please fill in all required fields', 'error');
-                return;
+        // Enable edit mode
+        function enableEdit() {
+            isEditing = true;
+            
+            // Add editing class to show badges
+            document.querySelector('.player-info-grid').classList.add('editing');
+            
+            // Enable editable fields
+            const nameEditCount = currentUser.NAME_EDIT_COUNT || 0;
+            if (nameEditCount < 3) {
+                document.getElementById('fullName').disabled = false;
+            } else {
+                document.getElementById('nameWarning').textContent = '❌ Name edit limit reached!';
+                document.getElementById('nameWarning').classList.remove('hidden');
             }
+            
+            document.getElementById('phoneNumber').disabled = false;
+            document.getElementById('bloodGroup').disabled = false;
 
-            // Disable button
-            submitBtn.disabled = true;
-            submitBtnText.innerHTML = '<span class="spinner"></span> Saving...';
+            // Toggle buttons
+            document.getElementById('editButtons').classList.add('hidden');
+            document.getElementById('saveButtons').classList.remove('hidden');
+        }
 
+        // Cancel edit
+        function cancelEdit() {
+            isEditing = false;
+            displayProfile(originalData);
+            
+            // Remove editing class
+            document.querySelector('.player-info-grid').classList.remove('editing');
+            
+            // Disable all inputs
+            document.getElementById('fullName').disabled = true;
+            document.getElementById('phoneNumber').disabled = true;
+            document.getElementById('bloodGroup').disabled = true;
+
+            // Toggle buttons
+            document.getElementById('editButtons').classList.remove('hidden');
+            document.getElementById('saveButtons').classList.add('hidden');
+            document.getElementById('nameWarning').classList.add('hidden');
+        }
+
+        // Save profile
+        async function saveProfile() {
             try {
+                const studentId = localStorage.getItem('studentId');
+                
+                const formData = {
+                    fullName: document.getElementById('fullName').value.trim(),
+                    gender: currentUser.GENDER,
+                    phoneNumber: document.getElementById('phoneNumber').value.trim(),
+                    bloodGroup: document.getElementById('bloodGroup').value,
+                    programLevel: currentUser.PROGRAM_LEVEL,
+                    department: currentUser.DEPARTMENT,
+                    isFirstTime: false
+                };
+
+                // Validate
+                if (!formData.fullName || !formData.phoneNumber || !formData.bloodGroup) {
+                    showAlert('Please fill in all required fields', 'error');
+                    return;
+                }
+
+                // Show loading
+                const saveBtn = document.querySelector('.save-btn');
+                const originalText = saveBtn.innerHTML;
+                saveBtn.innerHTML = '<span class="spinner"></span> Saving...';
+                saveBtn.disabled = true;
+
                 const response = await fetch(`${API_URL}/auth/profile/${studentId}`, {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData)
                 });
 
                 const data = await response.json();
 
                 if (data.success) {
-                    showAlert(data.message, 'success');
-                    
-                    // Update local storage
-                    localStorage.setItem('userData', JSON.stringify(data.user));
-                    
-                    // Reload profile
-                    setTimeout(() => {
-                        loadProfile();
-                    }, 1000);
+                    showAlert('Profile updated successfully!', 'success');
+                    currentUser = data.user;
+                    originalData = { ...data.user };
+                    displayProfile(data.user);
+                    cancelEdit();
                 } else {
                     showAlert(data.message || 'Failed to update profile', 'error');
                 }
+
+                saveBtn.innerHTML = originalText;
+                saveBtn.disabled = false;
+
             } catch (error) {
                 console.error('Update error:', error);
                 showAlert('Connection error. Please try again.', 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtnText.textContent = isFirstLogin ? 'Save Profile' : 'Update Profile';
             }
-        });
+        }
 
-        // Monitor name changes
-        document.getElementById('fullName').addEventListener('input', function() {
-            if (currentUser && currentUser.FULL_NAME && this.value !== currentUser.FULL_NAME) {
-                const warning = document.getElementById('nameEditWarning');
-                if (currentUser.NAME_EDIT_COUNT < 3 && !isFirstLogin) {
-                    warning.className = 'edit-limit-warning';
-                    warning.textContent = '⚠️ Changing your name will count towards your edit limit.';
-                    warning.classList.remove('hidden');
-                }
-            }
-        });
+        // Show alert
+        function showAlert(message, type) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.className = `alert alert-${type}`;
+            alertBox.textContent = message;
+            alertBox.classList.remove('hidden');
+            
+            setTimeout(() => {
+                alertBox.classList.add('hidden');
+            }, 5000);
+        }
 
-        // Logout function
+        // Logout
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
                 localStorage.clear();
@@ -513,7 +904,7 @@
             }
         }
 
-        // Check authentication on load
+        // Check authentication
         window.addEventListener('DOMContentLoaded', () => {
             if (localStorage.getItem('isAuthenticated') !== 'true') {
                 window.location.href = 'login.html';
@@ -521,6 +912,19 @@
             }
             
             loadProfile();
+
+            // Check if this is first login after profile completion
+            const justCompleted = sessionStorage.getItem('profileJustCompleted');
+            if (justCompleted) {
+                sessionStorage.removeItem('profileJustCompleted');
+                const userName = localStorage.getItem('userName') || 'Player';
+                document.getElementById('welcomeName').textContent = userName;
+                document.getElementById('welcomeScreen').style.display = 'flex';
+                
+                setTimeout(() => {
+                    document.getElementById('welcomeScreen').style.display = 'none';
+                }, 3000);
+            }
         });
     </script>
 </body>

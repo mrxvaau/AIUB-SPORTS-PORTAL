@@ -33,7 +33,7 @@ exports.login = async (req, res) => {
 
         const studentId = extractStudentId(email);
 
-        // Check if user exists using direct query instead of procedure
+        // Check if user exists using direct query
         const checkQuery = `SELECT COUNT(*) as user_count FROM users WHERE student_id = :student_id`;
         const checkResult = await db.executeQuery(checkQuery, [studentId]);
         const userExists = checkResult.rows[0].USER_COUNT > 0;
@@ -41,8 +41,8 @@ exports.login = async (req, res) => {
         if (!userExists) {
             // Insert new user directly
             const insertQuery = `
-                INSERT INTO users (student_id, email, is_first_login, last_login)
-                VALUES (:student_id, :email, 1, CURRENT_TIMESTAMP)
+                INSERT INTO users (student_id, email, is_first_login, last_login, profile_completed)
+                VALUES (:student_id, :email, 1, CURRENT_TIMESTAMP, 0)
             `;
             await db.executeQuery(insertQuery, [studentId, email]);
         } else {
@@ -72,7 +72,6 @@ exports.login = async (req, res) => {
         });
     }
 };
-
 // Get user profile
 exports.getProfile = async (req, res) => {
     try {
@@ -111,8 +110,13 @@ exports.getUserProfile = async (studentId) => {
             email,
             full_name,
             gender,
+            phone_number,
+            blood_group,
+            program_level,
+            department,
             name_edit_count,
             is_first_login,
+            profile_completed,
             TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') as created_at,
             TO_CHAR(updated_at, 'YYYY-MM-DD HH24:MI:SS') as updated_at,
             TO_CHAR(last_login, 'YYYY-MM-DD HH24:MI:SS') as last_login
@@ -126,16 +130,17 @@ exports.getUserProfile = async (studentId) => {
 };
 
 // Update user profile
+// Update user profile
 exports.updateProfile = async (req, res) => {
     try {
         const { studentId } = req.params;
-        const { fullName, gender, isFirstTime } = req.body;
+        const { fullName, gender, phoneNumber, bloodGroup, programLevel, department, isFirstTime } = req.body;
 
         // Validate inputs
-        if (!fullName || !gender) {
+        if (!fullName || !gender || !phoneNumber || !bloodGroup || !programLevel || !department) {
             return res.status(400).json({
                 success: false,
-                message: 'Full name and gender are required'
+                message: 'All fields are required'
             });
         }
 
@@ -146,7 +151,21 @@ exports.updateProfile = async (req, res) => {
             });
         }
 
-        // Get current user data to check constraints
+        if (!['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].includes(bloodGroup)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid blood group'
+            });
+        }
+
+        if (!['Undergraduate', 'Postgraduate'].includes(programLevel)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid program level'
+            });
+        }
+
+        // Get current user data
         const currentUser = await exports.getUserProfile(studentId);
 
         if (!currentUser) {
@@ -156,7 +175,7 @@ exports.updateProfile = async (req, res) => {
             });
         }
 
-        // Check if gender is being changed (not allowed after first time)
+        // Check locked fields
         if (!isFirstTime && currentUser.GENDER && currentUser.GENDER !== gender) {
             return res.status(400).json({
                 success: false,
@@ -164,45 +183,88 @@ exports.updateProfile = async (req, res) => {
             });
         }
 
-        // Check name edit limit
+        if (!isFirstTime && currentUser.PROGRAM_LEVEL && currentUser.PROGRAM_LEVEL !== programLevel) {
+            return res.status(400).json({
+                success: false,
+                message: 'Program level cannot be changed'
+            });
+        }
+
+        if (!isFirstTime && currentUser.DEPARTMENT && currentUser.DEPARTMENT !== department) {
+            return res.status(400).json({
+                success: false,
+                message: 'Department cannot be changed'
+            });
+        }
+
+        // First time profile completion
+        if (isFirstTime || currentUser.IS_FIRST_LOGIN === 1 || !currentUser.PROFILE_COMPLETED) {
+            const updateQuery = `
+                UPDATE users
+                SET full_name = :full_name,
+                    gender = :gender,
+                    phone_number = :phone_number,
+                    blood_group = :blood_group,
+                    program_level = :program_level,
+                    department = :department,
+                    is_first_login = 0,
+                    profile_completed = 1,
+                    name_edit_count = 0,
+                    last_login = CURRENT_TIMESTAMP
+                WHERE student_id = :student_id
+            `;
+            
+            await db.executeQuery(updateQuery, {
+                full_name: fullName,
+                gender: gender,
+                phone_number: phoneNumber,
+                blood_group: bloodGroup,
+                program_level: programLevel,
+                department: department,
+                student_id: studentId
+            });
+
+            const updatedUser = await exports.getUserProfile(studentId);
+
+            return res.json({
+                success: true,
+                message: 'Profile completed successfully! Welcome aboard!',
+                user: updatedUser
+            });
+        }
+
+        // Subsequent updates
+        let updateFields = [];
+        let updateParams = { student_id: studentId };
+
+        // Check name changes
         if (currentUser.FULL_NAME && currentUser.FULL_NAME !== fullName) {
             if (currentUser.NAME_EDIT_COUNT >= 3) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Name edit limit reached. You can only change your name 3 times.'
+                    message: 'Name edit limit reached'
                 });
             }
+            updateFields.push('full_name = :full_name');
+            updateFields.push('name_edit_count = name_edit_count + 1');
+            updateParams.full_name = fullName;
         }
 
-        // Call update procedure
-        const result = await db.callProcedure(
-            'update_user_profile(:student_id, :full_name, :gender, :is_first_time, :status)',
-            {
-                student_id: studentId,
-                full_name: fullName,
-                gender: gender,
-                is_first_time: isFirstTime ? 1 : 0,
-                status: { type: oracledb.STRING, dir: oracledb.BIND_OUT, maxSize: 100 }
-            }
-        );
+        // Always allow phone and blood group updates
+        updateFields.push('phone_number = :phone_number');
+        updateFields.push('blood_group = :blood_group');
+        updateFields.push('last_login = CURRENT_TIMESTAMP');
+        updateParams.phone_number = phoneNumber;
+        updateParams.blood_group = bloodGroup;
 
-        const status = result.outBinds.status;
+        const updateQuery = `
+            UPDATE users
+            SET ${updateFields.join(', ')}
+            WHERE student_id = :student_id
+        `;
+        
+        await db.executeQuery(updateQuery, updateParams);
 
-        if (status === 'NAME_EDIT_LIMIT_REACHED') {
-            return res.status(400).json({
-                success: false,
-                message: 'Name edit limit reached'
-            });
-        }
-
-        if (status === 'USER_NOT_FOUND') {
-            return res.status(404).json({
-                success: false,
-                message: 'User not found'
-            });
-        }
-
-        // Get updated profile
         const updatedUser = await exports.getUserProfile(studentId);
 
         return res.json({

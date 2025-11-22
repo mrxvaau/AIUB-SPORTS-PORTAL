@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Your Profile - AIUB Sports Portal</title>
+    <link rel="icon" type="image/svg+xml" href="images/logo.svg">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .setup-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 700px;
+        }
+
+        .logo-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo-img {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 15px;
+            border-radius: 50%;
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #1976d2;
+        }
+
+        .form-input:disabled, .form-select:disabled {
+            background: #f5f5f5;
+            cursor: not-allowed;
+        }
+
+        .locked-badge {
+            background: #f44336;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 8px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .radio-option input {
+            cursor: pointer;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.4);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            color: #991b1b;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            margin: 15% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            font-size: 22px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .modal-body {
+            font-size: 15px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+        }
+
+        .btn-cancel, .btn-confirm {
+            padding: 10px 25px;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-cancel {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .btn-confirm {
+            background: #f44336;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-container">
+        <div class="logo-section">
+            <img src="images/logo.svg" alt="AIUB Logo" class="logo-img">
+            <div class="title">Complete Your Profile</div>
+            <div class="subtitle">Fill in all information to continue</div>
+        </div>
+
+        <div id="alertBox" class="hidden"></div>
+
+        <form id="setupForm">
+            <div class="form-grid">
+                <!-- Student ID -->
+                <div class="form-group">
+                    <label class="form-label">
+                        Student ID 
+                        <span class="locked-badge">🔒 LOCKED</span>
+                    </label>
+                    <input type="text" id="studentId" class="form-input" disabled>
+                </div>
+
+                <!-- Email -->
+                <div class="form-group">
+                    <label class="form-label">
+                        Email 
+                        <span class="locked-badge">🔒 LOCKED</span>
+                    </label>
+                    <input type="email" id="email" class="form-input" disabled>
+                </div>
+
+                <!-- Full Name -->
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" id="fullName" class="form-input" placeholder="Enter your full name" required>
+                </div>
+
+                <!-- Phone Number -->
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input type="tel" id="phoneNumber" class="form-input" placeholder="01XXXXXXXXX" pattern="[0-9]{11}" required>
+                </div>
+
+                <!-- Gender -->
+                <div class="form-group">
+                    <label class="form-label">Gender</label>
+                    <select id="gender" class="form-select" required>
+                        <option value="">Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <!-- Blood Group -->
+                <div class="form-group">
+                    <label class="form-label">Blood Group</label>
+                    <select id="bloodGroup" class="form-select" required>
+                        <option value="">Select Blood Group</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                    </select>
+                </div>
+
+                <!-- Program Level -->
+                <div class="form-group full-width">
+                    <label class="form-label">Program Level</label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="undergraduate" name="programLevel" value="Undergraduate" required>
+                            <label for="undergraduate">Undergraduate</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="postgraduate" name="programLevel" value="Postgraduate">
+                            <label for="postgraduate">Postgraduate</label>
+                        </div>
+                    </div>
+                    <div id="programWarning" class="warning-box hidden">
+                        ⚠️ Program level cannot be changed after confirmation!
+                    </div>
+                </div>
+
+                <!-- Department -->
+                <div class="form-group full-width">
+                    <label class="form-label">Department</label>
+                    <select id="department" class="form-select" disabled required>
+                        <option value="">Select program level first</option>
+                    </select>
+                    <div id="deptWarning" class="warning-box hidden">
+                        ⚠️ Department cannot be changed after confirmation!
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">
+                <span id="submitBtnText">Complete Profile</span>
+            </button>
+        </form>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">⚠️ Confirm Your Selection</div>
+            <div class="modal-body" id="modalMessage"></div>
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+                <button class="btn-confirm" onclick="confirmSubmit()">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+
+        const undergraduateDepts = ['English', 'MMC', 'Economics', 'LLB', 'BBA', 'B.Arch.', 'EEE', 'IPE', 'COE', 'Pharmacy', 'CSE', 'DS', 'CNCS'];
+        const postgraduateDepts = ['MDS', 'MPH', 'EMBA', 'MBA', 'MEEE', 'MTel', 'LL.M', 'MSCS'];
+
+        // Load user info
+        window.addEventListener('DOMContentLoaded', () => {
+            const studentId = localStorage.getItem('studentId');
+            const email = localStorage.getItem('userEmail');
+
+            if (!studentId || !email) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            document.getElementById('studentId').value = studentId;
+            document.getElementById('email').value = email;
+        });
+
+        // Program level change
+        document.querySelectorAll('input[name="programLevel"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const programLevel = e.target.value;
+                updateDepartmentOptions(programLevel);
+                document.getElementById('programWarning').classList.remove('hidden');
+            });
+        });
+
+        // Department change
+        document.getElementById('department').addEventListener('change', () => {
+            document.getElementById('deptWarning').classList.remove('hidden');
+        });
+
+        function updateDepartmentOptions(programLevel) {
+            const deptSelect = document.getElementById('department');
+            deptSelect.innerHTML = '<option value="">Select Department</option>';
+            
+            const depts = programLevel === 'Undergraduate' ? undergraduateDepts : postgraduateDepts;
+            
+            depts.forEach(dept => {
+                const option = document.createElement('option');
+                option.value = dept;
+                option.textContent = dept;
+                deptSelect.appendChild(option);
+            });
+            
+            deptSelect.disabled = false;
+        }
+
+        // Form submit
+        document.getElementById('setupForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const programLevel = document.querySelector('input[name="programLevel"]:checked')?.value;
+            const department = document.getElementById('department').value;
+            
+            document.getElementById('modalMessage').textContent = 
+                `You are about to set your program level as "${programLevel}" and department as "${department}". These CANNOT be changed later. Are you sure?`;
+            
+            document.getElementById('confirmModal').style.display = 'block';
+        });
+
+        function closeModal() {
+            document.getElementById('confirmModal').style.display = 'none';
+        }
+
+        async function confirmSubmit() {
+            closeModal();
+
+            const submitBtn = document.getElementById('submitBtn');
+            const submitBtnText = document.getElementById('submitBtnText');
+            const studentId = localStorage.getItem('studentId');
+
+            const formData = {
+                fullName: document.getElementById('fullName').value.trim(),
+                gender: document.getElementById('gender').value,
+                phoneNumber: document.getElementById('phoneNumber').value.trim(),
+                bloodGroup: document.getElementById('bloodGroup').value,
+                programLevel: document.querySelector('input[name="programLevel"]:checked')?.value,
+                department: document.getElementById('department').value,
+                isFirstTime: true
+            };
+
+            submitBtn.disabled = true;
+            submitBtnText.innerHTML = '<span class="spinner"></span> Saving...';
+
+            try {
+                const response = await fetch(`${API_URL}/auth/profile/${studentId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Set flag for welcome screen
+                    sessionStorage.setItem('profileJustCompleted', 'true');
+                    localStorage.setItem('userName', formData.fullName);
+                    
+                    // Redirect to dashboard
+                    window.location.href = 'dashboard.html';
+                } else {
+                    showAlert(data.message || 'Failed to complete profile');
+                    submitBtn.disabled = false;
+                    submitBtnText.textContent = 'Complete Profile';
+                }
+            } catch (error) {
+                console.error('Setup error:', error);
+                showAlert('Connection error. Please try again.');
+                submitBtn.disabled = false;
+                submitBtnText.textContent = 'Complete Profile';
+            }
+        }
+
+        function showAlert(message) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.className = 'alert alert-error';
+            alertBox.textContent = message;
+            alertBox.classList.remove('hidden');
+        }
+
+        // Close modal on outside click
+        window.onclick = (event) => {
+            const modal = document.getElementById('confirmModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        };
+    </script>
+</body>
+</html>

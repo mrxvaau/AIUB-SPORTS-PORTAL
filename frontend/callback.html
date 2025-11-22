@@ -106,7 +106,7 @@
 </head>
 <body>
     <div class="callback-container">
-        <img src="images/logo.svg" alt="AIUB Logo" style="width: 50px; height: 50px; border-radius: 50%;">
+        <div class="logo">🏆</div>
         <h1>Authenticating with Microsoft</h1>
         <div class="status-message" id="statusMessage">Please wait while we verify your credentials...</div>
         <div class="spinner" id="spinner"></div>
@@ -186,13 +186,21 @@
                 localStorage.setItem('msAccessToken', callbackData.accessToken);
                 localStorage.setItem('userName', callbackData.user.name);
 
-                // Show success
-                showSuccess(`Welcome ${callbackData.user.name}! Redirecting to dashboard...`);
-
-                // Redirect to dashboard
-                setTimeout(() => {
-                    window.location.href = 'dashboard.html';
-                }, 1500);
+                // Check if profile is completed
+                if (loginData.user.PROFILE_COMPLETED === 1) {
+                    // Profile already completed - go to dashboard
+                    sessionStorage.setItem('profileJustCompleted', 'true');
+                    showSuccess(`Welcome back ${callbackData.user.name}! Redirecting...`);
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1500);
+                } else {
+                    // First time - go to profile completion
+                    showSuccess(`Welcome ${callbackData.user.name}! Please complete your profile...`);
+                    setTimeout(() => {
+                        window.location.href = 'profile-setup.html';
+                    }, 1500);
+                }
 
             } catch (error) {
                 console.error('Callback error:', error);
