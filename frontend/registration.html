@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tournament Registration</title>
+    <link rel="icon" type="image/svg+xml" href="images/logo.svg">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f9fafb;
+        }
+
+        .header {
+            background: white;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            margin: 16px;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo-img {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+        }
+
+        .logo-text h1 {
+            color: #1e3a8a;
+            font-size: 40px;
+            font-weight: 700;
+        }
+
+        .logo-text p {
+            color: #6b7280;
+            font-size: 12px;
+        }
+
+        .back-btn {
+            padding: 10px 20px;
+            background: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .tournament-card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .tournament-header {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 30px;
+            align-items: start;
+        }
+
+        .tournament-image {
+            width: 300px;
+            height: 200px;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
+        .tournament-info h1 {
+            font-size: 32px;
+            color: #1976d2;
+            margin-bottom: 15px;
+        }
+
+        .info-item {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .category-section {
+            margin-bottom: 30px;
+        }
+
+        .category-title {
+            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .game-card {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .game-card:hover {
+            border-color: #1976d2;
+            box-shadow: 0 4px 12px rgba(25,118,210,0.2);
+        }
+
+        .game-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .game-type {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .game-fee {
+            color: #10b981;
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .register-btn {
+            width: 100%;
+            padding: 12px;
+            background: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .register-btn:hover {
+            background: #1565c0;
+            transform: translateY(-2px);
+        }
+
+        .register-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .no-tournaments {
+            text-align: center;
+            padding: 60px;
+            color: #666;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            font-size: 18px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <img src="images/logo.svg" alt="AIUB Logo" class="logo-img">
+            <div class="logo-text">
+                <h1>AIUB</h1>
+                <p>SPORTS PORTAL</p>
+            </div>
+        </div>
+        <button class="back-btn" onclick="window.location.href='dashboard.html'">← Back to Dashboard</button>
+    </div>
+
+    <div class="container">
+        <div id="loading" class="loading">Loading tournaments...</div>
+        <div id="noTournaments" class="no-tournaments" style="display: none;">
+            <h2>No Active Tournaments</h2>
+            <p>Check back later for upcoming events!</p>
+        </div>
+        <div id="tournamentsContainer"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+
+        async function loadTournaments() {
+            try {
+                // Load user's available tournaments
+                const response = await fetch(`${API_URL}/auth/tournaments`);
+                const data = await response.json();
+
+                document.getElementById('loading').style.display = 'none';
+
+                if (!data.success || !data.tournaments || data.tournaments.length === 0) {
+                    document.getElementById('noTournaments').style.display = 'block';
+                    return;
+                }
+
+                const container = document.getElementById('tournamentsContainer');
+
+                for (const tournament of data.tournaments) {
+                    const gamesResponse = await fetch(`${API_URL}/auth/tournaments/${tournament.ID}/games`);
+                    const gamesData = await gamesResponse.json();
+
+                    if (gamesData.success) {
+                        container.innerHTML += createTournamentCard(tournament, gamesData.games);
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('loading').textContent = 'Error loading tournaments';
+            }
+        }
+
+        function createTournamentCard(tournament, games) {
+            // For now, we'll show all games and let the registration handle the gender filtering
+            const maleGames = games.filter(g => g.CATEGORY === 'Male');
+            const femaleGames = games.filter(g => g.CATEGORY === 'Female');
+            const mixGames = games.filter(g => g.CATEGORY === 'Mix');
+
+            // Simple image handling - check if a photo_url exists as any common variation
+            let photoUrl = tournament.PHOTO_URL || tournament.photo_url || tournament['PHOTO_URL'] || tournament['photo_url'];
+
+            let imageHtml = '';
+            if (photoUrl) {
+                // If it's already a base64 data URL, use directly
+                if (typeof photoUrl === 'string' && photoUrl.startsWith('data:image')) {
+                    imageHtml = `<img src="${photoUrl}" class="tournament-image" alt="Tournament">`;
+                }
+                // If it's a base64 string without the data:image prefix, add it
+                else if (typeof photoUrl === 'string' && !photoUrl.startsWith('http')) {
+                    imageHtml = `<img src="data:image;base64,${photoUrl}" class="tournament-image" alt="Tournament">`;
+                }
+                // If it's a URL that starts with http, use it directly
+                else if (typeof photoUrl === 'string' && photoUrl.startsWith('http')) {
+                    imageHtml = `<img src="${photoUrl}" class="tournament-image" alt="Tournament">`;
+                }
+                // For any other case that doesn't fit, show placeholder
+                else {
+                    imageHtml = `<div class="tournament-image" style="background: #e5e7eb; display: flex; align-items: center; justify-content: center; color: #6b7280;">No Image</div>`;
+                }
+            } else {
+                // If no photoUrl exists at all, show placeholder
+                imageHtml = `<div class="tournament-image" style="background: #e5e7eb; display: flex; align-items: center; justify-content: center; color: #6b7280;">No Image</div>`;
+            }
+
+            return `
+                <div class="tournament-card">
+                    <div class="tournament-header">
+                        ${imageHtml}
+                        <div class="tournament-info">
+                            <h1>${tournament.TITLE}</h1>
+                            <div class="info-item">📅 Registration Deadline: ${new Date(tournament.DEADLINE).toLocaleDateString()}</div>
+                            <div class="info-item">📊 Status: ${tournament.STATUS}</div>
+                            ${tournament.DESCRIPTION ? `<div class="info-item">📝 ${tournament.DESCRIPTION}</div>` : ''}
+                        </div>
+                    </div>
+
+                    ${maleGames.length > 0 ? createCategorySection('Male', maleGames) : ''}
+                    ${femaleGames.length > 0 ? createCategorySection('Female', femaleGames) : ''}
+                    ${mixGames.length > 0 ? createCategorySection('Mix', mixGames) : ''}
+                </div>
+            `;
+        }
+
+        function createCategorySection(category, games) {
+            if (games.length === 0) return '';
+
+            return `
+                <div class="category-section">
+                    <div class="category-title">${category} Category</div>
+                    <div class="games-grid">
+                        ${games.map(game => `
+                            <div class="game-card">
+                                <div class="game-name">${game.GAME_NAME}</div>
+                                <div class="game-type">Type: ${game.GAME_TYPE}</div>
+                                <div class="game-fee">৳${game.FEE_PER_PERSON} per person</div>
+                                <button class="register-btn" onclick="registerForGame(${game.ID}, '${game.GAME_NAME}', '${category}')">
+                                    Register Now
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        async function registerForGame(gameId, gameName, category) {
+            const studentId = localStorage.getItem('studentId');
+
+            if (!studentId) {
+                alert('Please log in first!');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            if (confirm(`Register for ${gameName} in ${category} category?`)) {
+                try {
+                    const response = await fetch(`${API_URL}/auth/register`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            studentId: studentId,
+                            gameId: gameId
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        alert(`Successfully registered for ${gameName}!`);
+                        // Reload the page to update the UI
+                        location.reload();
+                    } else {
+                        alert(`Registration failed: ${result.message || 'Unknown error'}`);
+                    }
+                } catch (error) {
+                    console.error('Registration error:', error);
+                    alert('Error registering for game. Please try again.');
+                }
+            }
+        }
+
+        // Check if user is authenticated
+        window.onload = function() {
+            if (localStorage.getItem('isAuthenticated') !== 'true') {
+                window.location.href = 'login.html';
+                return;
+            }
+            loadTournaments();
+        };
+    </script>
+</body>
+</html>

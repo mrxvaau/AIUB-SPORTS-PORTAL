@@ -1,0 +1,2265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIUB Sports Portal - Admin Dashboard</title>
+    <link rel="icon" type="image/svg+xml" href="images/logo.svg">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f9fafb;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            margin: 16px;
+            margin-bottom: 8px;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo-img {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+        }
+
+        .logo-text h1 {
+            color: #1e3a8a;
+            font-size: 40px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .logo-text p {
+            color: #6b7280;
+            font-size: 12px;
+            margin-top: 2px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-left: 32px;
+        }
+
+        .nav-link {
+            color: #3b82f6;
+            font-size: 14px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .welcome-text {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .icon-btn {
+            position: relative;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .icon-btn:hover {
+            background: #f3f4f6;
+        }
+
+        .icon-btn svg {
+            width: 20px;
+            height: 20px;
+            color: #6b7280;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logout-btn {
+            cursor: pointer;
+        }
+
+        /* Main Layout */
+        .main-container {
+            display: flex;
+            gap: 16px;
+            padding: 0 16px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 224px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .sidebar-btn {
+            width: 100%;
+            background: #1e40af;
+            color: white;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .sidebar-btn:hover {
+            background: #1e3a8a;
+        }
+
+        .sidebar-btn-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Announcement Box */
+        .announcement {
+            background: #dbeafe;
+            border: 1px solid #93c5fd;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .announcement p {
+            font-size: 14px;
+            color: #1e3a8a;
+            line-height: 1.6;
+        }
+
+        /* Player Info Card */
+        .player-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .edit-btn, .save-btn, .cancel-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .edit-btn {
+            background: white;
+            border: 1px solid #d1d5db;
+            color: #374151;
+        }
+
+        .edit-btn:hover {
+            background: #f9fafb;
+        }
+
+        .save-btn {
+            background: #1e40af;
+            border: none;
+            color: white;
+        }
+
+        .save-btn:hover {
+            background: #1e3a8a;
+        }
+
+        .cancel-btn {
+            background: white;
+            border: 1px solid #d1d5db;
+            color: #374151;
+            margin-left: 8px;
+        }
+
+        .cancel-btn:hover {
+            background: #f9fafb;
+        }
+
+        .player-info-grid {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            padding: 16px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .info-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 14px;
+            color: #374151;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 14px;
+            color: #1f2937;
+        }
+
+        .info-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+        }
+
+        .info-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .info-input:disabled {
+            background: #f3f4f6;
+            cursor: not-allowed;
+        }
+
+        .locked-badge {
+            display: none;
+            background: #3b82f6;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .editable-badge {
+            display: none;
+            background: #10b981;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .editing .locked-badge,
+        .editing .editable-badge {
+            display: inline-block;
+        }
+
+        /* Warning Box */
+        .warning-box {
+            background: #fef3c7;
+            border: 1px solid #fde047;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .warning-box p {
+            font-size: 14px;
+            color: #374151;
+        }
+
+        /* Action Button */
+        .action-button {
+            display: flex;
+            justify-content: center;
+            padding: 16px 0;
+        }
+
+        .disabled-btn {
+            background: #fca5a5;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: not-allowed;
+        }
+
+        /* Schedule Card */
+        .schedule-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .schedule-header {
+            background: #1d4ed8;
+            color: white;
+            padding: 12px 16px;
+        }
+
+        .schedule-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .schedule-body {
+            padding: 16px;
+        }
+
+        .schedule-row {
+            display: flex;
+            gap: 16px;
+            padding: 8px 0;
+        }
+
+        .schedule-day {
+            width: 96px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .schedule-info {
+            flex: 1;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            border: 1px solid #6ee7b7;
+            color: #065f46;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            color: #991b1b;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        /* Delete confirmation modal */
+        .delete-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .delete-modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .delete-modal-header {
+            font-size: 20px;
+            font-weight: 700;
+            color: #dc2626;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .delete-modal-header svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .delete-modal-warning {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 15px 0;
+            font-size: 14px;
+            color: #92400e;
+        }
+
+        .delete-input-container {
+            margin: 15px 0;
+        }
+
+        .delete-input-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .delete-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .delete-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .delete-btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+
+        .delete-btn-cancel {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .delete-btn-confirm {
+            background: #dc2626;
+            color: white;
+        }
+
+        .delete-btn-confirm:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .delete-btn-confirm:not(:disabled):hover {
+            background: #b91c1c;
+        }
+
+        /* Modal Styles for Game Category */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.35);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .modal-backdrop.active { display: flex; }
+
+        .modal {
+            width: 100%;
+            max-width: 520px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.45);
+            border: 1px solid rgba(148, 163, 184, 0.6);
+            padding: 18px 18px 16px 18px;
+        }
+        .modal-header {
+            display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;
+        }
+        .modal-title {font-size:15px;font-weight:600;}
+        .modal-close {
+            border:none;background:transparent;font-size:18px;cursor:pointer;color:#6b7280;
+        }
+        .modal-body {max-height:60vh;overflow-y:auto;padding-right:4px;}
+        .modal-footer {margin-top:10px;display:flex;justify-content:flex-end;gap:8px;}
+
+        .field {margin-bottom:12px;}
+        .field label {display:block;font-size:13px;font-weight:500;margin-bottom:5px;}
+        .field small {display:block;font-size:11px;color:#6b7280;margin-top:3px;}
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 9px;
+            border: 1px solid #e5e7eb;
+            font-size: 13px;
+            background: #f9fafb;
+            outline: none;
+        }
+        input:focus, select:focus {
+            border-color:#4f46e5;
+            box-shadow:0 0 0 1px rgba(79,70,229,0.2);
+            background:#fff;
+        }
+
+        .pill-group {display:flex;flex-wrap:wrap;gap:6px;}
+        .pill-check {
+            display:inline-flex;align-items:center;gap:4px;
+            border-radius:999px;padding:4px 9px;font-size:11px;
+            border:1px solid #d4d4d8;cursor:pointer;background:#f9fafb;
+        }
+        .pill-check input {
+            width:0;height:0;opacity:0;position:absolute;pointer-events:none;
+        }
+        .pill-check span.dot {
+            width:6px;height:6px;border-radius:999px;background:#9ca3af;
+        }
+        .pill-check.active {
+            border-color:#4f46e5;background:rgba(79,70,229,0.08);color:#4f46e5;
+        }
+        .pill-check.active span.dot {background:#4f46e5;}
+        .pill-check.disabled {
+            opacity:0.45;cursor:not-allowed;
+        }
+
+        .btn {
+            font-size: 13px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            background: #e5e7eb;
+            color: #111827;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn.primary {
+            background:#4f46e5;color:#fff;
+        }
+        .btn.secondary {background:#e5e7eb;}
+
+        .hint {font-size:11px;color:#6b7280;margin-top:4px;}
+
+        .flex-row {display:flex;gap:8px;}
+        .flex-row .field {flex:1;}
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Welcome Screen */
+        .welcome-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .welcome-content {
+            text-align: center;
+            color: white;
+            animation: slideUp 0.8s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .welcome-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .welcome-title {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .welcome-message {
+            font-size: 24px;
+            opacity: 0.9;
+        }
+
+        /* Content sections - initially hidden except default */
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        /* Tournament list styles */
+        .tournament-item {
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: white;
+        }
+
+        .tournament-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 4px;
+        }
+
+        .tournament-deadline {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+
+        .tournament-games {
+            font-size: 12px;
+            color: #4b5563;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <div class="logo-container">
+                <img src="images/logo.svg" alt="AIUB Logo" class="logo-img">
+                <div class="logo-text">
+                    <h1>AIUB</h1>
+                    <p>SPORTS PORTAL</p>
+                </div>
+            </div>
+            <div class="nav-links">
+                <a href="#" class="nav-link">
+                    <span>⚡ Registration</span>
+                </a>
+            </div>
+        </div>
+        <div class="header-right">
+            <span class="welcome-text" id="welcomeText">Welcome Admin</span>
+            <div class="icon-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                <span class="notification-badge">3</span>
+            </div>
+            <div class="icon-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            </div>
+            <div class="icon-btn logout-btn" onclick="logout()">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <button class="sidebar-btn" onclick="showSection('existing-tournaments')">
+                <div class="sidebar-btn-content">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>Existing Tournaments</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            <button class="sidebar-btn" onclick="showSection('create-tournament')">
+                <div class="sidebar-btn-content">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    <span>Create Tournament</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            <button class="sidebar-btn" onclick="showPlaceholder('Messages')">
+                <div class="sidebar-btn-content">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                    <span>Messages</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            <button class="sidebar-btn" onclick="showPlaceholder('Bug Report')">
+                <div class="sidebar-btn-content">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Bug Report</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Announcement -->
+            <div class="announcement">
+                <p>Admin Dashboard - Manage tournaments and oversee sports activities</p>
+            </div>
+
+            <!-- Alert Box -->
+            <div id="alertBox" class="hidden"></div>
+
+            <!-- Existing Tournaments Section -->
+            <div id="existing-tournaments" class="content-section active">
+                <div class="player-card">
+                    <div class="card-header">
+                        <h2>Existing Tournaments</h2>
+                    </div>
+                    <div id="tournamentsList">
+                        <!-- Tournaments will be populated here -->
+                        <p>Loading tournaments...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Tournament Section -->
+            <div id="create-tournament" class="content-section">
+                <div class="player-card">
+                    <div class="card-header">
+                        <h2>Create New Tournament</h2>
+                    </div>
+                    <div id="createTournamentForm">
+                        <!-- The form will be loaded here -->
+                        <p>Loading form...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages Placeholder -->
+            <div id="messages-placeholder" class="content-section">
+                <div class="player-card">
+                    <div class="card-header">
+                        <h2>Messages</h2>
+                    </div>
+                    <div class="warning-box">
+                        <p>This panel is under development. Will be fixed soon.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bug Report Placeholder -->
+            <div id="bug-report-placeholder" class="content-section">
+                <div class="player-card">
+                    <div class="card-header">
+                        <h2>Bug Report</h2>
+                    </div>
+                    <div class="warning-box">
+                        <p>This panel is under development. Will be fixed soon.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Welcome Screen -->
+    <div id="welcomeScreen" class="welcome-overlay">
+        <div class="welcome-content">
+            <div class="welcome-icon">🎉</div>
+            <div class="welcome-title">Welcome!</div>
+            <div class="welcome-message" id="welcomeName">Admin Dashboard</div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let currentSection = 'existing-tournaments';
+
+        // Show section
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show the requested section
+            document.getElementById(sectionId).classList.add('active');
+            currentSection = sectionId;
+            
+            // Load content based on section
+            if (sectionId === 'existing-tournaments') {
+                loadTournaments();
+            } else if (sectionId === 'create-tournament') {
+                loadCreateTournamentForm();
+            }
+        }
+
+        // Show placeholder
+        function showPlaceholder(name) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show the appropriate placeholder
+            if (name === 'Messages') {
+                document.getElementById('messages-placeholder').classList.add('active');
+            } else if (name === 'Bug Report') {
+                document.getElementById('bug-report-placeholder').classList.add('active');
+            }
+        }
+
+        // Load tournaments
+        async function loadTournaments() {
+            try {
+                const response = await fetch(`${API_URL}/admin/tournaments`);
+                const data = await response.json();
+
+                if (data.success && data.tournaments) {
+                    const tournamentsList = document.getElementById('tournamentsList');
+                    if (data.tournaments.length === 0) {
+                        tournamentsList.innerHTML = '<p class="info-value">No tournaments created yet.</p>';
+                        return;
+                    }
+
+                    let html = '';
+                    data.tournaments.forEach(tournament => {
+                        html += `
+                            <div class="tournament-item">
+                                <div style="flex: 1;">
+                                    <div class="tournament-title">${tournament.TITLE}</div>
+                                    <div class="tournament-deadline">Deadline: ${tournament.DEADLINE}</div>
+                                    <div class="tournament-games">${tournament.GAMES_COUNT || '0'} Games</div>
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 5px;">
+                                    <button class="edit-btn" style="padding: 6px 12px; font-size: 12px;" onclick="editTournament(${tournament.ID}, '${tournament.TITLE.replace(/'/g, "\\'")}', '${tournament.DEADLINE.replace(/'/g, "\\'")}', '${(tournament.DESCRIPTION || '').replace(/'/g, "\\'")}')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                        Edit
+                                    </button>
+                                    <button class="delete-btn delete-btn-cancel" style="padding: 6px 12px;" onclick="showDeleteModal('${tournament.ID}', '${tournament.TITLE.replace(/'/g, "\\'")}')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    tournamentsList.innerHTML = html;
+                } else {
+                    document.getElementById('tournamentsList').innerHTML = '<p class="info-value">Failed to load tournaments.</p>';
+                }
+            } catch (error) {
+                console.error('Load tournaments error:', error);
+                document.getElementById('tournamentsList').innerHTML = '<p class="info-value">Error loading tournaments.</p>';
+            }
+        }
+
+        // Load create tournament form
+        function loadCreateTournamentForm() {
+            const formHtml = `
+                <form id="tournamentForm">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                        <div class="info-field">
+                            <label class="info-label">Tournament Title</label>
+                            <input type="text" id="title" class="info-input" placeholder="Enter tournament title">
+                        </div>
+                        
+                        <div class="info-field">
+                            <label class="info-label">Registration Deadline</label>
+                            <input type="datetime-local" id="deadline" class="info-input">
+                        </div>
+                    </div>
+                    
+                    <div class="info-field" style="margin-bottom: 16px;">
+                        <label class="info-label">Tournament Photo (Optional)</label>
+                        <input type="file" id="photoFile" class="info-input" accept="image/*">
+                    </div>
+
+                    <div class="info-field" style="margin-bottom: 16px;">
+                        <label class="info-label">Tournament Description (Optional)</label>
+                        <textarea id="description" class="info-input" placeholder="Enter tournament description..." style="height: 100px; resize: vertical;"></textarea>
+                    </div>
+                    
+                    <div class="info-field" style="margin-bottom: 16px;">
+                        <label class="info-label">Games</label>
+
+                        <!-- Game List Display -->
+                        <div id="gamesList">
+                            <div style="color: #6b7280; font-style: italic; padding: 10px;">No games added yet.</div>
+                        </div>
+
+                        <!-- Category Containers for managing games -->
+                        <div id="maleGames" style="display: none;"></div>
+                        <div id="femaleGames" style="display: none;"></div>
+                        <div id="mixGames" style="display: none;"></div>
+
+                        <!-- Visual representation of games during editing -->
+                        <div id="existingGamesDisplay" style="margin-top: 10px;">
+                            <div id="existingMaleGames" style="display: none; margin-bottom: 10px;">
+                                <h4 style="color: #1976d2; margin-bottom: 5px;">Male Category Games</h4>
+                                <div id="displayMaleGames"></div>
+                            </div>
+                            <div id="existingFemaleGames" style="display: none; margin-bottom: 10px;">
+                                <h4 style="color: #1976d2; margin-bottom: 5px;">Female Category Games</h4>
+                                <div id="displayFemaleGames"></div>
+                            </div>
+                            <div id="existingMixGames" style="display: none;">
+                                <h4 style="color: #1976d2; margin-bottom: 5px;">Mix Category Games</h4>
+                                <div id="displayMixGames"></div>
+                            </div>
+                        </div>
+
+                        <!-- Add Game Button -->
+                        <button type="button" onclick="openGameCategoryModal()" style="margin-top: 15px; background: #10b981; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Add game
+                        </button>
+                    </div>
+                    
+                    <div style="text-align: right;">
+                        <button type="button" onclick="cancelTournament()" class="cancel-btn">Cancel</button>
+                        <button type="button" onclick="createTournament()" class="save-btn">Create Tournament</button>
+                    </div>
+                </form>
+            `;
+            
+            document.getElementById('createTournamentForm').innerHTML = formHtml;
+        }
+
+        // Add game to form by category
+        let gameCounters = { male: 0, female: 0, mix: 0 };
+
+        function addGame(category) {
+            const container = document.getElementById(`${category}Games`);
+            const id = `${category}_${gameCounters[category]++}`;
+
+            const gameHtml = `
+                <div class="game-entry" id="${id}" style="background: #f9fafb; padding: 15px; border-radius: 6px; margin-bottom: 10px; display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 15px; align-items: end;">
+                    <div class="info-field" style="margin: 0;">
+                        <label class="info-label">Game Name</label>
+                        <select class="info-input game-name-select" onchange="toggleGameNameField(this)" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; display: block; margin-bottom: 5px;">
+                            <option value="">Select a game or choose Custom</option>
+                            <option value="Badminton">Badminton</option>
+                            <option value="Basketball">Basketball</option>
+                            <option value="Carrom">Carrom</option>
+                            <option value="Chess">Chess</option>
+                            <option value="Futsal">Futsal</option>
+                            <option value="Handball">Handball</option>
+                            <option value="Lawn Tennis">Lawn Tennis</option>
+                            <option value="Ludo">Ludo</option>
+                            <option value="Pool">Pool</option>
+                            <option value="Table Tennis">Table Tennis</option>
+                            <option value="Volleyball">Volleyball</option>
+                            <option value="Cricket">Cricket</option>
+                            <option value="Football">Football</option>
+                            <option value="Custom">Custom</option>
+                        </select>
+                        <input type="text" class="info-input game-name" placeholder="Enter custom game name" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; display: none;" disabled>
+                    </div>
+                    <div class="info-field" style="margin: 0;">
+                        <label class="info-label">Type</label>
+                        <select class="info-input game-type" onchange="toggleCustom('${id}')" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+                            <option value="">Select</option>
+                            <option value="Solo">Solo</option>
+                            <option value="Duo">Duo</option>
+                            <option value="Custom">Custom</option>
+                        </select>
+                        <input type="text" class="info-input custom-value" placeholder="e.g., 5v5, 11v11" style="margin-top: 8px; display: none; width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+                    </div>
+                    <div class="info-field" style="margin: 0;">
+                        <label class="info-label">Fee (per person)</label>
+                        <input type="number" class="info-input game-fee" placeholder="100" min="0" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+                    </div>
+                    <button type="button" class="delete-btn delete-btn-cancel" style="padding: 6px 12px;" onclick="removeGame('${id}')">✕</button>
+                </div>
+            `;
+
+            container.insertAdjacentHTML('beforeend', gameHtml);
+        }
+
+        // Toggle game name field visibility based on selection
+        function toggleGameNameField(selectElement) {
+            const customInput = selectElement.nextElementSibling;
+            if (selectElement.value === 'Custom') {
+                customInput.style.display = 'block';
+                customInput.disabled = false;
+                customInput.focus();
+            } else {
+                customInput.style.display = 'none';
+                customInput.disabled = true;
+                customInput.value = ''; // Clear any custom input
+            }
+        }
+
+        // Toggle custom input field
+        function toggleCustom(id) {
+            const item = document.getElementById(id);
+            const select = item.querySelector('.game-type');
+            const customInput = item.querySelector('.custom-value');
+
+            if (select.value === 'Custom') {
+                customInput.style.display = 'block';
+                customInput.required = true;
+            } else {
+                customInput.style.display = 'none';
+                customInput.required = false;
+                customInput.value = '';
+            }
+        }
+
+        // Remove game from form
+        function removeGame(id) {
+            document.getElementById(id).remove();
+        }
+
+        // Create tournament
+        async function createTournament() {
+            const title = document.getElementById('title').value;
+            const deadline = document.getElementById('deadline').value;
+            const description = document.getElementById('description').value;
+
+            if (!title || !deadline) {
+                showAlert('Please fill in all required fields', 'error');
+                return;
+            }
+
+            // Use the new tournamentGames array
+            if (tournamentGames.length === 0) {
+                showAlert('Please add at least one game', 'error');
+                return;
+            }
+
+            // Get photo if uploaded
+            const photoFile = document.getElementById('photoFile').files[0];
+            let photoUrl = null;
+            if (photoFile) {
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    photoUrl = e.target.result;
+                    await submitTournament(title, photoUrl, deadline, tournamentGames, description);
+                };
+                reader.readAsDataURL(photoFile);
+            } else {
+                await submitTournament(title, null, deadline, tournamentGames, description);
+            }
+        }
+
+        // Submit tournament to server
+        async function submitTournament(title, photoUrl, deadline, games, description) {
+            try {
+                const submitBtn = document.querySelector('.save-btn');
+                const originalText = submitBtn.textContent;
+                submitBtn.textContent = 'Creating...';
+                submitBtn.disabled = true;
+
+                const response = await fetch(`${API_URL}/admin/tournaments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, photoUrl, deadline, games, description })
+                });
+
+                const result = await response.json();
+
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+
+                if (result.success) {
+                    showAlert('Tournament created successfully!', 'success');
+                    // Clear form
+                    document.getElementById('tournamentForm').reset();
+                    // Switch to existing tournaments tab to see the new tournament
+                    setTimeout(() => {
+                        showSection('existing-tournaments');
+                    }, 1500);
+                } else {
+                    showAlert(result.message || 'Failed to create tournament', 'error');
+                }
+            } catch (error) {
+                console.error('Create tournament error:', error);
+                showAlert('Connection error. Please try again.', 'error');
+            }
+        }
+
+        // Cancel tournament creation
+        function cancelTournament() {
+            document.getElementById('tournamentForm').reset();
+            showSection('existing-tournaments');
+        }
+
+        // Show alert
+        function showAlert(message, type) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.className = `alert alert-${type}`;
+            alertBox.textContent = message;
+            alertBox.classList.remove('hidden');
+
+            setTimeout(() => {
+                alertBox.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Logout
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.clear();
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Check authentication
+        window.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('isAuthenticated') !== 'true' || localStorage.getItem('isAdmin') !== 'true') {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Load the existing tournaments by default
+            loadTournaments();
+        });
+
+        // Show delete confirmation modal
+        function showDeleteModal(tournamentId, tournamentTitle) {
+            document.getElementById('deleteModal').style.display = 'flex';
+            document.getElementById('deleteTournamentId').value = tournamentId;
+            document.getElementById('deleteTournamentTitle').textContent = tournamentTitle;
+            document.getElementById('deleteConfirmInput').value = '';
+            document.getElementById('deleteConfirmBtn').disabled = true;
+        }
+
+        // Edit tournament function
+        function editTournament(tournamentId, title, deadline, description) {
+            // Create a function that waits for the form elements to be available
+            function waitForFormAndEdit() {
+                // Check if the game containers exist
+                const maleGamesContainer = document.getElementById('maleGames');
+                const femaleGamesContainer = document.getElementById('femaleGames');
+                const mixGamesContainer = document.getElementById('mixGames');
+
+                if (maleGamesContainer && femaleGamesContainer && mixGamesContainer) {
+                    // Pre-fill the form with existing data
+                    document.getElementById('title').value = title || '';
+                    // Format date properly for datetime-local input (YYYY-MM-DDTHH:mm format)
+            if (deadline) {
+                // If deadline is already in the right format, use it directly
+                if (typeof deadline === 'string' && deadline.includes('T')) {
+                    document.getElementById('deadline').value = deadline.slice(0, 16);
+                } else {
+                    // If it's a different format, create a proper datetime string
+                    const date = new Date(deadline);
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const hours = String(date.getHours()).padStart(2, '0');
+                    const minutes = String(date.getMinutes()).padStart(2, '0');
+                    document.getElementById('deadline').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+                }
+            } else {
+                document.getElementById('deadline').value = '';
+            }
+                    document.getElementById('description').value = description || '';
+
+                    // Reset game containers
+                    maleGamesContainer.innerHTML = '';
+                    femaleGamesContainer.innerHTML = '';
+                    mixGamesContainer.innerHTML = '';
+
+                    // Reset the temporary games array
+                    tournamentGames = [];
+
+                    // Load existing games for this tournament
+                    loadExistingGames(tournamentId);
+
+                    // Change the button text to "Update Tournament" instead of "Create Tournament"
+                    const submitButton = document.querySelector('.save-btn');
+                    if (submitButton) {
+                        submitButton.textContent = 'Update Tournament';
+                        // Store the tournament ID for the update operation
+                        submitButton.onclick = function() {
+                            updateTournament(tournamentId);
+                        };
+                    }
+                } else {
+                    // Form not ready yet, wait a bit and try again
+                    setTimeout(waitForFormAndEdit, 100);
+                }
+            }
+
+            // Switch to create tournament section first
+            showSection('create-tournament');
+
+            // Wait for a bit to ensure section switch happens
+            setTimeout(waitForFormAndEdit, 100);
+        }
+
+        // Load existing games for the tournament
+        async function loadExistingGames(tournamentId) {
+            try {
+                const response = await fetch(`${API_URL}/admin/tournaments/${tournamentId}/games`);
+                const data = await response.json();
+
+                if (data.success && data.games) {
+                    // Group games by category - Oracle returns column names in uppercase
+                    const maleGames = data.games.filter(g => {
+                        const category = g.CATEGORY || g.category || 'Unknown';
+                        return category === 'Male';
+                    });
+                    const femaleGames = data.games.filter(g => {
+                        const category = g.CATEGORY || g.category || 'Unknown';
+                        return category === 'Female';
+                    });
+                    const mixGames = data.games.filter(g => {
+                        const category = g.CATEGORY || g.category || 'Unknown';
+                        return category === 'Mix';
+                    });
+
+                    // Show the games display sections if there are games
+                    if (maleGames.length > 0) {
+                        document.getElementById('existingMaleGames').style.display = 'block';
+                        const displayContainer = document.getElementById('displayMaleGames');
+                        maleGames.forEach((game, index) => {
+                            const gameId = `male-game-${Date.now()}-${index}`;
+                            displayContainer.innerHTML += `
+                                <div id="${gameId}" style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 8px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <strong>${game.GAME_NAME || game.game_name || game.name || 'Unknown Game'}</strong>
+                                        <span style="color: #6b7280; font-size: 12px;">(${game.GAME_TYPE || game.game_type || game.type || 'Type'})</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span style="color: #10b981; font-weight: bold;">${game.FEE_PER_PERSON || game.fee_per_person || game.fee || 0} BDT</span>
+                                        <button type="button" onclick="removeExistingGame('${gameId}', '${game.GAME_NAME || game.game_name || game.name || 'Unknown Game'}')" style="background: #ef4444; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 12px; cursor: pointer;">
+                                            ×
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+
+                    if (femaleGames.length > 0) {
+                        document.getElementById('existingFemaleGames').style.display = 'block';
+                        const displayContainer = document.getElementById('displayFemaleGames');
+                        femaleGames.forEach((game, index) => {
+                            const gameId = `female-game-${Date.now()}-${index}`;
+                            displayContainer.innerHTML += `
+                                <div id="${gameId}" style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 8px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <strong>${game.GAME_NAME || game.game_name || game.name || 'Unknown Game'}</strong>
+                                        <span style="color: #6b7280; font-size: 12px;">(${game.GAME_TYPE || game.game_type || game.type || 'Type'})</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span style="color: #10b981; font-weight: bold;">${game.FEE_PER_PERSON || game.fee_per_person || game.fee || 0} BDT</span>
+                                        <button type="button" onclick="removeExistingGame('${gameId}', '${game.GAME_NAME || game.game_name || game.name || 'Unknown Game'}')" style="background: #ef4444; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 12px; cursor: pointer;">
+                                            ×
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+
+                    if (mixGames.length > 0) {
+                        document.getElementById('existingMixGames').style.display = 'block';
+                        const displayContainer = document.getElementById('displayMixGames');
+                        mixGames.forEach((game, index) => {
+                            const gameId = `mix-game-${Date.now()}-${index}`;
+                            displayContainer.innerHTML += `
+                                <div id="${gameId}" style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 8px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <strong>${game.GAME_NAME || game.game_name || game.name || 'Unknown Game'}</strong>
+                                        <span style="color: #6b7280; font-size: 12px;">(${game.GAME_TYPE || game.game_type || game.type || 'Type'})</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span style="color: #10b981; font-weight: bold;">${game.FEE_PER_PERSON || game.fee_per_person || game.fee || 0} BDT</span>
+                                        <button type="button" onclick="removeExistingGame('${gameId}', '${game.GAME_NAME || game.game_name || game.name || 'Unknown Game'}')" style="background: #ef4444; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 12px; cursor: pointer;">
+                                            ×
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+
+                    // Also populate the category containers for proper management
+                    maleGames.forEach(game => {
+                        addGameToCategory('male', {
+                            GAME_NAME: game.GAME_NAME || game.game_name || game.name || '',
+                            GAME_TYPE: game.GAME_TYPE || game.game_type || game.type || '',
+                            FEE_PER_PERSON: game.FEE_PER_PERSON || game.fee_per_person || game.fee || 0,
+                            CATEGORY: game.CATEGORY || game.category || 'Male'
+                        });
+                    });
+
+                    femaleGames.forEach(game => {
+                        addGameToCategory('female', {
+                            GAME_NAME: game.GAME_NAME || game.game_name || game.name || '',
+                            GAME_TYPE: game.GAME_TYPE || game.game_type || game.type || '',
+                            FEE_PER_PERSON: game.FEE_PER_PERSON || game.fee_per_person || game.fee || 0,
+                            CATEGORY: game.CATEGORY || game.category || 'Female'
+                        });
+                    });
+
+                    mixGames.forEach(game => {
+                        addGameToCategory('mix', {
+                            GAME_NAME: game.GAME_NAME || game.game_name || game.name || '',
+                            GAME_TYPE: game.GAME_TYPE || game.game_type || game.type || '',
+                            FEE_PER_PERSON: game.FEE_PER_PERSON || game.fee_per_person || game.fee || 0,
+                            CATEGORY: game.CATEGORY || game.category || 'Mix'
+                        });
+                    });
+
+                    // Update the gamesList message
+                    const totalGames = maleGames.length + femaleGames.length + mixGames.length;
+                    if (totalGames > 0) {
+                        document.getElementById('gamesList').innerHTML = `<div style="color: #6b7280; font-style: italic; padding: 10px;">Showing ${totalGames} existing games. Add more or update below.</div>`;
+                    }
+                }
+            } catch (error) {
+                console.error('Load existing games error:', error);
+            }
+        }
+
+        // Add a game to a specific category when editing
+        function addGameToCategory(category, game) {
+            const container = document.getElementById(`${category}Games`);
+            const id = `${category}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+
+            const gameHtml = `
+                <div class="game-entry" id="${id}" style="background: #f9fafb; padding: 15px; border-radius: 6px; margin-bottom: 10px; display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 15px; align-items: end;">
+                    <div class="info-field" style="margin: 0;">
+                        <label class="info-label">Game Name</label>
+                        <select class="info-input game-name-select" onchange="toggleGameNameField(this)" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; display: block; margin-bottom: 5px;">
+                            <option value="">Select a game or choose Custom</option>
+                            <option value="Badminton" ${game.GAME_NAME === 'Badminton' ? 'selected' : ''}>Badminton</option>
+                            <option value="Basketball" ${game.GAME_NAME === 'Basketball' ? 'selected' : ''}>Basketball</option>
+                            <option value="Carrom" ${game.GAME_NAME === 'Carrom' ? 'selected' : ''}>Carrom</option>
+                            <option value="Chess" ${game.GAME_NAME === 'Chess' ? 'selected' : ''}>Chess</option>
+                            <option value="Futsal" ${game.GAME_NAME === 'Futsal' ? 'selected' : ''}>Futsal</option>
+                            <option value="Handball" ${game.GAME_NAME === 'Handball' ? 'selected' : ''}>Handball</option>
+                            <option value="Lawn Tennis" ${game.GAME_NAME === 'Lawn Tennis' ? 'selected' : ''}>Lawn Tennis</option>
+                            <option value="Ludo" ${game.GAME_NAME === 'Ludo' ? 'selected' : ''}>Ludo</option>
+                            <option value="Pool" ${game.GAME_NAME === 'Pool' ? 'selected' : ''}>Pool</option>
+                            <option value="Table Tennis" ${game.GAME_NAME === 'Table Tennis' ? 'selected' : ''}>Table Tennis</option>
+                            <option value="Volleyball" ${game.GAME_NAME === 'Volleyball' ? 'selected' : ''}>Volleyball</option>
+                            <option value="Cricket" ${game.GAME_NAME === 'Cricket' ? 'selected' : ''}>Cricket</option>
+                            <option value="Football" ${game.GAME_NAME === 'Football' ? 'selected' : ''}>Football</option>
+                            <option value="Custom" ${game.GAME_NAME === 'Custom' ? 'selected' : ''}>Custom</option>
+                        </select>
+                        <input type="text" class="info-input game-name" placeholder="Enter custom game name" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; display: none;" disabled value="${game.GAME_NAME}">
+                    </div>
+                    <div class="info-field" style="margin: 0;">
+                        <label class="info-label">Type</label>
+                        <select class="info-input game-type" onchange="toggleCustom('${id}')" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+                            <option value="">Select</option>
+                            <option value="Solo" ${game.GAME_TYPE === 'Solo' ? 'selected' : ''}>Solo</option>
+                            <option value="Duo" ${game.GAME_TYPE === 'Duo' ? 'selected' : ''}>Duo</option>
+                            <option value="Custom" ${game.GAME_TYPE === 'Custom' ? 'selected' : ''}>Custom</option>
+                        </select>
+                        <input type="text" class="info-input custom-value" placeholder="e.g., 5v5, 11v11" style="margin-top: 8px; display: none; width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+                    </div>
+                    <div class="info-field" style="margin: 0;">
+                        <label class="info-label">Fee (per person)</label>
+                        <input type="number" class="info-input game-fee" placeholder="100" min="0" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;" value="${game.FEE_PER_PERSON}">
+                    </div>
+                    <button type="button" class="delete-btn delete-btn-cancel" style="padding: 6px 12px;" onclick="removeGame('${id}')">✕</button>
+                </div>
+            `;
+
+            container.insertAdjacentHTML('beforeend', gameHtml);
+
+            // Show/hide custom game input based on selection
+            const gameNameSelect = document.querySelector(`#${id} .game-name-select`);
+            if (gameNameSelect && gameNameSelect.value === 'Custom') {
+                document.querySelector(`#${id} .game-name`).style.display = 'block';
+                document.querySelector(`#${id} .game-name`).disabled = false;
+                document.querySelector(`#${id} .game-name`).focus();
+            }
+
+            // Show/hide custom type based on selection
+            const gameTypeSelect = document.querySelector(`#${id} .game-type`);
+            if (gameTypeSelect && gameTypeSelect.value === 'Custom') {
+                document.querySelector(`#${id} .custom-value`).style.display = 'block';
+                document.querySelector(`#${id} .custom-value`).value = game.GAME_TYPE; // Use the original value if it's custom
+                document.querySelector(`#${id} .custom-value`).required = true;
+            } else if (gameTypeSelect && gameTypeSelect.value === 'Custom') {
+                // If type was custom but not "Custom" anymore, use original value
+                document.querySelector(`#${id} .custom-value`).value = game.GAME_TYPE;
+            }
+        }
+
+        // Update tournament function
+        async function updateTournament(tournamentId) {
+            const title = document.getElementById('title').value;
+            const deadlineInput = document.getElementById('deadline').value;
+            const description = document.getElementById('description').value;
+
+            // Convert the datetime-local value to proper format for backend
+            const deadline = deadlineInput ? new Date(deadlineInput).toISOString().slice(0, 19).replace('T', ' ') : '';
+
+            // Validation
+            if (!title) {
+                showAlert('Please enter a tournament title', 'error');
+                return;
+            }
+
+            if (!deadlineInput) {
+                showAlert('Please select a registration deadline', 'error');
+                return;
+            }
+
+            // Collect games data
+            const games = [];
+
+            // Method 1: Collect games from game entries (new games added during edit or loaded games)
+            ['male', 'female', 'mix'].forEach(category => {
+                const container = document.getElementById(`${category}Games`);
+                if (container) {
+                    const items = container.querySelectorAll('.game-entry');
+
+                    items.forEach(item => {
+                        const nameInput = item.querySelector('.game-name');
+                        const typeSelect = item.querySelector('.game-type');
+                        const customInput = item.querySelector('.custom-value');
+                        const feeInput = item.querySelector('.game-fee');
+
+                        // Get the proper game name (from dropdown or custom input)
+                        let gameName = '';
+                        const gameNameSelect = item.querySelector('.game-name-select');
+
+                        if (gameNameSelect && gameNameSelect.value === 'Custom' && nameInput && nameInput.value.trim() !== '') {
+                            gameName = nameInput.value.trim();
+                        } else if (gameNameSelect && gameNameSelect.value && gameNameSelect.value !== 'Custom') {
+                            gameName = gameNameSelect.value;
+                        }
+
+                        // Only add if game name is filled
+                        if (gameName !== '') {
+                            let gameType = typeSelect.value;
+
+                            // Validation for game type
+                            if (!gameType) {
+                                showAlert('Please select a game type for: ' + gameName, 'error');
+                                throw new Error('Missing game type');
+                            }
+
+                            let finalGameType = gameType;
+
+                            // Map game types to allowed database values
+                            if (gameType === 'Duo (Mixed)') {
+                                finalGameType = 'Custom';
+                            } else if (gameType.includes('v')) {
+                                // Team sizes like "5v5", "6v6", etc., store as 'Custom'
+                                finalGameType = 'Custom';
+                            } else if (!['Solo', 'Duo', 'Custom'].includes(gameType)) {
+                                // For any other custom format, use 'Custom'
+                                finalGameType = 'Custom';
+                            }
+
+                            let feeValue = 0;
+                            if (feeInput && feeInput.value) {
+                                feeValue = parseInt(feeInput.value) || 0;
+
+                                // Validate fee is a positive number
+                                if (feeValue < 0) {
+                                    showAlert('Entry fee cannot be negative for: ' + gameName, 'error');
+                                    throw new Error('Invalid fee value');
+                                }
+                            }
+
+                            games.push({
+                                category: category.charAt(0).toUpperCase() + category.slice(1), // Capitalize first letter
+                                name: gameName,
+                                type: finalGameType, // Use mapped type that's allowed by the constraint
+                                fee: feeValue
+                            });
+                        }
+                    });
+                }
+            });
+
+            // Don't use tournamentGames array for updates since it would duplicate existing games
+            // The tournamentGames array is only for newly added games during the add-tournament process
+            // During editing, all games should be handled through the UI elements
+
+            if (games.length === 0) {
+                showAlert('Please add at least one game', 'error');
+                return;
+            }
+
+            // Get photo if uploaded (though for update we might not need to change photo)
+            const photoFile = document.getElementById('photoFile');
+            let photoUrl = null;
+
+            try {
+                if (photoFile && photoFile.files[0]) {
+                    const reader = new FileReader();
+                    photoUrl = await new Promise((resolve, reject) => {
+                        reader.onload = function(e) { resolve(e.target.result); };
+                        reader.onerror = function(e) { reject(e); };
+                        reader.readAsDataURL(photoFile.files[0]);
+                    });
+                }
+
+                // Send update request to backend
+                const response = await fetch(`${API_URL}/admin/tournaments/${tournamentId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title,
+                        photoUrl,
+                        deadline,
+                        description,
+                        games
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert('Tournament updated successfully!', 'success');
+                    // Switch back to existing tournaments view
+                    showSection('existing-tournaments');
+                    loadTournaments(); // Reload the list
+                } else {
+                    showAlert(result.message || 'Failed to update tournament', 'error');
+                }
+            } catch (error) {
+                if (error.message !== 'Missing game type' && error.message !== 'Invalid fee value') {
+                    console.error('Update tournament error:', error);
+                    showAlert('Connection error. Please try again.', 'error');
+                }
+            }
+        }
+
+        // Open the custom confirmation modal for removing a game
+        function removeExistingGame(gameElementId, gameName) {
+            // Set the game name in the confirmation modal
+            document.getElementById('removeGameConfirmName').textContent = gameName;
+            // Store the element ID to be removed
+            document.getElementById('removeGameElementId').value = gameElementId;
+            // Show the modal
+            document.getElementById('removeGameConfirmModal').style.display = 'flex';
+        }
+
+        // Confirm and execute the game removal
+        function confirmRemoveGame() {
+            const gameElementId = document.getElementById('removeGameElementId').value;
+            const gameElement = document.getElementById(gameElementId);
+
+            if (gameElement) {
+                gameElement.remove();
+
+                // Check if any games remain in the parent container
+                const parentContainer = gameElement.parentElement;
+                if (parentContainer && parentContainer.children.length === 0) {
+                    // Hide the category header if no more games remain
+                    parentContainer.parentElement.style.display = 'none';
+                }
+
+                // Update the gamesList message to reflect removal
+                updateGamesCountDisplay();
+            }
+
+            // Close the modal
+            closeRemoveGameConfirmModal();
+        }
+
+        // Close the confirmation modal
+        function closeRemoveGameConfirmModal() {
+            document.getElementById('removeGameConfirmModal').style.display = 'none';
+        }
+
+        // Update the games count display after removals/additions
+        function updateGamesCountDisplay() {
+            // Count total visible games in the display areas
+            const maleGameCount = document.querySelectorAll('#displayMaleGames > div').length;
+            const femaleGameCount = document.querySelectorAll('#displayFemaleGames > div').length;
+            const mixGameCount = document.querySelectorAll('#displayMixGames > div').length;
+            const totalGames = maleGameCount + femaleGameCount + mixGameCount;
+
+            if (totalGames > 0) {
+                document.getElementById('gamesList').innerHTML = `<div style="color: #6b7280; font-style: italic; padding: 10px;">Showing ${totalGames} existing games. Add more or update below.</div>`;
+            } else {
+                document.getElementById('gamesList').innerHTML = `<div style="color: #6b7280; font-style: italic; padding: 10px;">No games added yet.</div>`;
+            }
+        }
+
+        // Toggle game name field visibility based on selection
+        function toggleGameNameField(selectElement) {
+            const customInput = selectElement.nextElementSibling;
+            if (selectElement.value === 'Custom') {
+                customInput.style.display = 'block';
+                customInput.disabled = false;
+                customInput.focus();
+            } else {
+                customInput.style.display = 'none';
+                customInput.disabled = true;
+                customInput.value = ''; // Clear any custom input
+            }
+        }
+
+        // Handle delete confirmation input
+        function handleDeleteInput() {
+            const input = document.getElementById('deleteConfirmInput').value;
+            const expectedValue = 'yes, i want to delete it';
+            const confirmBtn = document.getElementById('deleteConfirmBtn');
+
+            if (input.toLowerCase().trim() === expectedValue) {
+                confirmBtn.disabled = false;
+            } else {
+                confirmBtn.disabled = true;
+            }
+        }
+
+        // Confirm tournament deletion
+        async function confirmDelete() {
+            const tournamentId = document.getElementById('deleteTournamentId').value;
+            const confirmBtn = document.getElementById('deleteConfirmBtn');
+            const originalText = confirmBtn.textContent;
+
+            confirmBtn.textContent = 'Deleting...';
+            confirmBtn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_URL}/admin/tournaments/${tournamentId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('msAccessToken') || ''}`
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert('Tournament deleted successfully!', 'success');
+                    document.getElementById('deleteModal').style.display = 'none';
+                    // Reload the tournaments list
+                    loadTournaments();
+                } else {
+                    showAlert(result.message || 'Failed to delete tournament', 'error');
+                    confirmBtn.disabled = false;
+                    confirmBtn.textContent = originalText;
+                }
+            } catch (error) {
+                console.error('Delete tournament error:', error);
+                showAlert('Connection error. Please try again.', 'error');
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = originalText;
+            }
+        }
+
+        // Cancel deletion
+        function cancelDelete() {
+            document.getElementById('deleteModal').style.display = 'none';
+        }
+
+        // GAME RULES (same logic we discussed)
+        const GC_GAME_RULES = {
+            chess:        { solo: true,  duo: false, mixDuo: false, nvn: false, lockSoloOnly: true },
+            carrom:       { solo: true,  duo: true,  mixDuo: true,  nvn: false },
+            badminton:    { solo: true,  duo: true,  mixDuo: true,  nvn: false },
+            lawnTennis:   { solo: true,  duo: true,  mixDuo: true,  nvn: false },
+            tableTennis:  { solo: true,  duo: true,  mixDuo: true,  nvn: false },
+            pool:         { solo: true,  duo: true,  mixDuo: true,  nvn: false },
+            ludo:         { solo: false, duo: true,  mixDuo: true,  nvn: false }, // duo + mix only
+            football:     { solo: false, duo: false, mixDuo: false, nvn: true  },
+            cricket:      { solo: false, duo: false, mixDuo: false, nvn: true  },
+            basketball:   { solo: false, duo: false, mixDuo: false, nvn: true  },
+            futsal:       { solo: false, duo: false, mixDuo: false, nvn: true  },
+            handball:     { solo: false, duo: false, mixDuo: false, nvn: true  },
+            volleyball:   { solo: false, duo: false, mixDuo: false, nvn: true  },
+        };
+
+        // Temporary array to store games
+        let tournamentGames = [];
+
+        function openGameCategoryModal() {
+            document.getElementById('gameCategoryModal').classList.add('active');
+            document.getElementById('gc_gameSelect').value = "";
+            document.getElementById('gc_entryFee').value = 100;
+            document.getElementById('gc_customGameField').style.display = 'none';
+            document.getElementById('gc_customTeamSizeRow').style.display = 'none';
+            document.getElementById('gc_teamSize').value = "";
+            document.getElementById('gc_customGame').value = "";
+
+            // reset Men/Women
+            const personPills = document.querySelectorAll('#gc_personGroup .pill-check');
+            personPills.forEach(p => {
+                p.classList.add('active');
+                const input = p.querySelector('input');
+                if (input) input.checked = true;
+            });
+
+            gc_resetFormats();
+        }
+
+        function closeGameCategoryModal() {
+            document.getElementById('gameCategoryModal').classList.remove('active');
+        }
+
+        function gc_resetFormats() {
+            const formatIds = [
+                { pill: 'gc_fmtSolo',  input: 'gc_formatSolo' },
+                { pill: 'gc_fmtDuo',   input: 'gc_formatDuo' },
+                { pill: 'gc_fmtMixDuo',input: 'gc_formatMixDuo' },
+                { pill: 'gc_fmtSquad', input: 'gc_formatSquad' },
+            ];
+            formatIds.forEach(({ pill, input }) => {
+                const pillEl = document.getElementById(pill);
+                const inputEl = document.getElementById(input);
+                pillEl.classList.remove('active', 'disabled');
+                pillEl.dataset.locked = 'false';
+                inputEl.checked = false;
+                inputEl.disabled = false;
+            });
+        }
+
+        function gc_handleGameChange(value) {
+            const customField = document.getElementById('gc_customGameField');
+            const teamSizeRow = document.getElementById('gc_customTeamSizeRow');
+            const teamSizeInput = document.getElementById('gc_teamSize');
+
+            if (value === 'custom') {
+                customField.style.display = 'block';
+            } else {
+                customField.style.display = 'none';
+                document.getElementById('gc_customGame').value = "";
+            }
+
+            gc_resetFormats();
+            teamSizeRow.style.display = 'none';
+            teamSizeInput.value = "";
+            document.getElementById('gc_entryFee').value = 100;
+
+            // always enable Men/Women when game changes
+            const personPills = document.querySelectorAll('#gc_personGroup .pill-check');
+            personPills.forEach(p => {
+                p.classList.add('active');
+                const input = p.querySelector('input');
+                if (input) input.checked = true;
+            });
+
+            if (!value || value === 'custom') return;
+
+            const rules = GC_GAME_RULES[value];
+            if (!rules) return;
+
+            function setFormat(pillId, inputId, allowed, checked, locked) {
+                const pillEl = document.getElementById(pillId);
+                const inputEl = document.getElementById(inputId);
+                pillEl.dataset.locked = locked ? 'true' : 'false';
+
+                if (!allowed) {
+                    pillEl.classList.remove('active');
+                    pillEl.classList.add('disabled');
+                    inputEl.checked = false;
+                    inputEl.disabled = true;
+                    return;
+                }
+
+                pillEl.classList.remove('disabled');
+                inputEl.disabled = false;
+
+                if (checked) {
+                    pillEl.classList.add('active');
+                    inputEl.checked = true;
+                } else {
+                    pillEl.classList.remove('active');
+                    inputEl.checked = false;
+                }
+            }
+
+            // Chess: solo only
+            if (rules.lockSoloOnly) {
+                setFormat('gc_fmtSolo', 'gc_formatSolo', true, true, true);
+                setFormat('gc_fmtDuo', 'gc_formatDuo', false, false, false);
+                setFormat('gc_fmtMixDuo', 'gc_formatMixDuo', false, false, false);
+                setFormat('gc_fmtSquad', 'gc_formatSquad', false, false, false);
+                return;
+            }
+
+            // Pool / racket-type: solo + duo + mix, no squad
+            if (rules.solo && rules.duo && rules.mixDuo && !rules.nvn) {
+                setFormat('gc_fmtSolo', 'gc_formatSolo', true, true, false);
+                setFormat('gc_fmtDuo', 'gc_formatDuo', true, true, false);
+                setFormat('gc_fmtMixDuo', 'gc_formatMixDuo', true, true, false);
+                setFormat('gc_fmtSquad', 'gc_formatSquad', false, false, false);
+                return;
+            }
+
+            // Ludo: duo + mix only
+            if (!rules.solo && rules.duo && rules.mixDuo && !rules.nvn) {
+                setFormat('gc_fmtSolo', 'gc_formatSolo', false, false, false);
+                setFormat('gc_fmtDuo', 'gc_formatDuo', true, true, false);
+                setFormat('gc_fmtMixDuo', 'gc_formatMixDuo', true, true, false);
+                setFormat('gc_fmtSquad', 'gc_formatSquad', false, false, false);
+                return;
+            }
+
+            // NVN: squad only
+            if (rules.nvn && !rules.solo && !rules.duo && !rules.mixDuo) {
+                setFormat('gc_fmtSolo', 'gc_formatSolo', false, false, false);
+                setFormat('gc_fmtDuo', 'gc_formatDuo', false, false, false);
+                setFormat('gc_fmtMixDuo', 'gc_formatMixDuo', false, false, false);
+                setFormat('gc_fmtSquad', 'gc_formatSquad', true, true, true);
+                teamSizeRow.style.display = 'flex';
+                return;
+            }
+        }
+
+        function gc_togglePill(el) {
+            if (el.classList.contains('disabled')) return;
+            el.classList.toggle('active');
+            const input = el.querySelector('input');
+            if (input) input.checked = el.classList.contains('active');
+        }
+
+        function gc_toggleFormatPill(el) {
+            const locked = el.dataset.locked === 'true';
+            if (locked || el.classList.contains('disabled')) return;
+            el.classList.toggle('active');
+            const input = el.querySelector('input');
+            if (input) input.checked = el.classList.contains('active');
+
+            const squadInput = document.getElementById('gc_formatSquad');
+            const teamSizeRow = document.getElementById('gc_customTeamSizeRow');
+            if (squadInput.checked && !squadInput.disabled) {
+                teamSizeRow.style.display = 'flex';
+            } else {
+                teamSizeRow.style.display = 'none';
+                document.getElementById('gc_teamSize').value = "";
+            }
+        }
+
+        // Save game to temporary array and update display
+        function gc_saveGame() {
+            const gameKey = document.getElementById('gc_gameSelect').value;
+            const customName = document.getElementById('gc_customGame').value.trim();
+            const fee = document.getElementById('gc_entryFee').value;
+            const teamSize = document.getElementById('gc_teamSize').value.trim();
+
+            const solo = document.getElementById('gc_formatSolo').checked;
+            const duo = document.getElementById('gc_formatDuo').checked;
+            const mixDuo = document.getElementById('gc_formatMixDuo').checked;
+            const squad = document.getElementById('gc_formatSquad').checked;
+
+            let name = gameKey === 'custom' ? customName : gameKey;
+
+            // Capitalize first letter of game name
+            if (name && typeof name === 'string') {
+                name = name.charAt(0).toUpperCase() + name.slice(1);
+            }
+
+            // Determine categories based on pills
+            const menPill = document.querySelector('#gc_personGroup .pill-check:nth-child(1)');
+            const womenPill = document.querySelector('#gc_personGroup .pill-check:nth-child(2)');
+            const isMen = menPill.classList.contains('active');
+            const isWomen = womenPill.classList.contains('active');
+
+            // Create category array based on selections
+            let categories = [];
+            if (isMen && isWomen) {
+                categories = ['Male', 'Female', 'Mix']; // If both selected, add all
+            } else if (isMen) {
+                categories = ['Male'];
+            } else if (isWomen) {
+                categories = ['Female'];
+            } else {
+                categories = ['Mix']; // If neither selected, default to mix
+            }
+
+            // Create format array based on selections
+            let formats = [];
+            if (solo) formats.push('Solo');
+            if (duo) formats.push('Duo');
+            if (mixDuo) formats.push('Duo (Mixed)');
+            if (squad) formats.push(teamSize ? `${teamSize}v${teamSize}` : 'Squad');
+
+            // Process each format separately and assign to appropriate categories
+            for (const format of formats) {
+                if (format === 'Solo') {
+                    // Solo only goes to Male/Female, not Mix
+                    if (categories.includes('Male')) {
+                        tournamentGames.push({
+                            category: 'Male',
+                            name: name,
+                            type: format,
+                            fee: parseInt(fee) || 0
+                        });
+                    }
+                    if (categories.includes('Female')) {
+                        tournamentGames.push({
+                            category: 'Female',
+                            name: name,
+                            type: format,
+                            fee: parseInt(fee) || 0
+                        });
+                    }
+                } else if (format === 'Duo') {
+                    // Duo only goes to Male/Female, not Mix
+                    if (categories.includes('Male')) {
+                        tournamentGames.push({
+                            category: 'Male',
+                            name: name,
+                            type: format,
+                            fee: parseInt(fee) || 0
+                        });
+                    }
+                    if (categories.includes('Female')) {
+                        tournamentGames.push({
+                            category: 'Female',
+                            name: name,
+                            type: format,
+                            fee: parseInt(fee) || 0
+                        });
+                    }
+                } else if (format === 'Duo (Mixed)') {
+                    // Duo (Mixed) only goes to Mix category
+                    if (categories.includes('Mix')) {
+                        tournamentGames.push({
+                            category: 'Mix',
+                            name: name,
+                            type: format,
+                            fee: parseInt(fee) || 0
+                        });
+                    }
+                } else if (format.includes('v') || format === 'Squad') {
+                    // Squad formats only go to Male/Female, not Mix
+                    if (categories.includes('Male')) {
+                        tournamentGames.push({
+                            category: 'Male',
+                            name: name,
+                            type: format,
+                            fee: parseInt(fee) || 0
+                        });
+                    }
+                    if (categories.includes('Female')) {
+                        tournamentGames.push({
+                            category: 'Female',
+                            name: name,
+                            type: format,
+                            fee: parseInt(fee) || 0
+                        });
+                    }
+                }
+            }
+
+            updateGamesList();
+            closeGameCategoryModal();
+        }
+
+        // Update the games list display
+        function updateGamesList() {
+            const gamesList = document.getElementById('gamesList');
+
+            if (tournamentGames.length === 0) {
+                gamesList.innerHTML = '<div style="color: #6b7280; font-style: italic; padding: 10px;">No games added yet.</div>';
+                return;
+            }
+
+            let html = '<div style="margin-bottom: 10px;">';
+            tournamentGames.forEach((game, index) => {
+                html += `
+                    <div style="background: #f9fafb; padding: 12px; border-radius: 6px; margin-bottom: 8px; border: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>${game.name}</strong> <span style="color: #6b7280; font-size: 12px;">(${game.category})</span><br>
+                            <span style="font-size: 12px; color: #6b7280;">Type: ${game.type} • Fee: ${game.fee} BDT</span>
+                        </div>
+                        <button onclick="removeGame(${index})" style="background: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">Delete</button>
+                    </div>
+                `;
+            });
+            html += '</div>';
+
+            gamesList.innerHTML = html;
+        }
+
+        // Remove a game from the list
+        function removeGame(index) {
+            // If index is a number, it's removing from tournamentGames array
+            if (typeof index === 'number') {
+                tournamentGames.splice(index, 1);
+            } else {
+                // If index is an ID string, it's removing from UI elements
+                const gameElement = document.getElementById(index);
+                if (gameElement) {
+                    gameElement.remove();
+                }
+            }
+            updateGamesList();
+        }
+    </script>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="delete-modal">
+        <div class="delete-modal-content">
+            <div class="delete-modal-header">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                Delete Tournament?
+            </div>
+            <div class="delete-modal-warning">
+                <strong>Warning:</strong> This action cannot be undone. All data related to this tournament will be permanently removed.
+            </div>
+            <p>Are you sure you want to delete the tournament "<strong id="deleteTournamentTitle"></strong>"?</p>
+            <div class="delete-input-container">
+                <label class="delete-input-label">Type "yes, i want to delete it" to confirm:</label>
+                <input type="text" id="deleteConfirmInput" class="delete-input" placeholder="yes, i want to delete it" oninput="handleDeleteInput()">
+            </div>
+            <input type="hidden" id="deleteTournamentId">
+            <div class="delete-buttons">
+                <button class="delete-btn delete-btn-cancel" onclick="cancelDelete()">Cancel</button>
+                <button class="delete-btn delete-btn-confirm" id="deleteConfirmBtn" disabled onclick="confirmDelete()">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Category Modal -->
+    <div class="modal-backdrop" id="gameCategoryModal">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-title">Add game to this tournament</div>
+          <button class="modal-close" type="button" onclick="closeGameCategoryModal()">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="field">
+            <label for="gc_gameSelect">Game</label>
+            <select id="gc_gameSelect" onchange="gc_handleGameChange(this.value)">
+              <option value="">Select game</option>
+              <!-- Solo-only -->
+              <option value="chess">Chess</option>
+              <!-- Solo + Duo + Mixed (racket-type) -->
+              <option value="badminton">Badminton</option>
+              <option value="carrom">Carrom</option>
+              <option value="lawnTennis">Lawn Tennis</option>
+              <option value="tableTennis">Table Tennis</option>
+              <option value="pool">Pool</option>
+              <!-- Duo + Mixed only -->
+              <option value="ludo">Ludo</option>
+              <!-- NVN team games -->
+              <option value="football">Football</option>
+              <option value="cricket">Cricket</option>
+              <option value="basketball">Basketball</option>
+              <option value="futsal">Futsal</option>
+              <option value="handball">Handball</option>
+              <option value="volleyball">Volleyball</option>
+              <!-- Custom -->
+              <option value="custom">Custom...</option>
+            </select>
+            <small>Select from default list or add a custom game.</small>
+          </div>
+
+          <div class="field" id="gc_customGameField" style="display:none;">
+            <label for="gc_customGame">Custom game name</label>
+            <input id="gc_customGame" type="text" placeholder="e.g. PUBG Mobile Squad" />
+            <small>Useful for future events like PUBG, Valorant, etc.</small>
+          </div>
+
+          <div class="field">
+            <label>Available for</label>
+            <div class="pill-group" id="gc_personGroup">
+              <label class="pill-check active" onclick="gc_togglePill(this)">
+                <input type="checkbox" checked />
+                <span class="dot"></span>
+                Men
+              </label>
+              <label class="pill-check active" onclick="gc_togglePill(this)">
+                <input type="checkbox" checked />
+                <span class="dot"></span>
+                Women
+              </label>
+            </div>
+            <div class="hint">
+              By default, Men and Women are both allowed for all standard games.
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Tournament format</label>
+            <div class="pill-group">
+              <label class="pill-check" id="gc_fmtSolo" onclick="gc_toggleFormatPill(this)">
+                <input type="checkbox" id="gc_formatSolo" />
+                <span class="dot"></span>
+                Solo
+              </label>
+              <label class="pill-check" id="gc_fmtDuo" onclick="gc_toggleFormatPill(this)">
+                <input type="checkbox" id="gc_formatDuo" />
+                <span class="dot"></span>
+                Duo
+              </label>
+              <label class="pill-check" id="gc_fmtMixDuo" onclick="gc_toggleFormatPill(this)">
+                <input type="checkbox" id="gc_formatMixDuo" />
+                <span class="dot"></span>
+                Duo (Mixed)
+              </label>
+              <label class="pill-check" id="gc_fmtSquad" onclick="gc_toggleFormatPill(this)">
+                <input type="checkbox" id="gc_formatSquad" />
+                <span class="dot"></span>
+                Squad / Team (NVN)
+              </label>
+            </div>
+            <div class="hint">
+              Logic: Chess = only Solo, Pool = Solo+Duo+Mixed, Ludo = Duo+Mixed, Football = Squad only, etc.
+            </div>
+          </div>
+
+          <div class="flex-row" id="gc_customTeamSizeRow" style="margin-top:8px;display:none;">
+            <div class="field">
+              <label for="gc_teamSize">Players per team (for Squad)</label>
+              <input id="gc_teamSize" type="text" placeholder="e.g. 6, 7, 8, 9, 10, 11" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="gc_entryFee">Entry fee per person (৳)</label>
+            <input id="gc_entryFee" type="number" min="0" value="100" />
+            <small>Default is <strong>100 taka per person</strong>. Change if needed.</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn secondary" type="button" onclick="closeGameCategoryModal()">Cancel</button>
+          <button class="btn primary" type="button" onclick="gc_saveGame()">
+            Save game
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Confirmation Modal for Removing Games -->
+    <div id="removeGameConfirmModal" class="delete-modal" style="display: none; z-index: 10001;">
+        <div class="delete-modal-content">
+            <div class="delete-modal-header" style="background: #f87171; color: white;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 24px; height: 24px; margin-right: 8px;">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                Confirm Remove
+            </div>
+            <div class="delete-modal-warning">
+                <strong>Warning:</strong> This action cannot be undone. The game will be permanently removed.
+            </div>
+            <p>Are you sure you want to remove the game "<strong id="removeGameConfirmName"></strong>"?</p>
+            <input type="hidden" id="removeGameElementId">
+            <div class="delete-buttons">
+                <button class="btn-cancel" onclick="closeRemoveGameConfirmModal()">Cancel</button>
+                <button class="btn-confirm" onclick="confirmRemoveGame()" style="background: #ef4444; color: white; padding: 10px 25px;">Confirm</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

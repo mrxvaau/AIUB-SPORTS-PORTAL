@@ -321,3 +321,167 @@ exports.getNameEditCount = async (req, res) => {
         });
     }
 };
+
+// Get available tournaments for registration
+exports.getAvailableTournaments = async (req, res) => {
+    try {
+        const query = `
+            SELECT id, title, photo_url,
+                   TO_CHAR(registration_deadline, 'YYYY-MM-DD HH24:MI:SS') as deadline,
+                   status, TO_CHAR(created_at, 'YYYY-MM-DD') as created_date
+            FROM tournaments
+            WHERE status = 'ACTIVE'
+              AND registration_deadline > CURRENT_TIMESTAMP
+            ORDER BY registration_deadline ASC
+        `;
+
+        const result = await db.executeQuery(query);
+        res.json({ success: true, tournaments: result.rows });
+    } catch (error) {
+        console.error('Get available tournaments error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Get games for a specific tournament
+exports.getTournamentGames = async (req, res) => {
+    try {
+        const tournamentId = req.params.id;
+
+        const query = `
+            SELECT id, category, game_name, game_type, fee_per_person
+            FROM tournament_games
+            WHERE tournament_id = :tournament_id
+            ORDER BY category, game_name
+        `;
+
+        const result = await db.executeQuery(query, [tournamentId]);
+        res.json({ success: true, games: result.rows });
+    } catch (error) {
+        console.error('Get tournament games error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Register for a tournament game
+exports.registerForGame = async (req, res) => {
+    try {
+        const { studentId, gameId } = req.body;
+
+        // First, get user ID from student ID
+        const userQuery = `
+            SELECT id FROM users WHERE student_id = :student_id
+        `;
+        const userResult = await db.executeQuery(userQuery, [studentId]);
+
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        const userId = userResult.rows[0].ID;
+
+        // Check if registration deadline has passed for this tournament
+        const deadlineQuery = `
+            SELECT t.registration_deadline
+            FROM tournament_games tg
+            JOIN tournaments t ON tg.tournament_id = t.id
+            WHERE tg.id = :game_id
+        `;
+        const deadlineResult = await db.executeQuery(deadlineQuery, [gameId]);
+
+        if (deadlineResult.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Game not found'
+            });
+        }
+
+        const deadline = new Date(deadlineResult.rows[0].REGISTRATION_DEADLINE);
+        const now = new Date();
+
+        if (now > deadline) {
+            return res.status(400).json({
+                success: false,
+                message: 'Registration deadline has passed for this tournament'
+            });
+        }
+
+        // Check if user has already registered for this game
+        const checkQuery = `
+            SELECT id FROM game_registrations
+            WHERE user_id = :user_id AND game_id = :game_id
+        `;
+        const checkResult = await db.executeQuery(checkQuery, [userId, gameId]);
+
+        if (checkResult.rows.length > 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Already registered for this game'
+            });
+        }
+
+        // Register user for the game
+        const registerQuery = `
+            INSERT INTO game_registrations (user_id, game_id, payment_status)
+            VALUES (:user_id, :game_id, 'PENDING')
+        `;
+        await db.executeQuery(registerQuery, [userId, gameId]);
+
+        res.json({
+            success: true,
+            message: 'Successfully registered for the game',
+            registrationId: 'generated'
+        });
+    } catch (error) {
+        console.error('Register for game error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Get user's registrations
+exports.getUserRegistrations = async (req, res) => {
+    try {
+        const { studentId } = req.params;
+
+        // Get user ID from student ID
+        const userQuery = `
+            SELECT id FROM users WHERE student_id = :student_id
+        `;
+        const userResult = await db.executeQuery(userQuery, [studentId]);
+
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        const userId = userResult.rows[0].ID;
+
+        const query = `
+            SELECT
+                gr.id as registration_id,
+                tg.game_name,
+                tg.category,
+                tg.game_type,
+                tg.fee_per_person,
+                t.title as tournament_title,
+                gr.payment_status,
+                TO_CHAR(gr.registration_date, 'YYYY-MM-DD HH24:MI:SS') as registration_date
+            FROM game_registrations gr
+            JOIN tournament_games tg ON gr.game_id = tg.id
+            JOIN tournaments t ON tg.tournament_id = t.id
+            WHERE gr.user_id = :user_id
+            ORDER BY gr.registration_date DESC
+        `;
+
+        const result = await db.executeQuery(query, [userId]);
+        res.json({ success: true, registrations: result.rows });
+    } catch (error) {
+        console.error('Get user registrations error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};

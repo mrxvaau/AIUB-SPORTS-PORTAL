@@ -357,6 +357,21 @@
             cursor: not-allowed;
         }
 
+        .active-registration-btn {
+            background: #ef4444;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .active-registration-btn:hover {
+            background: #dc2626;
+        }
+
         /* Schedule Card */
         .schedule-card {
             background: white;
@@ -487,6 +502,270 @@
             font-size: 24px;
             opacity: 0.9;
         }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 700px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            font-size: 22px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .modal-body {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .tournament-item {
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: white;
+        }
+
+        .tournament-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 4px;
+        }
+
+        .tournament-deadline {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+
+        .game-list {
+            margin-top: 10px;
+        }
+
+        .game-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .game-item:last-child {
+            border-bottom: none;
+        }
+
+        .game-info {
+            flex: 1;
+        }
+
+        .game-name {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .game-category {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .register-game-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .register-game-btn:hover {
+            background: #059669;
+        }
+
+        .register-game-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+        }
+
+        .btn-cancel {
+            padding: 10px 25px;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid #d1d5db;
+            background: #f9fafb;
+            color: #374151;
+        }
+
+        .btn-cancel:hover {
+            background: #f3f4f6;
+        }
+
+        /* Tournament Card Styles */
+        .tournament-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .tournament-header {
+            padding: 16px;
+            background: #1d4ed8;
+            color: white;
+        }
+
+        .tournament-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0 0 4px 0;
+        }
+
+        .tournament-deadline {
+            font-size: 13px;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .tournament-body {
+            padding: 16px;
+        }
+
+        .tournament-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            background: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+            font-size: 14px;
+        }
+
+        .tournament-description {
+            margin: 12px 0;
+            color: #6b7280;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .tournament-games {
+            margin: 16px 0;
+        }
+
+        .tournament-games-title {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .game-item-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .game-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .game-item:last-child {
+            border-bottom: none;
+        }
+
+        .game-info {
+            flex: 1;
+        }
+
+        .game-name {
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .game-category-type {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .register-game-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .register-game-btn:hover {
+            background: #059669;
+        }
+
+        .register-game-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .tournament-footer {
+            padding: 12px 16px;
+            background: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .view-details-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .view-details-btn:hover {
+            background: #2563eb;
+        }
     </style>
 </head>
 <body>
@@ -508,6 +787,11 @@
         </div>
         <div class="header-right">
             <span class="welcome-text" id="welcomeText">Welcome</span>
+            <div class="icon-btn" id="adminBtn" style="display: none;" onclick="goToAdmin()">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+            </div>
             <div class="icon-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -678,13 +962,27 @@
             </div>
 
             <!-- Warning -->
-            <div class="warning-box">
-                <p>No games available at the moment. You will be notified once a tournament is scheduled.</p>
+            <!-- Registration Message -->
+            <div id="registrationMessage" class="warning-box">
+                <p>Loading available tournaments...</p>
             </div>
 
             <!-- Action Button -->
             <div class="action-button">
-                <button class="disabled-btn">You are not allowed to do registration Today.</button>
+                <button id="registerBtn" class="disabled-btn" onclick="goToRegistration()" disabled>Registration is closed</button>
+            </div>
+
+            <!-- Tournament Registration Modal -->
+            <div id="tournamentModal" class="modal hidden">
+                <div class="modal-content">
+                    <div class="modal-header">Tournament Registration</div>
+                    <div id="modalBody">
+                        <p>Loading tournaments...</p>
+                    </div>
+                    <div class="modal-buttons">
+                        <button class="btn-cancel" onclick="closeTournamentModal()">Close</button>
+                    </div>
+                </div>
             </div>
 
             <!-- Game Schedule -->
@@ -693,16 +991,18 @@
                     <h2>Game Schedule</h2>
                 </div>
                 <div class="schedule-body">
-                    <div class="schedule-row">
-                        <span class="schedule-day">Today</span>
-                        <span class="schedule-info">No Games Available</span>
-                    </div>
-                    <div class="schedule-row" style="border-top: 1px solid #e5e7eb; padding-top: 12px;">
-                        <span class="schedule-day">Tomorrow</span>
-                        <div class="schedule-info">
-                            <div style="margin-bottom: 8px;">
-                                <a href="#" style="color: #3b82f6; text-decoration: none;">No Games Available</a>
-                                <p style="font-size: 12px; color: #6b7280;">TBA</p>
+                    <div id="scheduleContent">
+                        <div class="schedule-row">
+                            <span class="schedule-day">Today</span>
+                            <span class="schedule-info">No Games Available</span>
+                        </div>
+                        <div class="schedule-row" style="border-top: 1px solid #e5e7eb; padding-top: 12px;">
+                            <span class="schedule-day">Tomorrow</span>
+                            <div class="schedule-info">
+                                <div style="margin-bottom: 8px;">
+                                    <a href="#" style="color: #3b82f6; text-decoration: none;">No Games Available</a>
+                                    <p style="font-size: 12px; color: #6b7280;">TBA</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -735,6 +1035,25 @@
                 if (!studentId || !email) {
                     window.location.href = 'login.html';
                     return;
+                }
+
+                // Check if admin - SIMPLIFIED
+                try {
+                    const adminCheck = await fetch(`${API_URL}/admin/check-admin`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email })
+                    });
+                    const adminData = await adminCheck.json();
+                    console.log('Admin check result:', adminData);
+
+                    if (adminData.isAdmin === true) {
+                        console.log('User is admin!');
+                        document.getElementById('adminBtn').style.display = 'block';
+                        localStorage.setItem('isAdmin', 'true');
+                    }
+                } catch (err) {
+                    console.log('Admin check failed:', err);
                 }
 
                 const response = await fetch(`${API_URL}/auth/profile/${studentId}`);
@@ -904,14 +1223,163 @@
             }
         }
 
+        function goToAdmin() {
+            window.location.href = 'admin-dashboard.html';
+        }
+
+        // Load available tournaments for registration
+        async function loadAvailableTournaments() {
+            try {
+                const response = await fetch(`${API_URL}/auth/tournaments`);
+                const data = await response.json();
+
+                if (data.success && data.tournaments && data.tournaments.length > 0) {
+                    // Enable registration button
+                    document.getElementById('registerBtn').disabled = false;
+                    document.getElementById('registerBtn').textContent = 'Registration';
+                    document.getElementById('registerBtn').className = 'active-registration-btn'; // Use the red active button class
+
+                    // Update message
+                    document.getElementById('registrationMessage').innerHTML =
+                        '<p>Registration is now open! Click the button to register for tournaments.</p>';
+                } else {
+                    // No tournaments available
+                    document.getElementById('registerBtn').disabled = true;
+                    document.getElementById('registerBtn').textContent = 'Registration Closed';
+                    document.getElementById('registrationMessage').innerHTML =
+                        '<p>No tournaments available for registration at the moment.</p>';
+                }
+            } catch (error) {
+                console.error('Load tournaments error:', error);
+                document.getElementById('registerBtn').disabled = true;
+                document.getElementById('registrationMessage').innerHTML =
+                    '<p>Error loading tournament information. Please try again later.</p>';
+            }
+        }
+
+        // Go to registration page
+        function goToRegistration() {
+            window.location.href = 'registration.html';
+        }
+
+        // View tournament details (placeholder function)
+        function viewTournamentDetails(tournamentId) {
+            // For now, just open the modal to see the tournament
+            openTournamentModal();
+        }
+
+        // Open tournament registration modal
+        async function openTournamentModal() {
+            try {
+                document.getElementById('tournamentModal').classList.remove('hidden');
+
+                const modalBody = document.getElementById('modalBody');
+                modalBody.innerHTML = '<p>Loading tournaments...</p>';
+
+                const response = await fetch(`${API_URL}/auth/tournaments`);
+                const data = await response.json();
+
+                if (data.success && data.tournaments && data.tournaments.length > 0) {
+                    let html = '';
+
+                    data.tournaments.forEach(tournament => {
+                        html += `
+                            <div class="tournament-item">
+                                <div class="tournament-title">${tournament.TITLE}</div>
+                                <div class="tournament-deadline">Registration Deadline: ${tournament.DEADLINE}</div>
+                                <button class="edit-btn" style="margin-top: 10px;" onclick="loadTournamentGames(${tournament.ID})">View Games</button>
+                                <div id="games-${tournament.ID}" class="game-list" style="display: none;"></div>
+                            </div>
+                        `;
+                    });
+
+                    modalBody.innerHTML = html;
+                } else {
+                    modalBody.innerHTML = '<p>No tournaments available for registration.</p>';
+                }
+            } catch (error) {
+                console.error('Open tournament modal error:', error);
+                document.getElementById('modalBody').innerHTML = '<p>Error loading tournaments. Please try again.</p>';
+            }
+        }
+
+        // Load games for a specific tournament
+        async function loadTournamentGames(tournamentId) {
+            try {
+                const gamesContainer = document.getElementById(`games-${tournamentId}`);
+
+                // Show loading
+                gamesContainer.style.display = 'block';
+                gamesContainer.innerHTML = '<p>Loading games...</p>';
+
+                const response = await fetch(`${API_URL}/auth/tournaments/${tournamentId}/games`);
+                const data = await response.json();
+
+                if (data.success && data.games && data.games.length > 0) {
+                    let html = '<h3 style="margin: 10px 0 15px 0;">Available Games:</h3><div>';
+
+                    data.games.forEach(game => {
+                        html += `
+                            <div class="game-item">
+                                <div class="game-info">
+                                    <div class="game-name">${game.GAME_NAME}</div>
+                                    <div class="game-category">${game.CATEGORY} • ${game.GAME_TYPE} • ${game.FEE_PER_PERSON} BDT</div>
+                                </div>
+                                <button class="register-game-btn" onclick="registerForGame(${game.ID})">Register</button>
+                            </div>
+                        `;
+                    });
+
+                    html += '</div>';
+                    gamesContainer.innerHTML = html;
+                } else {
+                    gamesContainer.innerHTML = '<p>No games available in this tournament.</p>';
+                }
+            } catch (error) {
+                console.error('Load tournament games error:', error);
+                document.getElementById(`games-${tournamentId}`).innerHTML = '<p>Error loading games.</p>';
+            }
+        }
+
+        // Register for a specific game
+        async function registerForGame(gameId) {
+            try {
+                const studentId = localStorage.getItem('studentId');
+
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ studentId, gameId })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('Successfully registered for the game!', 'success');
+                    closeTournamentModal();
+                } else {
+                    showAlert(data.message || 'Registration failed. Please try again.', 'error');
+                }
+            } catch (error) {
+                console.error('Register for game error:', error);
+                showAlert('Connection error. Please try again.', 'error');
+            }
+        }
+
+        // Close tournament modal
+        function closeTournamentModal() {
+            document.getElementById('tournamentModal').classList.add('hidden');
+        }
+
         // Check authentication
         window.addEventListener('DOMContentLoaded', () => {
             if (localStorage.getItem('isAuthenticated') !== 'true') {
                 window.location.href = 'login.html';
                 return;
             }
-            
+
             loadProfile();
+            loadAvailableTournaments(); // Load available tournaments when page loads
 
             // Check if this is first login after profile completion
             const justCompleted = sessionStorage.getItem('profileJustCompleted');
@@ -920,7 +1388,7 @@
                 const userName = localStorage.getItem('userName') || 'Player';
                 document.getElementById('welcomeName').textContent = userName;
                 document.getElementById('welcomeScreen').style.display = 'flex';
-                
+
                 setTimeout(() => {
                     document.getElementById('welcomeScreen').style.display = 'none';
                 }, 3000);

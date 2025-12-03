@@ -78,7 +78,32 @@ async function executeQuery(sql, params = [], options = {}) {
     let connection;
     try {
         connection = await getConnection();
-        const result = await connection.execute(sql, params, {
+
+        // Determine if params is for simple queries or complex PL/SQL binding
+        let bindParams;
+        if (Array.isArray(params)) {
+            // Simple array of values for regular queries
+            bindParams = params;
+        } else if (params && typeof params === 'object') {
+            // Check if this is a complex bind parameter object (has binding properties)
+            const isComplexBind = Object.values(params).some(param =>
+                (typeof param === 'object' && param !== null &&
+                 (param.hasOwnProperty('val') || param.hasOwnProperty('dir') || param.hasOwnProperty('type') || param.hasOwnProperty('maxSize')))
+            );
+
+            if (isComplexBind) {
+                // This is a complex bind parameter object for PL/SQL blocks
+                bindParams = params;
+            } else {
+                // This is a regular object to be passed as-is
+                bindParams = params;
+            }
+        } else {
+            // Single value
+            bindParams = [params];
+        }
+
+        const result = await connection.execute(sql, bindParams, {
             outFormat: oracledb.OUT_FORMAT_OBJECT,
             autoCommit: true,
             ...options

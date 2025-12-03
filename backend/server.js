@@ -1,10 +1,18 @@
 ﻿// AIUB Sports Portal - Backend Server
 // Version 1.0
 
+const util = require('util');
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 require('dotenv').config();
+
+// Patch util.isDate for OracleDB compatibility with newer Node.js versions
+if (!util.isDate) {
+    util.isDate = function (date) {
+        return date instanceof Date;
+    };
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,6 +20,7 @@ const PORT = process.env.PORT || 3000;
 // Import routes
 const authRoutes = require('./routes/auth');
 const msAuthRoutes = require('./routes/msauth');
+const adminRoutes = require('./routes/admin');
 
 // Middleware
 app.use(cors());
@@ -27,6 +36,7 @@ app.use((req, res, next) => {
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/msauth', msAuthRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
