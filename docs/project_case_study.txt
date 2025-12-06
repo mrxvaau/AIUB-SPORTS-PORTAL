@@ -1,0 +1,503 @@
+# AIUB Sports Portal - Comprehensive Project Case Study
+
+## Project Overview
+
+The AIUB Sports Portal is a full-stack web application developed for American International University - Bangladesh (AIUB) to manage their sports activities and tournaments. The system is designed to facilitate student participation in various sports events with proper registration, profile management, and tournament organization capabilities.
+
+### Key Features
+- Microsoft Teams authentication for secure access
+- Student profile management with edit restrictions
+- Tournament creation and management by administrators
+- Game registration system for students
+- Name editing limitation (3 times only)
+- Field-specific locking after first setup
+- Admin dashboard for tournament management
+
+## Technology Stack
+
+### Backend
+- **Runtime Environment**: Node.js (v14+)
+- **Framework**: Express.js
+- **Database**: Oracle 10g with PL/SQL
+- **Database Driver**: oracledb
+- **Authentication**: Microsoft Azure AD OAuth 2.0
+- **File Upload**: Multer
+- **Security**: CORS, Dotenv for environment variables
+- **Environment**: .env configuration
+
+### Frontend
+- **Languages**: HTML5, CSS3, JavaScript (ES6+)
+- **Framework**: Pure vanilla JavaScript (no frameworks)
+- **Styling**: Responsive CSS with Flexbox and Grid
+- **Design**: Material Design-inspired UI components
+
+### Database
+- **System**: Oracle 10g (PL/SQL)
+- **Architecture**: Normalized relational database
+- **Objects**: Tables, Sequences, Triggers, Stored Procedures/Functions
+- **Constraints**: Check constraints for data integrity
+
+## Architecture
+
+### System Architecture
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Frontend      │    │   Backend       │    │   Database      │
+│   (HTML/CSS/JS) │───▶│   (Node/Express)│───▶│   (Oracle 10g)  │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         ▼                       ▼                       ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Microsoft     │    │   File Storage  │    │   PL/SQL Logic  │
+│   Teams OAuth   │    │   (Uploads)     │    │   (Stored Procs)│
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+
+### Database Schema
+
+The database consists of 5 main tables with proper relationships and business logic:
+
+#### 1. Users Table
+- **Purpose**: Stores user information for students
+- **Fields**: 
+  - ID (Primary Key, auto-generated)
+  - Student ID (unique, AIUB format)
+  - Email (unique, validated format)
+  - Full Name (limited to 3 edits)
+  - Gender (locked after first setup)
+  - Name Edit Count (0-3 allowed)
+  - Phone Number (editable anytime)
+  - Program Level (locked after first setup)
+  - Department (locked after first setup)
+  - Blood Group (editable anytime)
+  - Profile Completion Status
+  - First Login Flag
+  - Timestamps (created, updated, last login)
+
+#### 2. Admins Table
+- **Purpose**: Stores administrator accounts
+- **Fields**:
+  - ID (Primary Key, auto-generated)
+  - Admin ID (unique)
+  - Email (unique)
+  - Full Name
+  - Creation timestamp
+
+#### 3. Tournaments Table
+- **Purpose**: Stores tournament information
+- **Fields**:
+  - ID (Primary Key, auto-generated)
+  - Title
+  - Photo URL (CLOB for image storage)
+  - Registration Deadline
+  - Status (ACTIVE, CLOSED, COMPLETED)
+  - Created By (foreign key to admins)
+  - Creation timestamp
+  - Description
+
+#### 4. Tournament_Games Table
+- **Purpose**: Stores games within tournaments
+- **Fields**:
+  - ID (Primary Key, auto-generated)
+  - Tournament ID (foreign key)
+  - Category (Male, Female, Mix)
+  - Game Name
+  - Game Type (Solo, Duo, Custom)
+  - Fee Per Person
+  - Creation timestamp
+
+#### 5. Game_Registrations Table
+- **Purpose**: Stores user registrations for games
+- **Fields**:
+  - ID (Primary Key, auto-generated)
+  - Game ID (foreign key)
+  - User ID (foreign key)
+  - Registration Date
+  - Payment Status (PENDING, PAID, FAILED)
+
+### Business Rules Implemented
+1. **Name Edit Limit**: Users can edit their name only 3 times
+2. **Field Locking**: Gender, Program Level, and Department locked after first setup
+3. **Email Validation**: AIUB-specific format (XX-XXXXX-X@student.aiub.edu)
+4. **Registration Deadline**: No late registrations allowed
+5. **Unique Constraints**: Student ID and email must be unique
+6. **Foreign Key Relationships**: Maintained referential integrity
+7. **Cascade Deletion**: Games deleted when tournament is deleted
+
+## Application Flow
+
+### User Journey
+1. **Authentication**: User logs in via Microsoft Teams account
+2. **Profile Creation**: New users complete their profile with required fields
+3. **Dashboard Access**: Users view tournaments and available games
+4. **Game Registration**: Users register for eligible tournaments
+5. **Profile Management**: Users can update limited fields based on rules
+
+### Admin Journey
+1. **Admin Verification**: Email checked against admin table
+2. **Dashboard Access**: Admin-specific interface with CRUD operations
+3. **Tournament Creation**: Create tournaments with games and categories
+4. **Tournament Management**: Edit, update, or delete tournaments
+
+## Security Features
+
+### Authentication & Authorization
+- **Microsoft Azure AD OAuth 2.0**: Secure authentication
+- **Email Domain Validation**: Only student.aiub.edu emails allowed
+- **Token Verification**: Access token validation
+- **Admin Check**: Separate admin verification endpoint
+
+### Data Security
+- **Input Validation**: Server-side validation for all inputs
+- **SQL Injection Prevention**: Parameterized queries
+- **Email Format Validation**: Regex validation at database level
+- **Field Constraints**: Check constraints for valid values
+
+### Profile Security
+- **Name Edit Limitation**: Prevents abuse of name field
+- **Field Locking**: Prevents changes to critical fields after setup
+- **Sensitive Field Protection**: Limited access to personal information
+
+## Key Components
+
+### Backend Components
+
+#### Server.js
+- Express.js application setup
+- CORS and body parsing middleware
+- Route registration
+- Health check endpoint
+- Error handling middleware
+
+#### Routes
+1. **Auth Routes** (./routes/auth.js):
+   - Login/registration endpoint
+   - Profile management (get/update)
+   - Name edit count checking
+   - Tournament access
+   - Game registration
+
+2. **MSAuth Routes** (./routes/msauth.js):
+   - Microsoft OAuth login flow
+   - Token verification
+   - Email validation against AIUB format
+
+3. **Admin Routes** (./routes/admin.js):
+   - Admin verification
+   - Tournament management (CRUD operations)
+   - File upload handling
+
+#### Controllers
+1. **User Controller** (./controllers/userController.js):
+   - Handles user profile management
+   - Implements business rules for field editing
+   - Manages tournament registration logic
+   - Validates input data according to business rules
+
+#### Database Configuration (./config/database.js)
+- Oracle database connection pooling
+- Query execution helper functions
+- Connection management
+- Error handling for database operations
+
+### Frontend Components
+
+#### Main Pages
+1. **index.html**: Redirects to login page
+2. **login.html**: Microsoft authentication interface
+3. **profile-setup.html**: Initial profile completion
+4. **dashboard.html**: User dashboard with tournaments
+5. **admin-dashboard.html**: Admin interface for management
+6. **callback.html**: OAuth callback handling
+
+#### UI Features
+- Responsive design with Flexbox and Grid
+- Material Design-inspired components
+- Form validation with real-time feedback
+- Progress indicators for file uploads
+- Confirmation modals for destructive actions
+- Dynamic content loading
+
+### Database Components
+
+#### PL/SQL Stored Procedures
+1. **register_user**: Handles new user registration with validation
+2. **update_user_profile**: Manages profile updates with business rule enforcement
+3. **get_user_profile**: Retrieves user information securely
+
+#### PL/SQL Functions
+1. **validate_aiub_email**: Validates email format at database level
+2. **get_user_profile**: Returns SYS_REFCURSOR with user data
+
+#### Triggers
+- **users_bir**: Before Insert trigger for auto ID generation
+- **users_bur**: Before Update trigger for timestamp updates
+- **Admins/Tables triggers**: Auto ID generation for all tables
+
+#### Sequences
+- **user_id_seq**: Auto-increment sequence for users
+- **admin_id_seq**: Auto-increment sequence for admins
+- **tournament_id_seq**: Auto-increment sequence for tournaments
+- **game_id_seq**: Auto-increment sequence for games
+- **registration_id_seq**: Auto-increment sequence for registrations
+
+## Data Flow
+
+### User Registration Process
+1. User authenticates via Microsoft Teams
+2. Email format validated (XX-XXXXX-X@student.aiub.edu)
+3. System checks if user exists in database
+4. If new user, creates entry in users table
+5. If existing user, updates last login
+6. Returns user profile data
+
+### Profile Management Process
+1. User accesses profile section
+2. System checks name edit count (0-3)
+3. If first time, all fields available
+4. If subsequent visit, locked fields disabled
+5. Form validates before submission
+6. Backend enforces business rules
+7. Database transaction ensures consistency
+
+### Tournament Management Process
+1. Admin creates tournament via dashboard
+2. Form validates tournament details
+3. File upload for tournament image
+4. Backend processes and stores data
+5. Database creates tournament and associated games
+6. Triggers and constraints maintain data integrity
+
+### Game Registration Process
+1. User views available tournaments
+2. Checks registration deadline
+3. Selects game to register for
+4. Backend validates registration eligibility
+5. Checks deadline and duplicate registration
+6. Creates registration record
+7. Updates status to PENDING
+
+## Business Logic Implementation
+
+### Name Edit Limitation
+- Database: `name_edit_count` field with check constraint (0-3)
+- Backend: Business logic in update_user_profile procedure
+- Frontend: Counter display and disable after 3 edits
+
+### Field Locking System
+- Locked after first profile completion:
+  - Gender
+  - Program Level
+  - Department
+- Editable anytime:
+  - Phone Number
+  - Blood Group
+  - Name (up to 3 times)
+
+### Email Validation
+- Frontend: Regex validation
+- Backend: Regex validation
+- Database: PL/SQL function validation
+- Format: XX-XXXXX-X@student.aiub.edu
+
+### Registration Deadline Enforcement
+- Database: Timestamp comparison in registration procedure
+- Backend: Deadline check before registration
+- Frontend: Deadline display and registration enable/disable
+
+## File Structure
+
+```
+aiub-sports-portal/
+├── backend/                 # Node.js backend
+│   ├── config/             # Database configuration
+│   ├── controllers/        # Business logic controllers
+│   ├── node_modules/       # Dependencies
+│   ├── routes/            # API endpoints
+│   ├── uploads/           # File uploads storage
+│   ├── .gitignore         # Git ignore
+│   ├── package.json       # Dependencies and scripts
+│   └── server.js          # Main server file
+├── database/              # Oracle database schemas
+│   ├── admin-schema.sql   # Admin and tournament tables
+│   ├── enhanced_schema.sql# Enhanced users table
+│   ├── README.md          # Database setup instructions
+│   └── schema.sql         # Main users table schema
+├── docs/                  # Documentation (empty)
+├── frontend/              # Frontend files
+│   ├── assets/            # CSS/JS assets (empty)
+│   ├── images/            # Images (logo)
+│   ├── admin-dashboard.html # Admin dashboard
+│   ├── callback.html      # OAuth callback
+│   ├── dashboard.html     # User dashboard
+│   ├── index.html         # Main redirect page
+│   ├── login.html         # Login page
+│   ├── profile-setup.html # Profile setup
+│   └── registration.html  # Registration page
+├── images/                # Project images
+│   └── logo.svg           # AIUB logo
+├── .gitignore             # Git ignore
+├── ALL_SQL_CODE.txt       # Complete SQL collection
+├── README.md              # Project documentation
+├── SQL.txt                # Detailed database schema
+└── project_case_study.txt # This file
+```
+
+## Deployment Requirements
+
+### Backend Requirements
+- Node.js v14 or higher
+- Oracle 10g database
+- Oracle Instant Client
+- Environment variables configured (.env file)
+
+### Environment Variables (Backend)
+- DB_USER: Database username
+- DB_PASSWORD: Database password
+- DB_CONNECTION_STRING: Connection string (e.g., localhost:1521/XE)
+- AZURE_TENANT_ID: Microsoft Azure tenant ID
+- AZURE_CLIENT_ID: Microsoft Azure client ID
+- AZURE_CLIENT_SECRET: Microsoft Azure client secret
+- AZURE_REDIRECT_URI: OAuth redirect URL
+- ALLOWED_EMAIL_DOMAIN: Default @student.aiub.edu
+
+### Frontend Requirements
+- Modern web browser supporting HTML5, CSS3, JavaScript ES6+
+- Microsoft Teams account for authentication
+- Internet connection for API communication
+
+## API Endpoints
+
+### Authentication Endpoints
+- `GET /api/msauth/login` - Initialize Microsoft login
+- `POST /api/msauth/callback` - Handle OAuth callback
+- `POST /api/msauth/verify` - Verify access token
+
+### User Endpoints
+- `POST /api/auth/login` - Login or register user
+- `GET /api/auth/profile/:studentId` - Get user profile
+- `PUT /api/auth/profile/:studentId` - Update user profile
+- `GET /api/auth/name-edit-count/:studentId` - Get name edit count
+- `GET /api/auth/tournaments` - Get available tournaments
+- `GET /api/auth/tournaments/:id/games` - Get games for tournament
+- `POST /api/auth/register` - Register for tournament game
+- `GET /api/auth/registrations/:studentId` - Get user's registrations
+
+### Admin Endpoints
+- `POST /api/admin/check-admin` - Check if user is admin
+- `POST /api/admin/tournaments` - Create tournament
+- `GET /api/admin/tournaments` - Get all tournaments
+- `GET /api/admin/tournaments/:id/games` - Get tournament games
+- `PUT /api/admin/tournaments/:id` - Update tournament
+- `DELETE /api/admin/tournaments/:id` - Delete tournament
+
+## Testing Considerations
+
+### Frontend Testing
+- Form validation testing
+- User journey flows
+- Responsive design validation
+- Authentication flow testing
+- Profile management scenarios
+
+### Backend Testing
+- API endpoint testing
+- Database connection validation
+- Business rule enforcement
+- Error handling validation
+- Security validation
+
+### Database Testing
+- Stored procedure validation
+- Constraint enforcement
+- Trigger functionality
+- Sequence generation
+- Foreign key relationships
+
+## Security Considerations
+
+### Authentication Security
+- OAuth 2.0 with Microsoft Azure AD
+- Token validation and expiration
+- Secure redirect URLs
+- Email domain validation
+
+### Data Security
+- Input sanitization at all levels
+- SQL injection prevention
+- Parameterized queries
+- Business rule enforcement
+- Field-level access control
+
+### Session Management
+- LocalStorage for session data
+- Token management
+- Logout functionality
+- Session timeout handling
+
+## Performance Considerations
+
+### Database Performance
+- Proper indexing on frequently queried fields
+- Connection pooling for database operations
+- Efficient stored procedures
+- Optimized queries
+
+### Backend Performance
+- Efficient request handling
+- Connection pooling
+- Caching where appropriate
+- Proper error handling
+
+### Frontend Performance
+- Optimized CSS and JavaScript
+- Efficient DOM manipulation
+- Lazy loading where applicable
+- Responsive design for all devices
+
+## Scalability Considerations
+
+### Database Scalability
+- Proper indexing for large datasets
+- Connection pooling configuration
+- Optimized stored procedures
+- Potential for read replicas
+
+### Application Scalability
+- Statelessness for horizontal scaling
+- Proper session management
+- Load balancing capability
+- Microservice potential
+
+## Maintenance and Monitoring
+
+### Database Maintenance
+- Regular backup procedures
+- Index maintenance
+- Stored procedure updates
+- Performance monitoring
+
+### Application Monitoring
+- Error logging
+- Performance monitoring
+- User activity tracking
+- Security monitoring
+
+### Update Procedures
+- Database schema versioning
+- Application versioning
+- Deployment procedures
+- Rollback capabilities
+
+## Conclusion
+
+The AIUB Sports Portal is a well-architected full-stack application that demonstrates modern web development practices with security-first design. The system implements sophisticated business rules through a combination of frontend validation, backend logic, and database constraints to create a robust and secure sports management platform.
+
+Key strengths include:
+- Multi-layered security with Microsoft authentication
+- Sophisticated business rule enforcement
+- Proper database design with normalization
+- Responsive and user-friendly interface
+- Comprehensive error handling and validation
+
+The project serves as an excellent example of how to build a complex application with proper security, business logic, and user experience considerations.

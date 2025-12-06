@@ -82,7 +82,11 @@
             width: 300px;
             height: 200px;
             border-radius: 10px;
-            object-fit: cover;
+            object-fit: contain;  /* This shows the entire image without cropping */
+            object-position: center;  /* Center the image */
+            border: 2px solid #e5e7eb;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            background-color: #f9fafb; /* Light gray background in case image fails to load */
         }
 
         .tournament-info h1 {
@@ -248,25 +252,43 @@
             // Simple image handling - check if a photo_url exists as any common variation
             let photoUrl = tournament.PHOTO_URL || tournament.photo_url || tournament['PHOTO_URL'] || tournament['photo_url'];
 
+            console.log('Tournament data in registration page:', tournament);
+            console.log('PHOTO_URL value:', photoUrl, 'Type:', typeof photoUrl);
+
             let imageHtml = '';
-            if (photoUrl) {
+            // Check if photoUrl is actually a string before using string methods
+            if (photoUrl && typeof photoUrl === 'string') {
                 // If it's already a base64 data URL, use directly
-                if (typeof photoUrl === 'string' && photoUrl.startsWith('data:image')) {
+                if (photoUrl.startsWith('data:image')) {
                     imageHtml = `<img src="${photoUrl}" class="tournament-image" alt="Tournament">`;
                 }
+                // Check if it's an uploads path (new format: /uploads/tournament_name/title_pic/filename.ext)
+                else if (photoUrl.startsWith('/uploads/')) {
+                    // Construct the full URL using the API server base URL instead of window origin
+                    // Extract the base API URL to get the correct server address
+                    const apiBaseUrl = API_URL.replace('/api', '');
+                    const fullPhotoUrl = photoUrl.startsWith('http') ? photoUrl : `${apiBaseUrl}${photoUrl}`;
+                    imageHtml = `<img src="${fullPhotoUrl}" class="tournament-image" alt="Tournament" onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<div class=&quot;tournament-image&quot; style=&quot;background: #e5e7eb; display: flex; align-items: center; justify-content: center; color: #6b7280;&quot;>No Image</div>';">`;
+                }
                 // If it's a base64 string without the data:image prefix, add it
-                else if (typeof photoUrl === 'string' && !photoUrl.startsWith('http')) {
+                else if (!photoUrl.startsWith('http')) {
                     imageHtml = `<img src="data:image;base64,${photoUrl}" class="tournament-image" alt="Tournament">`;
                 }
                 // If it's a URL that starts with http, use it directly
-                else if (typeof photoUrl === 'string' && photoUrl.startsWith('http')) {
-                    imageHtml = `<img src="${photoUrl}" class="tournament-image" alt="Tournament">`;
+                else if (photoUrl.startsWith('http')) {
+                    imageHtml = `<img src="${photoUrl}" class="tournament-image" alt="Tournament" onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<div class=&quot;tournament-image&quot; style=&quot;background: #e5e7eb; display: flex; align-items: center; justify-content: center; color: #6b7280;&quot;>No Image</div>';">`;
                 }
                 // For any other case that doesn't fit, show placeholder
                 else {
                     imageHtml = `<div class="tournament-image" style="background: #e5e7eb; display: flex; align-items: center; justify-content: center; color: #6b7280;">No Image</div>`;
                 }
-            } else {
+            }
+            // Handle case where photoUrl exists but is not a string (like LOB object)
+            else if (photoUrl && typeof photoUrl !== 'string') {
+                console.warn('PHOTO_URL is not a string, type:', typeof photoUrl, 'value:', photoUrl);
+                imageHtml = `<div class="tournament-image" style="background: #e5e7eb; display: flex; align-items: center; justify-content: center; color: #6b7280;">CLOB Type Error</div>`;
+            }
+            else {
                 // If no photoUrl exists at all, show placeholder
                 imageHtml = `<div class="tournament-image" style="background: #e5e7eb; display: flex; align-items: center; justify-content: center; color: #6b7280;">No Image</div>`;
             }

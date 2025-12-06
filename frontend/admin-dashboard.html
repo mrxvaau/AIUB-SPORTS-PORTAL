@@ -932,12 +932,49 @@
 
                     let html = '';
                     data.tournaments.forEach(tournament => {
+                        // Handle photo URL - if it's a path, construct full URL; if it's a data URL, use as is
+                        let photoHtml = '';
+                        console.log('Tournament data received:', tournament); // Debug logging
+                        console.log('PHOTO_URL value:', tournament.PHOTO_URL, 'Type:', typeof tournament.PHOTO_URL); // Check the actual value and type
+
+                        if (tournament.PHOTO_URL !== null && tournament.PHOTO_URL !== undefined) {
+                            console.log('PHOTO_URL non-null value:', tournament.PHOTO_URL);
+                            if (typeof tournament.PHOTO_URL === 'string') {
+                                console.log('PHOTO_URL is a string:', tournament.PHOTO_URL);
+                                if (tournament.PHOTO_URL.startsWith('/uploads/')) {
+                                    // It's a file path, construct the full URL - use window origin to ensure correct base
+                                    // Use the API server URL instead of window origin for static files
+                                const fullPhotoUrl = `${API_URL.replace('/api', '')}${tournament.PHOTO_URL}`;
+                                    console.log('Photo URL being constructed:', fullPhotoUrl, 'Original API_URL:', API_URL, 'Original PHOTO_URL:', tournament.PHOTO_URL);
+                                    photoHtml = `<img src="${fullPhotoUrl}" style="width: 50px; height: 50px; object-fit: contain; object-position: center; border-radius: 4px; margin-right: 10px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onerror="this.onerror=null; console.error('Failed to load image:', this.src); this.parentElement.innerHTML='<div style=&quot;width: 50px; height: 50px; background: #e5e7eb; border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-right: 10px; color: #9ca3af; font-size: 12px;&quot;>No Image</div>';" onload="console.log(\'Successfully loaded image:\', this.src)">`;
+                                } else if (tournament.PHOTO_URL.startsWith('data:image')) {
+                                    // It's a base64 data URL
+                                    photoHtml = `<img src="${tournament.PHOTO_URL}" style="width: 50px; height: 50px; object-fit: contain; object-position: center; border-radius: 4px; margin-right: 10px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onerror="this.onerror=null; this.parentElement.innerHTML='<div style=&quot;width: 50px; height: 50px; background: #e5e7eb; border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-right: 10px; color: #9ca3af; font-size: 12px;&quot;>No Image</div>';">`;
+                                } else {
+                                    // It's a URL path, construct the full URL
+                                    photoHtml = `<img src="${tournament.PHOTO_URL}" style="width: 50px; height: 50px; object-fit: contain; object-position: center; border-radius: 4px; margin-right: 10px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onerror="this.onerror=null; this.parentElement.innerHTML='<div style=&quot;width: 50px; height: 50px; background: #e5e7eb; border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-right: 10px; color: #9ca3af; font-size: 12px;&quot;>No Image</div>';">`;
+                                    console.log('Using provided URL as-is:', tournament.PHOTO_URL);
+                                }
+                            } else {
+                                console.warn('PHOTO_URL is not a string, type:', typeof tournament.PHOTO_URL, 'value:', tournament.PHOTO_URL);
+                                // Handle case where it might be a LOB object or other type
+                                photoHtml = `<div style="width: 50px; height: 50px; background: #e5e7eb; border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-right: 10px; color: #9ca3af; font-size: 12px;">CLOB Type Error</div>`;
+                            }
+                        } else {
+                            console.log('PHOTO_URL is null/undefined for tournament:', tournament.TITLE || tournament.id);
+                            // No photo available
+                            photoHtml = `<div style="width: 50px; height: 50px; background: #e5e7eb; border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-right: 10px; color: #9ca3af; font-size: 12px;">No Image</div>`;
+                        }
+
                         html += `
                             <div class="tournament-item">
-                                <div style="flex: 1;">
-                                    <div class="tournament-title">${tournament.TITLE}</div>
-                                    <div class="tournament-deadline">Deadline: ${tournament.DEADLINE}</div>
-                                    <div class="tournament-games">${tournament.GAMES_COUNT || '0'} Games</div>
+                                <div style="display: flex; align-items: center;">
+                                    ${photoHtml}
+                                    <div style="flex: 1;">
+                                        <div class="tournament-title">${tournament.TITLE}</div>
+                                        <div class="tournament-deadline">Deadline: ${tournament.DEADLINE}</div>
+                                        <div class="tournament-games">${tournament.GAMES_COUNT || '0'} Games</div>
+                                    </div>
                                 </div>
                                 <div style="display: flex; flex-direction: column; gap: 5px;">
                                     <button class="edit-btn" style="padding: 6px 12px; font-size: 12px;" onclick="editTournament(${tournament.ID}, '${tournament.TITLE.replace(/'/g, "\\'")}', '${tournament.DEADLINE.replace(/'/g, "\\'")}', '${(tournament.DESCRIPTION || '').replace(/'/g, "\\'")}')">
@@ -1130,10 +1167,10 @@
         // Create tournament
         async function createTournament() {
             const title = document.getElementById('title').value;
-            const deadline = document.getElementById('deadline').value;
+            const deadlineInput = document.getElementById('deadline').value;
             const description = document.getElementById('description').value;
 
-            if (!title || !deadline) {
+            if (!title || !deadlineInput) {
                 showAlert('Please fill in all required fields', 'error');
                 return;
             }
@@ -1146,48 +1183,86 @@
 
             // Get photo if uploaded
             const photoFile = document.getElementById('photoFile').files[0];
-            let photoUrl = null;
             if (photoFile) {
+                // For file uploads, we'll pass the raw deadlineInput value to submitTournament in the callback
                 const reader = new FileReader();
                 reader.onload = async function(e) {
-                    photoUrl = e.target.result;
-                    await submitTournament(title, photoUrl, deadline, tournamentGames, description);
+                    // For file uploads, we'll pass photo as file via FormData, not as base64
+                    await submitTournament(title, null, null, tournamentGames, description, deadlineInput);
                 };
                 reader.readAsDataURL(photoFile);
             } else {
-                await submitTournament(title, null, deadline, tournamentGames, description);
+                // For no photo, send directly with the raw deadlineInput value
+                await submitTournament(title, null, null, tournamentGames, description, deadlineInput);
             }
         }
 
         // Submit tournament to server
-        async function submitTournament(title, photoUrl, deadline, games, description) {
+        async function submitTournament(title, photoUrl, deadline, games, description, deadlineInputValue) {
             try {
                 const submitBtn = document.querySelector('.save-btn');
                 const originalText = submitBtn.textContent;
                 submitBtn.textContent = 'Creating...';
                 submitBtn.disabled = true;
 
-                const response = await fetch(`${API_URL}/admin/tournaments`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title, photoUrl, deadline, games, description })
-                });
+                // Get the photo file if exists
+                const photoFile = document.getElementById('photoFile').files[0];
 
-                const result = await response.json();
+                // If we have a photo file, create FormData to send both text data and file
+                if (photoFile) {
+                    const formData = new FormData();
+                    formData.append('title', title);
+                    // Use the deadlineInputValue parameter which contains the raw datetime-local input
+                    formData.append('deadline', deadlineInputValue);
+                    formData.append('description', description);
+                    formData.append('games', JSON.stringify(games));
+                    formData.append('photo', photoFile);
 
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
+                    const response = await fetch(`${API_URL}/admin/tournaments`, {
+                        method: 'POST',
+                        body: formData
+                    });
 
-                if (result.success) {
-                    showAlert('Tournament created successfully!', 'success');
-                    // Clear form
-                    document.getElementById('tournamentForm').reset();
-                    // Switch to existing tournaments tab to see the new tournament
-                    setTimeout(() => {
-                        showSection('existing-tournaments');
-                    }, 1500);
+                    const result = await response.json();
+
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+
+                    if (result.success) {
+                        showAlert('Tournament created successfully!', 'success');
+                        // Clear form
+                        document.getElementById('tournamentForm').reset();
+                        // Switch to existing tournaments tab to see the new tournament
+                        setTimeout(() => {
+                            showSection('existing-tournaments');
+                        }, 1500);
+                    } else {
+                        showAlert(result.message || 'Failed to create tournament', 'error');
+                    }
                 } else {
-                    showAlert(result.message || 'Failed to create tournament', 'error');
+                    // If no photo file, send as JSON
+                    const response = await fetch(`${API_URL}/admin/tournaments`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ title, photoUrl, deadline: deadlineInputValue, games, description })
+                    });
+
+                    const result = await response.json();
+
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+
+                    if (result.success) {
+                        showAlert('Tournament created successfully!', 'success');
+                        // Clear form
+                        document.getElementById('tournamentForm').reset();
+                        // Switch to existing tournaments tab to see the new tournament
+                        setTimeout(() => {
+                            showSection('existing-tournaments');
+                        }, 1500);
+                    } else {
+                        showAlert(result.message || 'Failed to create tournament', 'error');
+                    }
                 }
             } catch (error) {
                 console.error('Create tournament error:', error);
@@ -1507,9 +1582,6 @@
             const deadlineInput = document.getElementById('deadline').value;
             const description = document.getElementById('description').value;
 
-            // Convert the datetime-local value to proper format for backend
-            const deadline = deadlineInput ? new Date(deadlineInput).toISOString().slice(0, 19).replace('T', ' ') : '';
-
             // Validation
             if (!title) {
                 showAlert('Please enter a tournament title', 'error');
@@ -1600,42 +1672,59 @@
                 return;
             }
 
-            // Get photo if uploaded (though for update we might not need to change photo)
-            const photoFile = document.getElementById('photoFile');
-            let photoUrl = null;
+            // Get photo if uploaded
+            const photoFile = document.getElementById('photoFile').files[0];
 
             try {
-                if (photoFile && photoFile.files[0]) {
-                    const reader = new FileReader();
-                    photoUrl = await new Promise((resolve, reject) => {
-                        reader.onload = function(e) { resolve(e.target.result); };
-                        reader.onerror = function(e) { reject(e); };
-                        reader.readAsDataURL(photoFile.files[0]);
+                if (photoFile) {
+                    // If updating with new photo, send as FormData
+                    const formData = new FormData();
+                    formData.append('title', title);
+                    // Use deadlineInput which is the raw datetime-local value
+                    formData.append('deadline', deadlineInput);
+                    formData.append('description', description);
+                    formData.append('games', JSON.stringify(games));
+                    formData.append('photo', photoFile);
+
+                    const response = await fetch(`${API_URL}/admin/tournaments/${tournamentId}`, {
+                        method: 'PUT',
+                        body: formData
                     });
-                }
 
-                // Send update request to backend
-                const response = await fetch(`${API_URL}/admin/tournaments/${tournamentId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        title,
-                        photoUrl,
-                        deadline,
-                        description,
-                        games
-                    })
-                });
+                    const result = await response.json();
 
-                const result = await response.json();
-
-                if (result.success) {
-                    showAlert('Tournament updated successfully!', 'success');
-                    // Switch back to existing tournaments view
-                    showSection('existing-tournaments');
-                    loadTournaments(); // Reload the list
+                    if (result.success) {
+                        showAlert('Tournament updated successfully!', 'success');
+                        // Switch back to existing tournaments view
+                        showSection('existing-tournaments');
+                        loadTournaments(); // Reload the list
+                    } else {
+                        showAlert(result.message || 'Failed to update tournament', 'error');
+                    }
                 } else {
-                    showAlert(result.message || 'Failed to update tournament', 'error');
+                    // If no new photo, send as JSON (without photoUrl)
+                    const response = await fetch(`${API_URL}/admin/tournaments/${tournamentId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            title,
+                            // Use deadlineInput which is the raw datetime-local value
+                            deadline: deadlineInput,
+                            description,
+                            games
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        showAlert('Tournament updated successfully!', 'success');
+                        // Switch back to existing tournaments view
+                        showSection('existing-tournaments');
+                        loadTournaments(); // Reload the list
+                    } else {
+                        showAlert(result.message || 'Failed to update tournament', 'error');
+                    }
                 }
             } catch (error) {
                 if (error.message !== 'Missing game type' && error.message !== 'Invalid fee value') {

@@ -1,0 +1,92 @@
+# AIUB Sports Portal - ER Diagram Information
+
+## Entities and Attributes
+
+### 1. USERS Entity
+**Attributes:**
+- id (Primary Key, NUMBER)
+- student_id (VARCHAR2(50), UNIQUE, NOT NULL)
+- email (VARCHAR2(100), UNIQUE, NOT NULL)
+- full_name (VARCHAR2(200))
+- gender (VARCHAR2(20), CHECK: Male/Female/Other/NULL)
+- name_edit_count (NUMBER, DEFAULT 0, CHECK: 0-3)
+- is_first_login (NUMBER(1), DEFAULT 1, CHECK: 0/1)
+- phone_number (VARCHAR2(20))
+- program_level (VARCHAR2(20), CHECK: Undergraduate/Postgraduate/NULL)
+- department (VARCHAR2(100))
+- blood_group (VARCHAR2(5), CHECK: A+/A-/B+/B-/AB+/AB-/O+/O-/NULL)
+- profile_completed (NUMBER(1), DEFAULT 0, CHECK: 0/1/NULL)
+- created_at (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+- updated_at (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+- last_login (TIMESTAMP)
+
+### 2. ADMINS Entity
+**Attributes:**
+- id (Primary Key, NUMBER)
+- admin_id (VARCHAR2(50), UNIQUE, NOT NULL)
+- email (VARCHAR2(100), UNIQUE, NOT NULL)
+- full_name (VARCHAR2(200))
+- created_at (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+
+### 3. TOURNAMENTS Entity
+**Attributes:**
+- id (Primary Key, NUMBER)
+- title (VARCHAR2(300), NOT NULL)
+- photo_url (CLOB)
+- registration_deadline (TIMESTAMP, NOT NULL)
+- status (VARCHAR2(20), DEFAULT 'ACTIVE', CHECK: ACTIVE/CLOSED/COMPLETED)
+- created_by (Foreign Key to ADMINS.id)
+- created_at (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+- description (VARCHAR2(1000))
+
+### 4. TOURNAMENT_GAMES Entity
+**Attributes:**
+- id (Primary Key, NUMBER)
+- tournament_id (Foreign Key to TOURNAMENTS.id, ON DELETE CASCADE)
+- category (VARCHAR2(20), NOT NULL, CHECK: Male/Female/Mix)
+- game_name (VARCHAR2(200), NOT NULL)
+- game_type (VARCHAR2(50), NOT NULL, CHECK: Solo/Duo/Custom)
+- fee_per_person (NUMBER, NOT NULL)
+- created_at (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+
+### 5. GAME_REGISTRATIONS Entity
+**Attributes:**
+- id (Primary Key, NUMBER)
+- game_id (Foreign Key to TOURNAMENT_GAMES.id, ON DELETE CASCADE)
+- user_id (Foreign Key to USERS.id)
+- registration_date (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+- payment_status (VARCHAR2(20), DEFAULT 'PENDING', CHECK: PENDING/PAID/FAILED)
+
+## Relationships
+
+### 1. ADMINS → TOURNAMENTS
+- **Relationship**: One-to-Many
+- **Type**: One admin creates many tournaments
+- **Foreign Key**: created_by in TOURNAMENTS references ADMINS.id
+- **Cardinality**: (1 to M)
+
+### 2. TOURNAMENTS → TOURNAMENT_GAMES
+- **Relationship**: One-to-Many
+- **Type**: One tournament has many games
+- **Foreign Key**: tournament_id in TOURNAMENT_GAMES references TOURNAMENTS.id
+- **Cardinality**: (1 to M)
+- **Constraint**: ON DELETE CASCADE
+
+### 3. TOURNAMENT_GAMES → GAME_REGISTRATIONS
+- **Relationship**: One-to-Many
+- **Type**: One game has many registrations
+- **Foreign Key**: game_id in GAME_REGISTRATIONS references TOURNAMENT_GAMES.id
+- **Cardinality**: (1 to M)
+- **Constraint**: ON DELETE CASCADE
+
+### 4. USERS → GAME_REGISTRATIONS
+- **Relationship**: One-to-Many
+- **Type**: One user registers for many games
+- **Foreign Key**: user_id in GAME_REGISTRATIONS references USERS.id
+- **Cardinality**: (1 to M)
+
+## ER Diagram Notation
+USERS(1) ||--o{ GAME_REGISTRATIONS(M)
+ADMINS(1) ||--o{ TOURNAMENTS(M) 
+TOURNAMENTS(1) ||--o{ TOURNAMENT_GAMES(M)
+TOURNAMENT_GAMES(1) ||--o{ GAME_REGISTRATIONS(M)

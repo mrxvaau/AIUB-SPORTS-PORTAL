@@ -17,6 +17,8 @@ if (!util.isDate) {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const path = require('path');
+
 // Import routes
 const authRoutes = require('./routes/auth');
 const msAuthRoutes = require('./routes/msauth');
@@ -26,6 +28,14 @@ const adminRoutes = require('./routes/admin');
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// Serve static files from uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+    // Add debugging for file access
+    setHeaders: (res, filePath) => {
+        console.log('Serving file:', filePath);
+    }
+}));
 
 // Logging middleware
 app.use((req, res, next) => {
