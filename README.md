@@ -38,7 +38,7 @@ aiub-sports-portal/
 
 ## Step 1: Clone the Repository
 ```bash
-git clone <your-repository-url>
+git clone https://github.com/mrxvaau/AIUB-SPORTS-PORTAL
 cd aiub-sports-portal
 ```
 
@@ -115,7 +115,7 @@ https://download.oracle.com/otn_software/nt/instantclient/2326000/instantclient-
 1. Extract ZIP
 2. Move folder to:
 ```
-C:\oraclexe\instantclient_23_26
+C:\oraclexe\instantclient_23_0
 ```
 
 ---
@@ -124,7 +124,7 @@ C:\oraclexe\instantclient_23_26
 
 Add to **PATH**:
 ```
-C:\oraclexe\instantclient_23_26
+C:\oraclexe\instantclient_23_0
 ```
 
 Create system variables:
@@ -132,7 +132,7 @@ Create system variables:
 | Name | Value |
 |-----|------|
 | ORACLE_HOME | C:\oraclexe |
-| TNS_ADMIN | C:\oraclexe\instantclient_23_26 |
+| TNS_ADMIN | C:\oraclexe\instantclient_23_0 |
 
 Restart system.
 
