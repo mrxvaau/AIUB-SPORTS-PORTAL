@@ -5,7 +5,7 @@ const oracledb = require('oracledb');
 require('dotenv').config();
 
 // Force Thick mode for Oracle 10g compatibility
-oracledb.initOracleClient({ libDir: 'C:\\oraclexe\\instantclient_23_9' });
+oracledb.initOracleClient({ libDir: 'C:\\oraclexe\\instantclient_23_0' });
 
 // Oracle configuration
 const dbConfig = {
