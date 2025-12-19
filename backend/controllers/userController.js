@@ -1,8 +1,7 @@
-﻿// User Controller
+﻿// User Controller - Supabase Version
 // Version 1.0
 
-const oracledb = require('oracledb');
-const db = require('../config/database');
+const { supabase } = require('../config/supabase');
 
 // Email validation regex
 const EMAIL_PATTERN = /^\d{2}-\d{5}-\d@student\.aiub\.edu$/;
@@ -18,7 +17,6 @@ function extractStudentId(email) {
 }
 
 // Login user (register if first time)
-// Login user (register if first time)
 exports.login = async (req, res) => {
     try {
         const { email } = req.body;
@@ -33,24 +31,52 @@ exports.login = async (req, res) => {
 
         const studentId = extractStudentId(email);
 
-        // Check if user exists using direct query
-        const checkQuery = `SELECT COUNT(*) as user_count FROM users WHERE student_id = :student_id`;
-        const checkResult = await db.executeQuery(checkQuery, [studentId]);
-        const userExists = checkResult.rows[0].USER_COUNT > 0;
+        // Check if user exists in Supabase
+        const { data: existingUser, error: fetchError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('student_id', studentId)
+            .single();
 
-        if (!userExists) {
-            // Insert new user directly
-            const insertQuery = `
-                INSERT INTO users (student_id, email, is_first_login, last_login, profile_completed)
-                VALUES (:student_id, :email, 1, CURRENT_TIMESTAMP, 0)
-            `;
-            await db.executeQuery(insertQuery, [studentId, email]);
+        let userExists = !!existingUser;
+
+        if (!existingUser) {
+            // Insert new user
+            const { data: newUser, error: insertError } = await supabase
+                .from('users')
+                .insert([{
+                    student_id: studentId,
+                    email: email,
+                    is_first_login: true,
+                    last_login: new Date().toISOString(),
+                    profile_completed: false
+                }])
+                .select()
+                .single();
+
+            if (insertError) {
+                console.error('Error inserting new user:', insertError);
+                return res.status(500).json({
+                    success: false,
+                    message: 'Error registering new user',
+                    error: insertError.message
+                });
+            }
         } else {
             // Update last login
-            const updateQuery = `
-                UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE student_id = :student_id
-            `;
-            await db.executeQuery(updateQuery, [studentId]);
+            const { error: updateError } = await supabase
+                .from('users')
+                .update({ last_login: new Date().toISOString() })
+                .eq('student_id', studentId);
+
+            if (updateError) {
+                console.error('Error updating last login:', updateError);
+                return res.status(500).json({
+                    success: false,
+                    message: 'Error updating login info',
+                    error: updateError.message
+                });
+            }
         }
 
         // Get user profile
@@ -103,33 +129,27 @@ exports.getProfile = async (req, res) => {
 
 // Helper function to get user profile
 exports.getUserProfile = async (studentId) => {
-    const query = `
-        SELECT 
-            id,
-            student_id,
-            email,
-            full_name,
-            gender,
-            phone_number,
-            blood_group,
-            program_level,
-            department,
-            name_edit_count,
-            is_first_login,
-            profile_completed,
-            TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') as created_at,
-            TO_CHAR(updated_at, 'YYYY-MM-DD HH24:MI:SS') as updated_at,
-            TO_CHAR(last_login, 'YYYY-MM-DD HH24:MI:SS') as last_login
-        FROM users
-        WHERE student_id = :student_id
-    `;
+    const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('student_id', studentId)
+        .single();
 
-    const result = await db.executeQuery(query, [studentId]);
+    if (error) {
+        console.error('Error fetching user profile:', error);
+        return null;
+    }
 
-    return result.rows.length > 0 ? result.rows[0] : null;
+    // Format dates to match expected format
+    if (data) {
+        data.created_at = data.created_at ? new Date(data.created_at).toISOString().slice(0, 19).replace('T', ' ') : null;
+        data.updated_at = data.updated_at ? new Date(data.updated_at).toISOString().slice(0, 19).replace('T', ' ') : null;
+        data.last_login = data.last_login ? new Date(data.last_login).toISOString().slice(0, 19).replace('T', ' ') : null;
+    }
+
+    return data || null;
 };
 
-// Update user profile
 // Update user profile
 exports.updateProfile = async (req, res) => {
     try {
@@ -176,21 +196,21 @@ exports.updateProfile = async (req, res) => {
         }
 
         // Check locked fields
-        if (!isFirstTime && currentUser.GENDER && currentUser.GENDER !== gender) {
+        if (!isFirstTime && currentUser.gender && currentUser.gender !== gender) {
             return res.status(400).json({
                 success: false,
                 message: 'Gender cannot be changed after initial setup'
             });
         }
 
-        if (!isFirstTime && currentUser.PROGRAM_LEVEL && currentUser.PROGRAM_LEVEL !== programLevel) {
+        if (!isFirstTime && currentUser.program_level && currentUser.program_level !== programLevel) {
             return res.status(400).json({
                 success: false,
                 message: 'Program level cannot be changed'
             });
         }
 
-        if (!isFirstTime && currentUser.DEPARTMENT && currentUser.DEPARTMENT !== department) {
+        if (!isFirstTime && currentUser.department && currentUser.department !== department) {
             return res.status(400).json({
                 success: false,
                 message: 'Department cannot be changed'
@@ -198,31 +218,31 @@ exports.updateProfile = async (req, res) => {
         }
 
         // First time profile completion
-        if (isFirstTime || currentUser.IS_FIRST_LOGIN === 1 || !currentUser.PROFILE_COMPLETED) {
-            const updateQuery = `
-                UPDATE users
-                SET full_name = :full_name,
-                    gender = :gender,
-                    phone_number = :phone_number,
-                    blood_group = :blood_group,
-                    program_level = :program_level,
-                    department = :department,
-                    is_first_login = 0,
-                    profile_completed = 1,
-                    name_edit_count = 0,
-                    last_login = CURRENT_TIMESTAMP
-                WHERE student_id = :student_id
-            `;
-            
-            await db.executeQuery(updateQuery, {
-                full_name: fullName,
-                gender: gender,
-                phone_number: phoneNumber,
-                blood_group: bloodGroup,
-                program_level: programLevel,
-                department: department,
-                student_id: studentId
-            });
+        if (isFirstTime || currentUser.is_first_login || !currentUser.profile_completed) {
+            const { error: updateError } = await supabase
+                .from('users')
+                .update({
+                    full_name: fullName,
+                    gender: gender,
+                    phone_number: phoneNumber,
+                    blood_group: bloodGroup,
+                    program_level: programLevel,
+                    department: department,
+                    is_first_login: false,
+                    profile_completed: true,
+                    name_edit_count: 0,
+                    last_login: new Date().toISOString()
+                })
+                .eq('student_id', studentId);
+
+            if (updateError) {
+                console.error('Error updating user profile:', updateError);
+                return res.status(500).json({
+                    success: false,
+                    message: 'Error updating profile',
+                    error: updateError.message
+                });
+            }
 
             const updatedUser = await exports.getUserProfile(studentId);
 
@@ -234,36 +254,37 @@ exports.updateProfile = async (req, res) => {
         }
 
         // Subsequent updates
-        let updateFields = [];
-        let updateParams = { student_id: studentId };
+        let updateData = {
+            phone_number: phoneNumber,
+            blood_group: bloodGroup,
+            last_login: new Date().toISOString()
+        };
 
         // Check name changes
-        if (currentUser.FULL_NAME && currentUser.FULL_NAME !== fullName) {
-            if (currentUser.NAME_EDIT_COUNT >= 3) {
+        if (currentUser.full_name && currentUser.full_name !== fullName) {
+            if (currentUser.name_edit_count >= 3) {
                 return res.status(400).json({
                     success: false,
                     message: 'Name edit limit reached'
                 });
             }
-            updateFields.push('full_name = :full_name');
-            updateFields.push('name_edit_count = name_edit_count + 1');
-            updateParams.full_name = fullName;
+            updateData.full_name = fullName;
+            updateData.name_edit_count = currentUser.name_edit_count + 1;
         }
 
-        // Always allow phone and blood group updates
-        updateFields.push('phone_number = :phone_number');
-        updateFields.push('blood_group = :blood_group');
-        updateFields.push('last_login = CURRENT_TIMESTAMP');
-        updateParams.phone_number = phoneNumber;
-        updateParams.blood_group = bloodGroup;
+        const { error: updateError } = await supabase
+            .from('users')
+            .update(updateData)
+            .eq('student_id', studentId);
 
-        const updateQuery = `
-            UPDATE users
-            SET ${updateFields.join(', ')}
-            WHERE student_id = :student_id
-        `;
-        
-        await db.executeQuery(updateQuery, updateParams);
+        if (updateError) {
+            console.error('Error updating user profile:', updateError);
+            return res.status(500).json({
+                success: false,
+                message: 'Error updating profile',
+                error: updateError.message
+            });
+        }
 
         const updatedUser = await exports.getUserProfile(studentId);
 
@@ -288,28 +309,24 @@ exports.getNameEditCount = async (req, res) => {
     try {
         const { studentId } = req.params;
 
-        const query = `
-            SELECT name_edit_count, full_name
-            FROM users
-            WHERE student_id = :student_id
-        `;
+        const { data: user, error } = await supabase
+            .from('users')
+            .select('name_edit_count, full_name')
+            .eq('student_id', studentId)
+            .single();
 
-        const result = await db.executeQuery(query, [studentId]);
-
-        if (result.rows.length === 0) {
+        if (error || !user) {
             return res.status(404).json({
                 success: false,
                 message: 'User not found'
             });
         }
 
-        const user = result.rows[0];
-
         return res.json({
             success: true,
-            nameEditCount: user.NAME_EDIT_COUNT,
-            remainingEdits: 3 - user.NAME_EDIT_COUNT,
-            canEdit: user.NAME_EDIT_COUNT < 3
+            nameEditCount: user.name_edit_count,
+            remainingEdits: 3 - user.name_edit_count,
+            canEdit: user.name_edit_count < 3
         });
 
     } catch (error) {
@@ -325,18 +342,28 @@ exports.getNameEditCount = async (req, res) => {
 // Get available tournaments for registration
 exports.getAvailableTournaments = async (req, res) => {
     try {
-        const query = `
-            SELECT id, title, photo_url,
-                   TO_CHAR(registration_deadline, 'YYYY-MM-DD HH24:MI:SS') as deadline,
-                   status, TO_CHAR(created_at, 'YYYY-MM-DD') as created_date
-            FROM tournaments
-            WHERE status = 'ACTIVE'
-              AND registration_deadline > CURRENT_TIMESTAMP
-            ORDER BY registration_deadline ASC
-        `;
+        const now = new Date().toISOString();
 
-        const result = await db.executeQuery(query);
-        res.json({ success: true, tournaments: result.rows });
+        const { data: tournaments, error } = await supabase
+            .from('tournaments')
+            .select('id, title, photo_url, registration_deadline, status, created_at')
+            .eq('status', 'ACTIVE')
+            .gt('registration_deadline', now)
+            .order('registration_deadline', { ascending: true });
+
+        if (error) {
+            console.error('Error fetching tournaments:', error);
+            return res.status(500).json({ success: false, message: error.message });
+        }
+
+        // Format dates to match expected format
+        const formattedTournaments = tournaments.map(tournament => ({
+            ...tournament,
+            deadline: new Date(tournament.registration_deadline).toISOString().slice(0, 19).replace('T', ' '),
+            created_date: new Date(tournament.created_at).toISOString().slice(0, 10)
+        }));
+
+        res.json({ success: true, tournaments: formattedTournaments });
     } catch (error) {
         console.error('Get available tournaments error:', error);
         res.status(500).json({ success: false, message: error.message });
@@ -348,15 +375,19 @@ exports.getTournamentGames = async (req, res) => {
     try {
         const tournamentId = req.params.id;
 
-        const query = `
-            SELECT id, category, game_name, game_type, fee_per_person
-            FROM tournament_games
-            WHERE tournament_id = :tournament_id
-            ORDER BY category, game_name
-        `;
+        const { data: games, error } = await supabase
+            .from('tournament_games')
+            .select('id, category, game_name, game_type, fee_per_person')
+            .eq('tournament_id', tournamentId)
+            .order('category')
+            .order('game_name');
 
-        const result = await db.executeQuery(query, [tournamentId]);
-        res.json({ success: true, games: result.rows });
+        if (error) {
+            console.error('Error fetching tournament games:', error);
+            res.status(500).json({ success: false, message: error.message });
+        } else {
+            res.json({ success: true, games: games });
+        }
     } catch (error) {
         console.error('Get tournament games error:', error);
         res.status(500).json({ success: false, message: error.message });
@@ -369,37 +400,40 @@ exports.registerForGame = async (req, res) => {
         const { studentId, gameId } = req.body;
 
         // First, get user ID from student ID
-        const userQuery = `
-            SELECT id FROM users WHERE student_id = :student_id
-        `;
-        const userResult = await db.executeQuery(userQuery, [studentId]);
+        const { data: user, error: userError } = await supabase
+            .from('users')
+            .select('id')
+            .eq('student_id', studentId)
+            .single();
 
-        if (userResult.rows.length === 0) {
+        if (userError || !user) {
             return res.status(404).json({
                 success: false,
                 message: 'User not found'
             });
         }
 
-        const userId = userResult.rows[0].ID;
+        const userId = user.id;
 
         // Check if registration deadline has passed for this tournament
-        const deadlineQuery = `
-            SELECT t.registration_deadline
-            FROM tournament_games tg
-            JOIN tournaments t ON tg.tournament_id = t.id
-            WHERE tg.id = :game_id
-        `;
-        const deadlineResult = await db.executeQuery(deadlineQuery, [gameId]);
+        const { data: gameData, error: gameError } = await supabase
+            .from('tournament_games')
+            .select(`
+                id,
+                tournament_id,
+                tournaments(registration_deadline)
+            `)
+            .eq('id', gameId)
+            .single();
 
-        if (deadlineResult.rows.length === 0) {
+        if (gameError || !gameData) {
             return res.status(404).json({
                 success: false,
                 message: 'Game not found'
             });
         }
 
-        const deadline = new Date(deadlineResult.rows[0].REGISTRATION_DEADLINE);
+        const deadline = new Date(gameData.tournaments.registration_deadline);
         const now = new Date();
 
         if (now > deadline) {
@@ -410,13 +444,14 @@ exports.registerForGame = async (req, res) => {
         }
 
         // Check if user has already registered for this game
-        const checkQuery = `
-            SELECT id FROM game_registrations
-            WHERE user_id = :user_id AND game_id = :game_id
-        `;
-        const checkResult = await db.executeQuery(checkQuery, [userId, gameId]);
+        const { data: existingRegistration, error: checkError } = await supabase
+            .from('game_registrations')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('game_id', gameId)
+            .single();
 
-        if (checkResult.rows.length > 0) {
+        if (existingRegistration) {
             return res.status(400).json({
                 success: false,
                 message: 'Already registered for this game'
@@ -424,16 +459,29 @@ exports.registerForGame = async (req, res) => {
         }
 
         // Register user for the game
-        const registerQuery = `
-            INSERT INTO game_registrations (user_id, game_id, payment_status)
-            VALUES (:user_id, :game_id, 'PENDING')
-        `;
-        await db.executeQuery(registerQuery, [userId, gameId]);
+        const { data: registration, error: regError } = await supabase
+            .from('game_registrations')
+            .insert([{
+                user_id: userId,
+                game_id: gameId,
+                payment_status: 'PENDING'
+            }])
+            .select()
+            .single();
+
+        if (regError) {
+            console.error('Error registering for game:', regError);
+            return res.status(500).json({
+                success: false,
+                message: 'Error registering for game',
+                error: regError.message
+            });
+        }
 
         res.json({
             success: true,
             message: 'Successfully registered for the game',
-            registrationId: 'generated'
+            registrationId: registration?.id || 'generated'
         });
     } catch (error) {
         console.error('Register for game error:', error);
@@ -447,41 +495,84 @@ exports.getUserRegistrations = async (req, res) => {
         const { studentId } = req.params;
 
         // Get user ID from student ID
-        const userQuery = `
-            SELECT id FROM users WHERE student_id = :student_id
-        `;
-        const userResult = await db.executeQuery(userQuery, [studentId]);
+        const { data: user, error: userError } = await supabase
+            .from('users')
+            .select('id')
+            .eq('student_id', studentId)
+            .single();
 
-        if (userResult.rows.length === 0) {
+        if (userError || !user) {
             return res.status(404).json({
                 success: false,
                 message: 'User not found'
             });
         }
 
-        const userId = userResult.rows[0].ID;
+        const userId = user.id;
 
-        const query = `
-            SELECT
-                gr.id as registration_id,
-                tg.game_name,
-                tg.category,
-                tg.game_type,
-                tg.fee_per_person,
-                t.title as tournament_title,
-                gr.payment_status,
-                TO_CHAR(gr.registration_date, 'YYYY-MM-DD HH24:MI:SS') as registration_date
-            FROM game_registrations gr
-            JOIN tournament_games tg ON gr.game_id = tg.id
-            JOIN tournaments t ON tg.tournament_id = t.id
-            WHERE gr.user_id = :user_id
-            ORDER BY gr.registration_date DESC
-        `;
+        // Get user registrations
+        const { data: registrationData, error: regError } = await supabase
+            .from('game_registrations')
+            .select('id, game_id, payment_status, registration_date')
+            .eq('user_id', userId)
+            .order('registration_date', { ascending: false });
 
-        const result = await db.executeQuery(query, [userId]);
-        res.json({ success: true, registrations: result.rows });
+        if (regError) {
+            console.error('Error fetching user registrations:', regError);
+            return res.status(500).json({
+                success: false,
+                message: regError.message
+            });
+        }
+
+        // For each registration, get the game and tournament details separately
+        const registrationsWithDetails = [];
+
+        for (const reg of registrationData) {
+            // Get game details
+            const { data: gameData, error: gameError } = await supabase
+                .from('tournament_games')
+                .select('game_name, category, game_type, fee_per_person, tournament_id')
+                .eq('id', reg.game_id)
+                .single();
+
+            if (gameError || !gameData) {
+                console.error('Error fetching game details:', gameError, 'Game ID:', reg.game_id);
+                continue; // Skip this registration if we can't get game details
+            }
+
+            // Get tournament details
+            const { data: tournamentData, error: tournamentError } = await supabase
+                .from('tournaments')
+                .select('title')
+                .eq('id', gameData.tournament_id)
+                .single();
+
+            if (tournamentError || !tournamentData) {
+                console.error('Error fetching tournament details:', tournamentError, 'Tournament ID:', gameData.tournament_id);
+                continue; // Skip this registration if we can't get tournament details
+            }
+
+            // Combine all the data
+            registrationsWithDetails.push({
+                registration_id: reg.id,
+                game_name: gameData.game_name,
+                category: gameData.category,
+                game_type: gameData.game_type,
+                fee_per_person: gameData.fee_per_person,
+                tournament_title: tournamentData.title,
+                payment_status: reg.payment_status,
+                registration_date: new Date(reg.registration_date).toISOString().slice(0, 19).replace('T', ' ')
+            });
+        }
+
+        return res.json({ success: true, registrations: registrationsWithDetails });
     } catch (error) {
         console.error('Get user registrations error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        return res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
     }
 };

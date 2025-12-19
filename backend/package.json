@@ -1,7 +1,7 @@
 {
   "name": "aiub-sports-portal-backend",
   "version": "1.0.0",
-  "description": "AIUB Sports Portal Backend API with Oracle Database",
+  "description": "AIUB Sports Portal Backend API with Supabase Database",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -12,7 +12,7 @@
     "aiub",
     "sports",
     "portal",
-    "oracle",
+    "supabase",
     "express"
   ],
   "author": "AIUB",
@@ -26,7 +26,7 @@
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.0",
     "multer": "^2.0.2",
-    "oracledb": "^5.5.0"
+    "@supabase/supabase-js": "^2.45.1"
   },
   "devDependencies": {
     "nodemon": "^2.0.22"

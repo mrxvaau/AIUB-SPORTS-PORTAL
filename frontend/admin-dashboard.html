@@ -883,6 +883,9 @@
         const API_URL = 'http://localhost:3000/api';
         let currentSection = 'existing-tournaments';
 
+        // Temporary array to store games
+        let tournamentGames = [];
+
         // Show section
         function showSection(sectionId) {
             // Hide all sections
@@ -935,33 +938,33 @@
                         // Handle photo URL - if it's a path, construct full URL; if it's a data URL, use as is
                         let photoHtml = '';
                         console.log('Tournament data received:', tournament); // Debug logging
-                        console.log('PHOTO_URL value:', tournament.PHOTO_URL, 'Type:', typeof tournament.PHOTO_URL); // Check the actual value and type
+                        console.log('photo_url value:', tournament.photo_url, 'Type:', typeof tournament.photo_url); // Check the actual value and type
 
-                        if (tournament.PHOTO_URL !== null && tournament.PHOTO_URL !== undefined) {
-                            console.log('PHOTO_URL non-null value:', tournament.PHOTO_URL);
-                            if (typeof tournament.PHOTO_URL === 'string') {
-                                console.log('PHOTO_URL is a string:', tournament.PHOTO_URL);
-                                if (tournament.PHOTO_URL.startsWith('/uploads/')) {
+                        if (tournament.photo_url !== null && tournament.photo_url !== undefined) {
+                            console.log('photo_url non-null value:', tournament.photo_url);
+                            if (typeof tournament.photo_url === 'string') {
+                                console.log('photo_url is a string:', tournament.photo_url);
+                                if (tournament.photo_url.startsWith('/uploads/')) {
                                     // It's a file path, construct the full URL - use window origin to ensure correct base
                                     // Use the API server URL instead of window origin for static files
-                                const fullPhotoUrl = `${API_URL.replace('/api', '')}${tournament.PHOTO_URL}`;
-                                    console.log('Photo URL being constructed:', fullPhotoUrl, 'Original API_URL:', API_URL, 'Original PHOTO_URL:', tournament.PHOTO_URL);
+                                const fullPhotoUrl = `${API_URL.replace('/api', '')}${tournament.photo_url}`;
+                                    console.log('Photo URL being constructed:', fullPhotoUrl, 'Original API_URL:', API_URL, 'Original photo_url:', tournament.photo_url);
                                     photoHtml = `<img src="${fullPhotoUrl}" style="width: 50px; height: 50px; object-fit: contain; object-position: center; border-radius: 4px; margin-right: 10px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onerror="this.onerror=null; console.error('Failed to load image:', this.src); this.parentElement.innerHTML='<div style=&quot;width: 50px; height: 50px; background: #e5e7eb; border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-right: 10px; color: #9ca3af; font-size: 12px;&quot;>No Image</div>';" onload="console.log(\'Successfully loaded image:\', this.src)">`;
-                                } else if (tournament.PHOTO_URL.startsWith('data:image')) {
+                                } else if (tournament.photo_url.startsWith('data:image')) {
                                     // It's a base64 data URL
-                                    photoHtml = `<img src="${tournament.PHOTO_URL}" style="width: 50px; height: 50px; object-fit: contain; object-position: center; border-radius: 4px; margin-right: 10px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onerror="this.onerror=null; this.parentElement.innerHTML='<div style=&quot;width: 50px; height: 50px; background: #e5e7eb; border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-right: 10px; color: #9ca3af; font-size: 12px;&quot;>No Image</div>';">`;
+                                    photoHtml = `<img src="${tournament.photo_url}" style="width: 50px; height: 50px; object-fit: contain; object-position: center; border-radius: 4px; margin-right: 10px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onerror="this.onerror=null; this.parentElement.innerHTML='<div style=&quot;width: 50px; height: 50px; background: #e5e7eb; border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-right: 10px; color: #9ca3af; font-size: 12px;&quot;>No Image</div>';">`;
                                 } else {
                                     // It's a URL path, construct the full URL
-                                    photoHtml = `<img src="${tournament.PHOTO_URL}" style="width: 50px; height: 50px; object-fit: contain; object-position: center; border-radius: 4px; margin-right: 10px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onerror="this.onerror=null; this.parentElement.innerHTML='<div style=&quot;width: 50px; height: 50px; background: #e5e7eb; border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-right: 10px; color: #9ca3af; font-size: 12px;&quot;>No Image</div>';">`;
-                                    console.log('Using provided URL as-is:', tournament.PHOTO_URL);
+                                    photoHtml = `<img src="${tournament.photo_url}" style="width: 50px; height: 50px; object-fit: contain; object-position: center; border-radius: 4px; margin-right: 10px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onerror="this.onerror=null; this.parentElement.innerHTML='<div style=&quot;width: 50px; height: 50px; background: #e5e7eb; border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-right: 10px; color: #9ca3af; font-size: 12px;&quot;>No Image</div>';">`;
+                                    console.log('Using provided URL as-is:', tournament.photo_url);
                                 }
                             } else {
-                                console.warn('PHOTO_URL is not a string, type:', typeof tournament.PHOTO_URL, 'value:', tournament.PHOTO_URL);
+                                console.warn('photo_url is not a string, type:', typeof tournament.photo_url, 'value:', tournament.photo_url);
                                 // Handle case where it might be a LOB object or other type
                                 photoHtml = `<div style="width: 50px; height: 50px; background: #e5e7eb; border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-right: 10px; color: #9ca3af; font-size: 12px;">CLOB Type Error</div>`;
                             }
                         } else {
-                            console.log('PHOTO_URL is null/undefined for tournament:', tournament.TITLE || tournament.id);
+                            console.log('photo_url is null/undefined for tournament:', tournament.title || tournament.id);
                             // No photo available
                             photoHtml = `<div style="width: 50px; height: 50px; background: #e5e7eb; border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-right: 10px; color: #9ca3af; font-size: 12px;">No Image</div>`;
                         }
@@ -971,19 +974,19 @@
                                 <div style="display: flex; align-items: center;">
                                     ${photoHtml}
                                     <div style="flex: 1;">
-                                        <div class="tournament-title">${tournament.TITLE}</div>
-                                        <div class="tournament-deadline">Deadline: ${tournament.DEADLINE}</div>
+                                        <div class="tournament-title">${tournament.title || 'Untitled'}</div>
+                                        <div class="tournament-deadline">Deadline: ${tournament.registration_deadline || 'No deadline'}</div>
                                         <div class="tournament-games">${tournament.GAMES_COUNT || '0'} Games</div>
                                     </div>
                                 </div>
                                 <div style="display: flex; flex-direction: column; gap: 5px;">
-                                    <button class="edit-btn" style="padding: 6px 12px; font-size: 12px;" onclick="editTournament(${tournament.ID}, '${tournament.TITLE.replace(/'/g, "\\'")}', '${tournament.DEADLINE.replace(/'/g, "\\'")}', '${(tournament.DESCRIPTION || '').replace(/'/g, "\\'")}')">
+                                    <button class="edit-btn" style="padding: 6px 12px; font-size: 12px;" onclick="editTournament(${tournament.id}, '${(tournament.title || '').replace(/'/g, "\\'")}', '${(tournament.registration_deadline || '').replace(/'/g, "\\'")}', '${(tournament.description || '').replace(/'/g, "\\'")}')">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                         </svg>
                                         Edit
                                     </button>
-                                    <button class="delete-btn delete-btn-cancel" style="padding: 6px 12px;" onclick="showDeleteModal('${tournament.ID}', '${tournament.TITLE.replace(/'/g, "\\'")}')">
+                                    <button class="delete-btn delete-btn-cancel" style="padding: 6px 12px;" onclick="showDeleteModal('${tournament.id}', '${(tournament.title || '').replace(/'/g, "\\'")}')">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                         </svg>
@@ -1311,7 +1314,7 @@
         function showDeleteModal(tournamentId, tournamentTitle) {
             document.getElementById('deleteModal').style.display = 'flex';
             document.getElementById('deleteTournamentId').value = tournamentId;
-            document.getElementById('deleteTournamentTitle').textContent = tournamentTitle;
+            document.getElementById('deleteTournamentTitle').textContent = tournamentTitle || 'Untitled Tournament';
             document.getElementById('deleteConfirmInput').value = '';
             document.getElementById('deleteConfirmBtn').disabled = true;
         }
@@ -1873,9 +1876,6 @@
             handball:     { solo: false, duo: false, mixDuo: false, nvn: true  },
             volleyball:   { solo: false, duo: false, mixDuo: false, nvn: true  },
         };
-
-        // Temporary array to store games
-        let tournamentGames = [];
 
         function openGameCategoryModal() {
             document.getElementById('gameCategoryModal').classList.add('active');

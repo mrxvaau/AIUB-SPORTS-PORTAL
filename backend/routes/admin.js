@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/database');
+const { supabase } = require('../config/supabase');
 const multer = require('multer');
 const path = require('path');
 
@@ -76,48 +76,43 @@ function handleMulterError(err, req, res, next) {
 
 // Check if user is admin
 router.post('/check-admin', async (req, res) => {
-    let connection;
     try {
         const { email } = req.body;
-        
+
         console.log('=== ADMIN CHECK START ===');
         console.log('Checking email:', email);
 
-        connection = await db.getConnection();
-        
-        const result = await connection.execute(
-            `SELECT id, admin_id, email, full_name FROM admins WHERE email = :1`,
-            [email],
-            { outFormat: require('oracledb').OUT_FORMAT_OBJECT }
-        );
+        const { data: admin, error } = await supabase
+            .from('admins')
+            .select('id, admin_id, email, full_name')
+            .eq('email', email)
+            .single();
 
-        console.log('Rows found:', result.rows.length);
-        console.log('Result:', JSON.stringify(result.rows));
+        console.log('Admin found:', !!admin);
         console.log('=== ADMIN CHECK END ===');
 
-        if (result.rows && result.rows.length > 0) {
-            res.json({ success: true, isAdmin: true, admin: result.rows[0] });
+        if (error) {
+            if (error.code === 'PGRST116' || error.message.includes('Row not found')) {
+                // No admin found, which is valid
+                res.json({ success: true, isAdmin: false });
+            } else {
+                // Actual error occurred
+                console.error('Check admin error:', error);
+                res.status(500).json({ success: false, message: error.message });
+            }
+        } else if (admin) {
+            res.json({ success: true, isAdmin: true, admin: admin });
         } else {
             res.json({ success: true, isAdmin: false });
         }
     } catch (error) {
         console.error('Check admin error:', error);
         res.status(500).json({ success: false, message: error.message });
-    } finally {
-        if (connection) {
-            try {
-                await connection.close();
-            } catch (err) {
-                console.error('Error closing connection:', err);
-            }
-        }
     }
 });
 
 // Create tournament
 router.post('/tournaments', upload.single('photo'), handleMulterError, async (req, res) => {
-    let tournamentId; // Declare at function scope to ensure it's always accessible
-
     try {
         console.log('Create tournament request received');
         console.log('Req.body:', req.body);
@@ -194,44 +189,50 @@ router.post('/tournaments', upload.single('photo'), handleMulterError, async (re
             console.log('No file uploaded, photoPath remains:', photoPath);
         }
 
-        let tournamentId;
-
-        // Get the next sequence value
-        const seqResult = await db.executeQuery('SELECT tournament_id_seq.NEXTVAL FROM DUAL');
-        tournamentId = seqResult.rows[0]['NEXTVAL'];
-        console.log('Generated tournament ID:', tournamentId);
-
-        // Insert tournament using the retrieved ID - properly format the date
+        // Format deadline for Supabase
         let formattedDeadline;
         if (deadline instanceof Date) {
-            formattedDeadline = deadline.toISOString().slice(0, 19).replace('T', ' ');
+            formattedDeadline = deadline.toISOString();
         } else {
-            // Try to create a date object from the string
             const dateObj = new Date(deadline);
             if (isNaN(dateObj.getTime())) {
-                // If the date is invalid, throw an error
                 throw new Error('Invalid date format');
             }
-            formattedDeadline = dateObj.toISOString().slice(0, 19).replace('T', ' ');
+            formattedDeadline = dateObj.toISOString();
         }
+
         console.log('About to insert tournament with photoPath:', photoPath, 'for title:', title); // Debug logging
-        await db.executeQuery(
-            `INSERT INTO tournaments (id, title, photo_url, registration_deadline, created_by)
-            VALUES (:1, :2, :3, TO_DATE(:4, 'YYYY-MM-DD HH24:MI:SS'), 1)`,
-            [tournamentId, title, photoPath, formattedDeadline]
-        );
+
+        // Insert tournament using Supabase
+        const { data: tournament, error: tournamentError } = await supabase
+            .from('tournaments')
+            .insert([{
+                title: title,
+                photo_url: photoPath,
+                registration_deadline: formattedDeadline,
+                created_by: 1, // Assuming a default admin user ID
+                description: description || null
+            }])
+            .select()
+            .single();
+
+        if (tournamentError) {
+            console.error('Error inserting tournament:', tournamentError);
+            return res.status(500).json({
+                success: false,
+                message: 'Error creating tournament',
+                error: tournamentError.message
+            });
+        }
+
+        const tournamentId = tournament.id;
         console.log('Tournament inserted successfully with ID:', tournamentId);
 
         // Insert games if there are any
         if (games && games.length > 0) {
             for (const game of games) {
                 try {
-                    const gameQuery = `
-                        INSERT INTO tournament_games (tournament_id, category, game_name, game_type, fee_per_person)
-                        VALUES (:1, :2, :3, :4, :5)
-                    `;
-
-                    // Map game types to allowed database values to comply with CHK_GAME_TYPE constraint
+                    // Map game types to allowed database values
                     let dbGameType = game.type;
                     if (game.type === 'Duo (Mixed)') {
                         dbGameType = 'Custom'; // Map Duo (Mixed) to Custom since it's a custom format
@@ -243,13 +244,20 @@ router.post('/tournaments', upload.single('photo'), handleMulterError, async (re
                         dbGameType = 'Custom';
                     }
 
-                    await db.executeQuery(gameQuery, [
-                        tournamentId,
-                        game.category,
-                        game.name,
-                        dbGameType, // Use mapped type that's allowed by the constraint
-                        game.fee
-                    ]);
+                    const { error: gameError } = await supabase
+                        .from('tournament_games')
+                        .insert([{
+                            tournament_id: tournamentId,
+                            category: game.category,
+                            game_name: game.name,
+                            game_type: dbGameType,
+                            fee_per_person: game.fee
+                        }]);
+
+                    if (gameError) {
+                        console.error('Error inserting game:', game, 'Error:', gameError);
+                        throw gameError;
+                    }
                 } catch (gameError) {
                     console.error('Error inserting game:', game, 'Error:', gameError);
                     throw gameError; // Re-throw to be caught by outer try-catch
@@ -278,17 +286,25 @@ router.post('/tournaments', upload.single('photo'), handleMulterError, async (re
 // Get all tournaments
 router.get('/tournaments', async (req, res) => {
     try {
-        const query = `
-            SELECT id, title, photo_url,
-                   TO_CHAR(registration_deadline, 'YYYY-MM-DD HH24:MI:SS') as deadline,
-                   status, TO_CHAR(created_at, 'YYYY-MM-DD') as created_date
-            FROM tournaments
-            ORDER BY created_at DESC
-        `;
+        const { data: tournaments, error } = await supabase
+            .from('tournaments')
+            .select('id, title, photo_url, registration_deadline, status, created_at')
+            .order('created_at', { ascending: false });
 
-        const result = await db.executeQuery(query);
-        console.log('Raw tournament data from DB:', result.rows); // Debug logging
-        res.json({ success: true, tournaments: result.rows });
+        if (error) {
+            console.error('Get tournaments error:', error);
+            res.status(500).json({ success: false, message: error.message });
+        } else {
+            // Format dates to match expected format
+            const formattedTournaments = tournaments.map(tournament => ({
+                ...tournament,
+                deadline: new Date(tournament.registration_deadline).toISOString().slice(0, 19).replace('T', ' '),
+                created_date: new Date(tournament.created_at).toISOString().slice(0, 10)
+            }));
+
+            console.log('Raw tournament data from DB:', formattedTournaments); // Debug logging
+            res.json({ success: true, tournaments: formattedTournaments });
+        }
     } catch (error) {
         console.error('Get tournaments error:', error);
         res.status(500).json({ success: false, message: error.message });
@@ -298,15 +314,21 @@ router.get('/tournaments', async (req, res) => {
 // Get tournament games
 router.get('/tournaments/:id/games', async (req, res) => {
     try {
-        const query = `
-            SELECT id, category, game_name, game_type, fee_per_person
-            FROM tournament_games
-            WHERE tournament_id = :id
-            ORDER BY category, game_name
-        `;
+        const tournamentId = req.params.id;
 
-        const result = await db.executeQuery(query, [req.params.id]);
-        res.json({ success: true, games: result.rows });
+        const { data: games, error } = await supabase
+            .from('tournament_games')
+            .select('id, category, game_name, game_type, fee_per_person')
+            .eq('tournament_id', tournamentId)
+            .order('category')
+            .order('game_name');
+
+        if (error) {
+            console.error('Get games error:', error);
+            res.status(500).json({ success: false, message: error.message });
+        } else {
+            res.json({ success: true, games: games });
+        }
     } catch (error) {
         console.error('Get games error:', error);
         res.status(500).json({ success: false, message: error.message });
@@ -337,29 +359,20 @@ router.put('/tournaments/:id', upload.single('photo'), handleMulterError, async 
         }
 
         // First check if tournament exists and get the current photo path
-        let currentTournament;
-        try {
-            const checkQuery = `
-                SELECT id, title as tournament_title, photo_url FROM tournaments WHERE id = :id
-            `;
-            const checkResult = await db.executeQuery(checkQuery, [tournamentId]);
+        const { data: currentTournament, error: checkError } = await supabase
+            .from('tournaments')
+            .select('id, title as tournament_title, photo_url')
+            .eq('id', tournamentId)
+            .single();
 
-            if (checkResult.rows.length === 0) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Tournament not found'
-                });
-            }
-
-            currentTournament = checkResult.rows[0];
-            console.log('Current tournament data:', currentTournament);
-        } catch (checkError) {
-            console.error('Error checking tournament existence:', checkError);
-            return res.status(500).json({
+        if (checkError || !currentTournament) {
+            return res.status(404).json({
                 success: false,
-                message: 'Error checking tournament: ' + checkError.message
+                message: 'Tournament not found'
             });
         }
+
+        console.log('Current tournament data:', currentTournament);
 
         // If there's a photo file, handle the file upload
         if (req.file) {
@@ -425,10 +438,10 @@ router.put('/tournaments/:id', upload.single('photo'), handleMulterError, async 
             console.log('No new file uploaded, photoPath remains:', photoPath);
         }
 
-        // Format the deadline properly for Oracle
+        // Format the deadline properly for Supabase
         let formattedDeadline;
         if (deadline instanceof Date) {
-            formattedDeadline = deadline.toISOString().slice(0, 19).replace('T', ' ');
+            formattedDeadline = deadline.toISOString();
         } else {
             // Try to create a date object from the string
             const dateObj = new Date(deadline);
@@ -436,53 +449,61 @@ router.put('/tournaments/:id', upload.single('photo'), handleMulterError, async 
                 // If the date is invalid, throw an error
                 throw new Error('Invalid date format');
             }
-            formattedDeadline = dateObj.toISOString().slice(0, 19).replace('T', ' ');
+            formattedDeadline = dateObj.toISOString();
         }
 
         console.log('Updating tournament with photoPath:', photoPath, 'for tournament ID:', tournamentId); // Debug logging
         // Update tournament information
-        let updateQuery = `
-            UPDATE tournaments
-            SET title = :title, registration_deadline = TO_DATE(:deadline, 'YYYY-MM-DD HH24:MI:SS')
-        `;
-        let updateParams = [title, formattedDeadline];
+        let updateData = {
+            title: title,
+            registration_deadline: formattedDeadline
+        };
 
         // Add description only if provided
         if (description !== undefined) {
-            updateQuery += `, description = :description`;
-            updateParams.push(description);
+            updateData.description = description;
         }
 
         // Add photoPath only if provided, otherwise preserve existing photo_url
         if (photoPath) {
-            updateQuery += `, photo_url = :photo_url`;
-            updateParams.push(photoPath);
+            updateData.photo_url = photoPath;
             console.log('Including photo_url in update with value:', photoPath);
         } else {
             console.log('photoPath is falsy, preserving existing photo_url');
-            // If no new photo is provided, don't update the photo_url field by removing it from the query
-            // This ensures the existing value is preserved
         }
 
-        updateQuery += ` WHERE id = :tournament_id`;
-        updateParams.push(tournamentId);
+        const { error: updateError } = await supabase
+            .from('tournaments')
+            .update(updateData)
+            .eq('id', tournamentId);
 
-        await db.executeQuery(updateQuery, updateParams);
+        if (updateError) {
+            console.error('Error updating tournament:', updateError);
+            return res.status(500).json({
+                success: false,
+                message: 'Error updating tournament',
+                error: updateError.message
+            });
+        }
 
         // Delete existing games for this tournament
-        const deleteGamesQuery = `
-            DELETE FROM tournament_games WHERE tournament_id = :tournament_id
-        `;
-        await db.executeQuery(deleteGamesQuery, [tournamentId]);
+        const { error: deleteError } = await supabase
+            .from('tournament_games')
+            .delete()
+            .eq('tournament_id', tournamentId);
+
+        if (deleteError) {
+            console.error('Error deleting existing games:', deleteError);
+            return res.status(500).json({
+                success: false,
+                message: 'Error updating tournament',
+                error: deleteError.message
+            });
+        }
 
         // Insert new games if provided
         if (games && games.length > 0) {
             for (const game of games) {
-                const gameQuery = `
-                    INSERT INTO tournament_games (tournament_id, category, game_name, game_type, fee_per_person)
-                    VALUES (:tournament_id, :category, :game_name, :game_type, :fee)
-                `;
-
                 // Map game types to allowed database values to comply with CHK_GAME_TYPE constraint
                 let dbGameType = game.type;
                 if (game.type === 'Duo (Mixed)') {
@@ -495,13 +516,20 @@ router.put('/tournaments/:id', upload.single('photo'), handleMulterError, async 
                     dbGameType = 'Custom';
                 }
 
-                await db.executeQuery(gameQuery, [
-                    tournamentId,
-                    game.category,
-                    game.name,
-                    dbGameType, // Use mapped type that's allowed by the constraint
-                    game.fee
-                ]);
+                const { error: gameError } = await supabase
+                    .from('tournament_games')
+                    .insert([{
+                        tournament_id: tournamentId,
+                        category: game.category,
+                        game_name: game.name,
+                        game_type: dbGameType, // Use mapped type that's allowed by the constraint
+                        fee_per_person: game.fee
+                    }]);
+
+                if (gameError) {
+                    console.error('Error inserting game:', game, 'Error:', gameError);
+                    throw gameError;
+                }
             }
         }
 
@@ -524,12 +552,13 @@ router.delete('/tournaments/:id', async (req, res) => {
         const tournamentId = req.params.id;
 
         // First check if tournament exists
-        const checkQuery = `
-            SELECT id FROM tournaments WHERE id = :id
-        `;
-        const checkResult = await db.executeQuery(checkQuery, [tournamentId]);
+        const { data: tournament, error: checkError } = await supabase
+            .from('tournaments')
+            .select('id')
+            .eq('id', tournamentId)
+            .single();
 
-        if (checkResult.rows.length === 0) {
+        if (checkError || !tournament) {
             return res.status(404).json({
                 success: false,
                 message: 'Tournament not found'
@@ -537,16 +566,34 @@ router.delete('/tournaments/:id', async (req, res) => {
         }
 
         // Delete associated games first (due to foreign key constraint)
-        const deleteGamesQuery = `
-            DELETE FROM tournament_games WHERE tournament_id = :tournament_id
-        `;
-        await db.executeQuery(deleteGamesQuery, [tournamentId]);
+        const { error: deleteGamesError } = await supabase
+            .from('tournament_games')
+            .delete()
+            .eq('tournament_id', tournamentId);
+
+        if (deleteGamesError) {
+            console.error('Error deleting associated games:', deleteGamesError);
+            return res.status(500).json({
+                success: false,
+                message: 'Error deleting tournament games',
+                error: deleteGamesError.message
+            });
+        }
 
         // Then delete the tournament
-        const deleteTournamentQuery = `
-            DELETE FROM tournaments WHERE id = :tournament_id
-        `;
-        await db.executeQuery(deleteTournamentQuery, [tournamentId]);
+        const { error: deleteTournamentError } = await supabase
+            .from('tournaments')
+            .delete()
+            .eq('id', tournamentId);
+
+        if (deleteTournamentError) {
+            console.error('Error deleting tournament:', deleteTournamentError);
+            return res.status(500).json({
+                success: false,
+                message: 'Error deleting tournament',
+                error: deleteTournamentError.message
+            });
+        }
 
         res.json({
             success: true,

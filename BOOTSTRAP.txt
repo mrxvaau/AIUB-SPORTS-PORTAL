@@ -1,0 +1,29 @@
+PROJECT: my-app
+ROOT: /home/joy/projects/my-app
+BRANCH: main
+VERSION: 0.1.4
+GIT_SHA: unknown
+
+MODE: BOOTSTRAP_READONLY
+ON_READ: DO_NOT_MODIFY_FILES
+ON_SNAPSHOT: WRITE_JSON_AND_TEXT
+REDACT_SECRETS: true
+TIME_FORMAT: ISO8601_UTC
+
+READ_ORDER:
+  1) Top: project metadata above
+  2) DB: detect DB connection string if present, run read-only schema queries / list tables
+  3) Core code: scan top-level src/ or api/ and list main modules and key endpoints
+  4) Env & deps: node/python versions and major deps
+  5) Notes: any TODOs / known errors
+
+SNAPSHOT_COMMAND:
+When user tells you: "SNAPSHOT commit: <message> version: <semver|auto>"
+You MUST:
+  - produce a JSON file saved to snapshots/<ISO8601-timestamp>.json following Snapshot Schema
+  - produce a human file snapshots/<ISO8601-timestamp>-summary.txt
+  - include previous_snapshot_id if exists
+  - include rollback_plan with minimal safe git commands
+  - redact secrets
+
+END_OF_BOOTSTRAP
