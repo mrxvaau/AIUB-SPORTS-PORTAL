@@ -187,15 +187,14 @@
                 localStorage.setItem('userName', callbackData.user.name);
 
                 // Check if profile is completed
-                if (loginData.user.PROFILE_COMPLETED === 1) {
+                if (loginData.user.profile_completed === true) {
                     // Profile already completed - go to dashboard
-                    sessionStorage.setItem('profileJustCompleted', 'true');
                     showSuccess(`Welcome back ${callbackData.user.name}! Redirecting...`);
                     setTimeout(() => {
                         window.location.href = 'dashboard.html';
                     }, 1500);
                 } else {
-                    // First time - go to profile completion
+                    // First time or profile not completed - go to profile completion
                     showSuccess(`Welcome ${callbackData.user.name}! Please complete your profile...`);
                     setTimeout(() => {
                         window.location.href = 'profile-setup.html';

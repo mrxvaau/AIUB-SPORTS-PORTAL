@@ -22,6 +22,30 @@
             padding: 20px;
         }
 
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Hide content initially */
+        .content-hidden {
+            display: none;
+        }
+    </style>
+
+    <script>
+        // Immediately hide content until profile is checked
+        document.documentElement.style.display = 'none';
+    </script>
         .setup-container {
             background: white;
             border-radius: 10px;
@@ -375,18 +399,43 @@
         const undergraduateDepts = ['English', 'MMC', 'Economics', 'LLB', 'BBA', 'B.Arch.', 'EEE', 'IPE', 'COE', 'Pharmacy', 'CSE', 'DS', 'CNCS'];
         const postgraduateDepts = ['MDS', 'MPH', 'EMBA', 'MBA', 'MEEE', 'MTel', 'LL.M', 'MSCS'];
 
-        // Load user info
-        window.addEventListener('DOMContentLoaded', () => {
+        // Load user info after DOM is loaded
+        window.addEventListener('DOMContentLoaded', async () => {
             const studentId = localStorage.getItem('studentId');
             const email = localStorage.getItem('userEmail');
 
             if (!studentId || !email) {
+                // Show the page and redirect to login
+                document.documentElement.style.display = '';
                 window.location.href = 'login.html';
                 return;
             }
 
-            document.getElementById('studentId').value = studentId;
-            document.getElementById('email').value = email;
+            // Check if user has already completed profile
+            try {
+                const response = await fetch(`${API_URL}/auth/profile/${studentId}`);
+                const data = await response.json();
+
+                if (data.success && data.user && data.user.profile_completed === true) {
+                    // Profile already completed - redirect to dashboard immediately
+                    window.location.href = 'dashboard.html';
+                } else {
+                    // Profile not completed - show the page
+                    document.documentElement.style.display = '';
+
+                    // Populate the form elements
+                    document.getElementById('studentId').value = studentId;
+                    document.getElementById('email').value = email;
+                }
+            } catch (error) {
+                console.error('Error checking profile status:', error);
+                // On error, show the page to allow user to try completing the profile
+                document.documentElement.style.display = '';
+
+                // Populate the form elements
+                document.getElementById('studentId').value = studentId;
+                document.getElementById('email').value = email;
+            }
         });
 
         // Program level change

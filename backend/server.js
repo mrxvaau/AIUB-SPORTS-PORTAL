@@ -1,28 +1,24 @@
-﻿// AIUB Sports Portal - Backend Server
+﻿// AIUB Sports Portal - Backend Server (Supabase)
 // Version 1.0
 
-const util = require('util');
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 require('dotenv').config();
-
-// Patch util.isDate for OracleDB compatibility with newer Node.js versions
-if (!util.isDate) {
-    util.isDate = function (date) {
-        return date instanceof Date;
-    };
-}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 const path = require('path');
 
+// Initialize Supabase
+const { initialize: initializeSupabase } = require('./config/supabase');
+
 // Import routes
 const authRoutes = require('./routes/auth');
 const msAuthRoutes = require('./routes/msauth');
 const adminRoutes = require('./routes/admin');
+const dashboardRoutes = require('./routes/dashboard');
 
 // Middleware
 app.use(cors());
@@ -47,6 +43,7 @@ app.use((req, res, next) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/msauth', msAuthRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -89,14 +86,29 @@ app.use((req, res) => {
     });
 });
 
-// Start server
-app.listen(PORT, () => {
-    console.log('===========================================');
-    console.log('🚀 AIUB Sports Portal Backend Started');
-    console.log('===========================================');
-    console.log(`📡 Server running on: http://localhost:${PORT}`);
-    console.log(`🏥 Health check: http://localhost:${PORT}/api/health`);
-    console.log('===========================================');
-});
+// Initialize database connection when server starts
+async function startServer() {
+    try {
+        // Initialize Supabase connection
+        await initializeSupabase();
+        console.log('✅ Supabase initialized successfully');
+
+        // Start server
+        app.listen(PORT, () => {
+            console.log('===========================================');
+            console.log('🚀 AIUB Sports Portal Backend Started');
+            console.log('===========================================');
+            console.log(`📡 Server running on: http://localhost:${PORT}`);
+            console.log(`🏥 Health check: http://localhost:${PORT}/api/health`);
+            console.log('===========================================');
+        });
+    } catch (error) {
+        console.error('❌ Failed to start server:', error);
+        process.exit(1);
+    }
+}
+
+// Start the server
+startServer();
 
 module.exports = app;

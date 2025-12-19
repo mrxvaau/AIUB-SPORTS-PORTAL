@@ -188,6 +188,68 @@
             font-size: 18px;
             color: #666;
         }
+
+        .loading-with-animation {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #e0e0e0;
+            border-top: 5px solid #1976d2;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .game-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(25, 118, 210, 0.3);
+        }
+
+        .tournament-card {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Add delay to each card for cascading effect */
+        .tournament-card:nth-child(1) { animation-delay: 0.1s; }
+        .tournament-card:nth-child(2) { animation-delay: 0.2s; }
+        .tournament-card:nth-child(3) { animation-delay: 0.3s; }
+        .tournament-card:nth-child(4) { animation-delay: 0.4s; }
+        .tournament-card:nth-child(5) { animation-delay: 0.5s; }
     </style>
 </head>
 <body>
@@ -203,7 +265,11 @@
     </div>
 
     <div class="container">
-        <div id="loading" class="loading">Loading tournaments...</div>
+        <div id="loading" class="loading-with-animation">
+            <div class="loading-spinner"></div>
+            <h3>Loading Tournaments</h3>
+            <p>Searching for active tournaments...</p>
+        </div>
         <div id="noTournaments" class="no-tournaments" style="display: none;">
             <h2>No Active Tournaments</h2>
             <p>Check back later for upcoming events!</p>
@@ -230,11 +296,41 @@
                 const container = document.getElementById('tournamentsContainer');
 
                 for (const tournament of data.tournaments) {
-                    const gamesResponse = await fetch(`${API_URL}/auth/tournaments/${tournament.ID}/games`);
+                    // Add a temporary card with loading animation while fetching games
+                    const tempCardId = `temp-card-${tournament.id}`;
+                    container.innerHTML += `
+                        <div class="tournament-card" id="${tempCardId}">
+                            <div style="text-align: center; padding: 40px;">
+                                <div class="spinner" style="width: 40px; height: 40px; margin: 0 auto 20px;"></div>
+                                <p>Loading ${tournament.title} games...</p>
+                            </div>
+                        </div>
+                    `;
+
+                    const gamesResponse = await fetch(`${API_URL}/auth/tournaments/${tournament.id}/games`);
                     const gamesData = await gamesResponse.json();
+
+                    // Remove the temporary card and add the actual card
+                    const tempCard = document.getElementById(tempCardId);
+                    if (tempCard) {
+                        tempCard.remove();
+                    }
 
                     if (gamesData.success) {
                         container.innerHTML += createTournamentCard(tournament, gamesData.games);
+                    } else {
+                        // If games failed to load, show an error message in the card
+                        container.innerHTML += `
+                            <div class="tournament-card">
+                                <div class="tournament-header">
+                                    <div class="tournament-info">
+                                        <h1>${tournament.title}</h1>
+                                        <div class="info-item">📅 Registration Deadline: ${new Date(tournament.registration_deadline).toLocaleDateString()}</div>
+                                        <div class="info-item">❌ Failed to load games</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
                     }
                 }
             } catch (error) {
@@ -245,15 +341,15 @@
 
         function createTournamentCard(tournament, games) {
             // For now, we'll show all games and let the registration handle the gender filtering
-            const maleGames = games.filter(g => g.CATEGORY === 'Male');
-            const femaleGames = games.filter(g => g.CATEGORY === 'Female');
-            const mixGames = games.filter(g => g.CATEGORY === 'Mix');
+            const maleGames = games.filter(g => g.category === 'Male');
+            const femaleGames = games.filter(g => g.category === 'Female');
+            const mixGames = games.filter(g => g.category === 'Mix');
 
             // Simple image handling - check if a photo_url exists as any common variation
-            let photoUrl = tournament.PHOTO_URL || tournament.photo_url || tournament['PHOTO_URL'] || tournament['photo_url'];
+            let photoUrl = tournament.photo_url || tournament.PHOTO_URL || tournament['photo_url'] || tournament['PHOTO_URL'];
 
             console.log('Tournament data in registration page:', tournament);
-            console.log('PHOTO_URL value:', photoUrl, 'Type:', typeof photoUrl);
+            console.log('photo_url value:', photoUrl, 'Type:', typeof photoUrl);
 
             let imageHtml = '';
             // Check if photoUrl is actually a string before using string methods
@@ -285,7 +381,7 @@
             }
             // Handle case where photoUrl exists but is not a string (like LOB object)
             else if (photoUrl && typeof photoUrl !== 'string') {
-                console.warn('PHOTO_URL is not a string, type:', typeof photoUrl, 'value:', photoUrl);
+                console.warn('photo_url is not a string, type:', typeof photoUrl, 'value:', photoUrl);
                 imageHtml = `<div class="tournament-image" style="background: #e5e7eb; display: flex; align-items: center; justify-content: center; color: #6b7280;">CLOB Type Error</div>`;
             }
             else {
@@ -298,10 +394,10 @@
                     <div class="tournament-header">
                         ${imageHtml}
                         <div class="tournament-info">
-                            <h1>${tournament.TITLE}</h1>
-                            <div class="info-item">📅 Registration Deadline: ${new Date(tournament.DEADLINE).toLocaleDateString()}</div>
-                            <div class="info-item">📊 Status: ${tournament.STATUS}</div>
-                            ${tournament.DESCRIPTION ? `<div class="info-item">📝 ${tournament.DESCRIPTION}</div>` : ''}
+                            <h1>${tournament.title}</h1>
+                            <div class="info-item">📅 Registration Deadline: ${new Date(tournament.registration_deadline).toLocaleDateString()}</div>
+                            <div class="info-item">📊 Status: ${tournament.status}</div>
+                            ${tournament.description ? `<div class="info-item">📝 ${tournament.description}</div>` : ''}
                         </div>
                     </div>
 
@@ -321,10 +417,10 @@
                     <div class="games-grid">
                         ${games.map(game => `
                             <div class="game-card">
-                                <div class="game-name">${game.GAME_NAME}</div>
-                                <div class="game-type">Type: ${game.GAME_TYPE}</div>
-                                <div class="game-fee">৳${game.FEE_PER_PERSON} per person</div>
-                                <button class="register-btn" onclick="registerForGame(${game.ID}, '${game.GAME_NAME}', '${category}')">
+                                <div class="game-name">${game.game_name}</div>
+                                <div class="game-type">Type: ${game.game_type}</div>
+                                <div class="game-fee">৳${game.fee_per_person} per person</div>
+                                <button class="register-btn" onclick="registerForGame(${game.id}, '${game.game_name}', '${category}')">
                                     Register Now
                                 </button>
                             </div>
@@ -344,6 +440,17 @@
             }
 
             if (confirm(`Register for ${gameName} in ${category} category?`)) {
+                // Show loading state on the button
+                const button = document.querySelector(`[onclick="registerForGame(${gameId}, '${gameName}', '${category}')"]`);
+                const originalText = button.innerHTML;
+                button.innerHTML = `
+                    <div style="display:flex; align-items:center; justify-content:center;">
+                        <div class="spinner" style="width:16px; height:16px; margin-right:8px;"></div>
+                        Registering...
+                    </div>
+                `;
+                button.disabled = true;
+
                 try {
                     const response = await fetch(`${API_URL}/auth/register`, {
                         method: 'POST',
@@ -368,6 +475,10 @@
                 } catch (error) {
                     console.error('Registration error:', error);
                     alert('Error registering for game. Please try again.');
+                } finally {
+                    // Restore button state
+                    button.innerHTML = originalText;
+                    button.disabled = false;
                 }
             }
         }

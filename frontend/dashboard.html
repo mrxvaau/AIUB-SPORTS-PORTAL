@@ -1056,17 +1056,18 @@
                     console.log('Admin check failed:', err);
                 }
 
-                const response = await fetch(`${API_URL}/auth/profile/${studentId}`);
+                // Use the new dashboard endpoint for profile data
+                const response = await fetch(`${API_URL}/dashboard/profile/${studentId}`);
                 const data = await response.json();
 
-                if (data.success && data.user) {
-                    currentUser = data.user;
-                    originalData = { ...data.user };
-                    displayProfile(data.user);
-                    
+                if (data.success && data.profile) {
+                    currentUser = data.profile;
+                    originalData = { ...data.profile };
+                    displayProfile(data.profile);
+
                     // Update welcome text
-                    document.getElementById('welcomeText').textContent = 
-                        `Welcome ${data.user.FULL_NAME || data.user.STUDENT_ID}`;
+                    document.getElementById('welcomeText').textContent =
+                        `Welcome ${data.profile.full_name || data.profile.student_id}`;
                 }
             } catch (error) {
                 console.error('Error loading profile:', error);
@@ -1076,17 +1077,17 @@
 
         // Display profile data
         function displayProfile(user) {
-            document.getElementById('studentId').value = user.STUDENT_ID || '';
-            document.getElementById('email').value = user.EMAIL || '';
-            document.getElementById('fullName').value = user.FULL_NAME || '';
-            document.getElementById('gender').value = user.GENDER || '';
-            document.getElementById('phoneNumber').value = user.PHONE_NUMBER || '';
-            document.getElementById('bloodGroup').value = user.BLOOD_GROUP || '';
-            document.getElementById('programLevel').value = user.PROGRAM_LEVEL || '';
-            document.getElementById('department').value = user.DEPARTMENT || '';
+            document.getElementById('studentId').value = user.student_id || '';
+            document.getElementById('email').value = user.email || '';
+            document.getElementById('fullName').value = user.full_name || '';
+            document.getElementById('gender').value = user.gender || '';
+            document.getElementById('phoneNumber').value = user.phone_number || '';
+            document.getElementById('bloodGroup').value = user.blood_group || '';
+            document.getElementById('programLevel').value = user.program_level || '';
+            document.getElementById('department').value = user.department || '';
 
             // Update name edit badge
-            updateNameBadge(user.NAME_EDIT_COUNT || 0);
+            updateNameBadge(user.name_edit_count || 0);
         }
 
         // Update name edit badge
@@ -1109,19 +1110,19 @@
         // Enable edit mode
         function enableEdit() {
             isEditing = true;
-            
+
             // Add editing class to show badges
             document.querySelector('.player-info-grid').classList.add('editing');
-            
+
             // Enable editable fields
-            const nameEditCount = currentUser.NAME_EDIT_COUNT || 0;
+            const nameEditCount = currentUser.name_edit_count || 0;
             if (nameEditCount < 3) {
                 document.getElementById('fullName').disabled = false;
             } else {
                 document.getElementById('nameWarning').textContent = '❌ Name edit limit reached!';
                 document.getElementById('nameWarning').classList.remove('hidden');
             }
-            
+
             document.getElementById('phoneNumber').disabled = false;
             document.getElementById('bloodGroup').disabled = false;
 
@@ -1153,14 +1154,14 @@
         async function saveProfile() {
             try {
                 const studentId = localStorage.getItem('studentId');
-                
+
                 const formData = {
                     fullName: document.getElementById('fullName').value.trim(),
-                    gender: currentUser.GENDER,
+                    gender: currentUser.gender,
                     phoneNumber: document.getElementById('phoneNumber').value.trim(),
                     bloodGroup: document.getElementById('bloodGroup').value,
-                    programLevel: currentUser.PROGRAM_LEVEL,
-                    department: currentUser.DEPARTMENT,
+                    programLevel: currentUser.program_level,
+                    department: currentUser.department,
                     isFirstTime: false
                 };
 
@@ -1230,7 +1231,10 @@
         // Load available tournaments for registration
         async function loadAvailableTournaments() {
             try {
-                const response = await fetch(`${API_URL}/auth/tournaments`);
+                const studentId = localStorage.getItem('studentId');
+
+                // Use the new dashboard endpoint
+                const response = await fetch(`${API_URL}/dashboard/tournaments/${studentId}`);
                 const data = await response.json();
 
                 if (data.success && data.tournaments && data.tournaments.length > 0) {
@@ -1276,7 +1280,8 @@
                 const modalBody = document.getElementById('modalBody');
                 modalBody.innerHTML = '<p>Loading tournaments...</p>';
 
-                const response = await fetch(`${API_URL}/auth/tournaments`);
+                const studentId = localStorage.getItem('studentId');
+                const response = await fetch(`${API_URL}/dashboard/tournaments/${studentId}`);
                 const data = await response.json();
 
                 if (data.success && data.tournaments && data.tournaments.length > 0) {
@@ -1285,10 +1290,10 @@
                     data.tournaments.forEach(tournament => {
                         html += `
                             <div class="tournament-item">
-                                <div class="tournament-title">${tournament.TITLE}</div>
-                                <div class="tournament-deadline">Registration Deadline: ${tournament.DEADLINE}</div>
-                                <button class="edit-btn" style="margin-top: 10px;" onclick="loadTournamentGames(${tournament.ID})">View Games</button>
-                                <div id="games-${tournament.ID}" class="game-list" style="display: none;"></div>
+                                <div class="tournament-title">${tournament.title}</div>
+                                <div class="tournament-deadline">Registration Deadline: ${tournament.deadline}</div>
+                                <button class="edit-btn" style="margin-top: 10px;" onclick="loadTournamentGames(${tournament.id})">View Games</button>
+                                <div id="games-${tournament.id}" class="game-list" style="display: none;"></div>
                             </div>
                         `;
                     });
@@ -1322,10 +1327,10 @@
                         html += `
                             <div class="game-item">
                                 <div class="game-info">
-                                    <div class="game-name">${game.GAME_NAME}</div>
-                                    <div class="game-category">${game.CATEGORY} • ${game.GAME_TYPE} • ${game.FEE_PER_PERSON} BDT</div>
+                                    <div class="game-name">${game.game_name}</div>
+                                    <div class="game-category">${game.category} • ${game.game_type} • ${game.fee_per_person} BDT</div>
                                 </div>
-                                <button class="register-game-btn" onclick="registerForGame(${game.ID})">Register</button>
+                                <button class="register-game-btn" onclick="registerForGame(${game.id})">Register</button>
                             </div>
                         `;
                     });
@@ -1371,6 +1376,43 @@
             document.getElementById('tournamentModal').classList.add('hidden');
         }
 
+        // Load user registration status
+        async function loadUserRegistrationStatus() {
+            try {
+                const studentId = localStorage.getItem('studentId');
+                const response = await fetch(`${API_URL}/dashboard/registrations/${studentId}`);
+                const data = await response.json();
+
+                if (data.success && data.registrations) {
+                    // Update registration button based on user's registration status
+                    const registerBtn = document.getElementById('registerBtn');
+                    const messageDiv = document.getElementById('registrationMessage');
+
+                    if (data.registrations.length > 0) {
+                        registerBtn.textContent = `Registered (${data.registrations.length})`;
+                        registerBtn.className = 'active-registration-btn';
+                        messageDiv.innerHTML = `<p>You have registered for ${data.registrations.length} game${data.registrations.length > 1 ? 's' : ''}. Check your registration status.</p>`;
+                    } else {
+                        // If tournaments are available but user hasn't registered yet
+                        const tournamentResponse = await fetch(`${API_URL}/dashboard/tournaments/${studentId}`);
+                        const tournamentData = await tournamentResponse.json();
+
+                        if (tournamentData.success && tournamentData.tournaments && tournamentData.tournaments.length > 0) {
+                            registerBtn.textContent = 'Registration';
+                            registerBtn.className = 'active-registration-btn';
+                            messageDiv.innerHTML = '<p>Registration is now open! Click the button to register for tournaments.</p>';
+                        } else {
+                            registerBtn.textContent = 'Registration Closed';
+                            registerBtn.className = 'disabled-btn';
+                            messageDiv.innerHTML = '<p>No tournaments available for registration at the moment.</p>';
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading registration status:', error);
+            }
+        }
+
         // Check authentication
         window.addEventListener('DOMContentLoaded', () => {
             if (localStorage.getItem('isAuthenticated') !== 'true') {
@@ -1380,6 +1422,7 @@
 
             loadProfile();
             loadAvailableTournaments(); // Load available tournaments when page loads
+            loadUserRegistrationStatus(); // Load user's registration status
 
             // Check if this is first login after profile completion
             const justCompleted = sessionStorage.getItem('profileJustCompleted');
