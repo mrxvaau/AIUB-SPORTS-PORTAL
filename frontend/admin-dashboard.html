@@ -158,6 +158,66 @@
             transition: background 0.2s;
         }
 
+        .moderator-section {
+            background: #f0fdf4;
+            border: 1px solid #a7f3d0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .moderator-permissions {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .permission-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .permission-checkbox input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+        }
+
+        .moderator-list {
+            margin-top: 20px;
+        }
+
+        .moderator-item {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .moderator-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .demote-btn {
+            padding: 6px 12px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .demote-btn:hover {
+            background: #dc2626;
+        }
+
         .sidebar-btn:hover {
             background: #1e3a8a;
         }
@@ -171,6 +231,17 @@
         .sidebar-btn svg {
             width: 16px;
             height: 16px;
+        }
+
+        .submenu {
+            padding-left: 20px;
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .submenu.expanded {
+            max-height: 500px; /* Adjust as needed */
         }
 
         .content {
@@ -784,6 +855,79 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
+            <button class="sidebar-btn" id="databaseMenuBtn" onclick="toggleDatabaseSubmenu()">
+                <div class="sidebar-btn-content">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                    </svg>
+                    <span>Database</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16" id="databaseMenuIcon">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+
+            <!-- Database Submenu -->
+            <div id="databaseSubmenu" class="submenu">
+                <button class="sidebar-btn" style="width: 100%; justify-content: flex-start;" onclick="showPlaceholder('User Management')">
+                    <div class="sidebar-btn-content" style="padding-left: 10px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                        </svg>
+                        <span>User Management</span>
+                    </div>
+                </button>
+                <button class="sidebar-btn" style="width: 100%; justify-content: flex-start;" onclick="showPlaceholder('Tournament Data Management')">
+                    <div class="sidebar-btn-content" style="padding-left: 10px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                        <span>Tournament Data Management</span>
+                    </div>
+                </button>
+                <button class="sidebar-btn" style="width: 100%; justify-content: flex-start;" onclick="showPlaceholder('Registration Management')">
+                    <div class="sidebar-btn-content" style="padding-left: 10px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                        <span>Registration Management</span>
+                    </div>
+                </button>
+                <button class="sidebar-btn" style="width: 100%; justify-content: flex-start;" onclick="showPlaceholder('Database Maintenance')">
+                    <div class="sidebar-btn-content" style="padding-left: 10px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span>Database Maintenance</span>
+                    </div>
+                </button>
+                <button class="sidebar-btn" style="width: 100%; justify-content: flex-start;" onclick="showPlaceholder('Content Management')">
+                    <div class="sidebar-btn-content" style="padding-left: 10px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                        </svg>
+                        <span>Content Management</span>
+                    </div>
+                </button>
+                <button class="sidebar-btn" style="width: 100%; justify-content: flex-start;" onclick="showPlaceholder('Analytics & Reporting')">
+                    <div class="sidebar-btn-content" style="padding-left: 10px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                        <span>Analytics & Reporting</span>
+                    </div>
+                </button>
+                <button class="sidebar-btn" style="width: 100%; justify-content: flex-start;" onclick="showPlaceholder('System Configuration')">
+                    <div class="sidebar-btn-content" style="padding-left: 10px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span>System Configuration</span>
+                    </div>
+                </button>
+            </div>
             <button class="sidebar-btn" onclick="showPlaceholder('Messages')">
                 <div class="sidebar-btn-content">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -867,6 +1011,157 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Database Placeholder -->
+            <div id="database-placeholder" class="content-section">
+                <div class="player-card">
+                    <div class="card-header">
+                        <h2>Database</h2>
+                    </div>
+                    <div class="warning-box">
+                        <p>This panel is under development. Will be fixed soon.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Management Placeholder -->
+            <div id="user-management-placeholder" class="content-section">
+                <div class="player-card">
+                    <div class="card-header">
+                        <h2>User Management</h2>
+                    </div>
+                    <div class="warning-box">
+                        <p>This panel is under development. Will be fixed soon.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tournament Data Management Placeholder -->
+            <div id="tournament-data-management-placeholder" class="content-section">
+                <div class="player-card">
+                    <div class="card-header">
+                        <h2>Tournament Data Management</h2>
+                    </div>
+                    <div class="warning-box">
+                        <p>This panel is under development. Will be fixed soon.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Registration Management Placeholder -->
+            <div id="registration-management-placeholder" class="content-section">
+                <div class="player-card">
+                    <div class="card-header">
+                        <h2>Registration Management</h2>
+                    </div>
+                    <div class="warning-box">
+                        <p>This panel is under development. Will be fixed soon.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Database Maintenance Placeholder -->
+            <div id="database-maintenance-placeholder" class="content-section">
+                <div class="player-card">
+                    <div class="card-header">
+                        <h2>Database Maintenance</h2>
+                    </div>
+                    <div class="warning-box">
+                        <p>This panel is under development. Will be fixed soon.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Management Placeholder -->
+            <div id="content-management-placeholder" class="content-section">
+                <div class="player-card">
+                    <div class="card-header">
+                        <h2>Content Management</h2>
+                    </div>
+                    <div class="warning-box">
+                        <p>This panel is under development. Will be fixed soon.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics & Reporting Placeholder -->
+            <div id="analytics-reporting-placeholder" class="content-section">
+                <div class="player-card">
+                    <div class="card-header">
+                        <h2>Analytics & Reporting</h2>
+                    </div>
+                    <div class="warning-box">
+                        <p>This panel is under development. Will be fixed soon.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Configuration Placeholder -->
+            <div id="system-configuration-placeholder" class="content-section">
+                <div class="player-card">
+                    <div class="card-header">
+                        <h2>System Configuration</h2>
+                    </div>
+                    <div class="warning-box">
+                        <p>This panel is under development. Will be fixed soon.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Moderator Management Placeholder -->
+            <div id="moderator-management-placeholder" class="content-section">
+                <div class="player-card">
+                    <div class="card-header">
+                        <h2>Moderator Management</h2>
+                    </div>
+                    <div class="moderator-section">
+                        <h3>Promote User to Moderator</h3>
+                        <div class="player-info-grid">
+                            <div class="info-field">
+                                <label class="info-label">Select User</label>
+                                <select id="selectUser" class="info-input">
+                                    <option value="">Loading users...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <h3 style="margin-top: 20px;">Assign Permissions</h3>
+                        <div class="moderator-permissions">
+                            <div class="permission-checkbox">
+                                <input type="checkbox" id="canManageTournaments" />
+                                <label for="canManageTournaments">Manage Tournaments</label>
+                            </div>
+                            <div class="permission-checkbox">
+                                <input type="checkbox" id="canViewUserData" />
+                                <label for="canViewUserData">View User Data</label>
+                            </div>
+                            <div class="permission-checkbox">
+                                <input type="checkbox" id="canManageReg" />
+                                <label for="canManageReg">Manage Registrations</label>
+                            </div>
+                            <div class="permission-checkbox">
+                                <input type="checkbox" id="canSendAnnouncements" />
+                                <label for="canSendAnnouncements">Send Announcements</label>
+                            </div>
+                            <div class="permission-checkbox">
+                                <input type="checkbox" id="canGenerateReports" />
+                                <label for="canGenerateReports">Generate Reports</label>
+                            </div>
+                        </div>
+
+                        <button class="save-btn" onclick="promoteToModerator()" style="margin-top: 20px;">
+                            Promote User to Moderator
+                        </button>
+                    </div>
+
+                    <div class="moderator-section">
+                        <h3 style="margin-bottom: 15px;">Current Moderators</h3>
+                        <div class="moderator-list" id="moderatorsList">
+                            <p>Loading moderators...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -879,9 +1174,65 @@
         </div>
     </div>
 
+    <script src="api-config.js"></script>
     <script>
-        const API_URL = 'http://localhost:3000/api';
+        // Load API configuration with fallback
+        const API_URL = typeof API_CONFIG !== 'undefined' && API_CONFIG.API_BASE_URL ? API_CONFIG.API_BASE_URL : 'http://localhost:3000/api';
+
+        // Function to build API URL using the configuration
+        function buildApiUrl(endpoint) {
+            if (typeof API_CONFIG !== 'undefined' && API_CONFIG.API_BASE_URL) {
+                return API_CONFIG.API_BASE_URL + endpoint;
+            }
+            return API_URL + endpoint;
+        }
         let currentSection = 'existing-tournaments';
+
+        // Check if user is authenticated and has admin privileges
+        async function checkAdminAccess() {
+            const userEmail = localStorage.getItem('userEmail');
+            if (!userEmail) {
+                alert('Access denied. Please log in first.');
+                window.location.href = 'login.html';
+                return false;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/admin/check-admin`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-user-email': userEmail || ''
+                    },
+                    body: JSON.stringify({ email: userEmail })
+                });
+
+                const result = await response.json();
+
+                if (!result.success || !result.isAdmin) {
+                    alert('Access denied. Admin privileges required.');
+                    window.location.href = 'dashboard.html'; // Redirect to regular dashboard
+                    return false;
+                }
+
+                // Update welcome message based on admin status and role
+                if (result.admin && result.admin.full_name) {
+                    const roleName = result.role || 'Admin';
+                    document.getElementById('welcomeName').textContent = `Welcome, ${result.admin.full_name} (${roleName})`;
+                    document.getElementById('welcomeText').textContent = `Welcome, ${result.admin.full_name} (${roleName})`;
+                } else {
+                    document.getElementById('welcomeName').textContent = 'Admin Dashboard';
+                    document.getElementById('welcomeText').textContent = 'Welcome Admin';
+                }
+
+                return true;
+            } catch (error) {
+                console.error('Admin check error:', error);
+                alert('Error verifying admin status. Please try again.');
+                window.location.href = 'login.html';
+                return false;
+            }
+        }
 
         // Temporary array to store games
         let tournamentGames = [];
@@ -892,16 +1243,122 @@
             document.querySelectorAll('.content-section').forEach(section => {
                 section.classList.remove('active');
             });
-            
+
             // Show the requested section
             document.getElementById(sectionId).classList.add('active');
             currentSection = sectionId;
-            
+
             // Load content based on section
             if (sectionId === 'existing-tournaments') {
                 loadTournaments();
             } else if (sectionId === 'create-tournament') {
                 loadCreateTournamentForm();
+            }
+        }
+
+        // Initialize the admin dashboard
+        async function initAdminDashboard() {
+            const isAdmin = await checkAdminAccess();
+            if (!isAdmin) {
+                return; // User will be redirected by the checkAdminAccess function
+            }
+
+            // Load the default section
+            showSection('existing-tournaments');
+        }
+
+
+        // Confirm delete tournament
+        async function confirmDelete() {
+            const tournamentId = document.getElementById('deleteTournamentId').value;
+            const tournamentTitle = document.getElementById('deleteTournamentTitle').textContent;
+            const confirmBtn = document.getElementById('deleteConfirmBtn');
+            const originalText = confirmBtn.textContent;
+
+            if (!tournamentId) {
+                alert('No tournament selected for deletion.');
+                return;
+            }
+
+            confirmBtn.textContent = 'Deleting...';
+            confirmBtn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_URL}/admin/tournaments/${tournamentId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-user-email': localStorage.getItem('userEmail') || ''
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(`Tournament "${tournamentTitle}" deleted successfully!`);
+                    // Close modal
+                    document.getElementById('deleteModal').style.display = 'none';
+                    // Reload tournaments list
+                    loadTournaments();
+                } else {
+                    alert(result.message || 'Failed to delete tournament');
+                }
+            } catch (error) {
+                console.error('Delete tournament error:', error);
+                alert('Connection error. Please try again.');
+            } finally {
+                confirmBtn.textContent = originalText;
+                confirmBtn.disabled = false;
+            }
+        }
+
+        // Show delete modal
+        function showDeleteModal(id, title) {
+            document.getElementById('deleteTournamentId').value = id;
+            document.getElementById('deleteTournamentTitle').textContent = title;
+            document.getElementById('deleteModal').style.display = 'flex';
+            document.getElementById('deleteConfirmInput').value = '';
+            document.getElementById('deleteConfirmBtn').disabled = true;
+        }
+
+        // Handle delete confirmation input
+        function handleDeleteInput() {
+            const input = document.getElementById('deleteConfirmInput').value;
+            const confirmBtn = document.getElementById('deleteConfirmBtn');
+            confirmBtn.disabled = input !== 'yes, i want to delete it';
+        }
+
+        // Cancel delete
+        function cancelDelete() {
+            document.getElementById('deleteModal').style.display = 'none';
+        }
+
+        // Call initialization when the page loads
+        document.addEventListener('DOMContentLoaded', initAdminDashboard);
+
+        // Toggle Database submenu
+        function toggleDatabaseSubmenu() {
+            const submenu = document.getElementById('databaseSubmenu');
+            const icon = document.getElementById('databaseMenuIcon');
+            const isExpanded = submenu.classList.contains('expanded');
+
+            // Close all other submenus first
+            document.querySelectorAll('.submenu').forEach(menu => {
+                if (menu !== submenu) {
+                    menu.classList.remove('expanded');
+                }
+            });
+
+            // Toggle this submenu
+            if (isExpanded) {
+                submenu.classList.remove('expanded');
+            } else {
+                submenu.classList.add('expanded');
+            }
+
+            // Rotate the icon
+            if (icon) {
+                icon.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
             }
         }
 
@@ -911,19 +1368,223 @@
             document.querySelectorAll('.content-section').forEach(section => {
                 section.classList.remove('active');
             });
-            
+
             // Show the appropriate placeholder
             if (name === 'Messages') {
                 document.getElementById('messages-placeholder').classList.add('active');
             } else if (name === 'Bug Report') {
                 document.getElementById('bug-report-placeholder').classList.add('active');
+            } else if (name === 'Database') {
+                document.getElementById('database-placeholder').classList.add('active');
+            } else if (name === 'User Management') {
+                document.getElementById('user-management-placeholder').classList.add('active');
+            } else if (name === 'Tournament Data Management') {
+                document.getElementById('tournament-data-management-placeholder').classList.add('active');
+            } else if (name === 'Registration Management') {
+                document.getElementById('registration-management-placeholder').classList.add('active');
+            } else if (name === 'Database Maintenance') {
+                document.getElementById('database-maintenance-placeholder').classList.add('active');
+            } else if (name === 'Content Management') {
+                document.getElementById('content-management-placeholder').classList.add('active');
+            } else if (name === 'Analytics & Reporting') {
+                document.getElementById('analytics-reporting-placeholder').classList.add('active');
+            } else if (name === 'System Configuration') {
+                document.getElementById('system-configuration-placeholder').classList.add('active');
+            } else if (name === 'Moderator Management') {
+                document.getElementById('moderator-management-placeholder').classList.add('active');
+                loadModeratorManagement();  // Load the moderator management interface
+            }
+        }
+
+        // Load users for moderator promotion dropdown
+        async function loadUsersForPromotion() {
+            try {
+                const response = await fetch(`${API_URL}/users/all`);
+                const data = await response.json();
+
+                const selectUser = document.getElementById('selectUser');
+
+                if (data.success && data.users) {
+                    // Clear existing options
+                    selectUser.innerHTML = '<option value="">Select a user</option>';
+
+                    // Add users to dropdown
+                    data.users.forEach(user => {
+                        const option = document.createElement('option');
+                        option.value = user.id;
+                        option.textContent = `${user.full_name || user.student_id} (${user.email})`;
+                        selectUser.appendChild(option);
+                    });
+                } else {
+                    selectUser.innerHTML = '<option value="">No users found</option>';
+                }
+            } catch (error) {
+                console.error('Load users error:', error);
+                document.getElementById('selectUser').innerHTML = '<option value="">Error loading users</option>';
+            }
+        }
+
+        // Load all moderators
+        async function loadModerators() {
+            try {
+                const response = await fetch(`${API_URL}/admin/moderators`, {
+                    headers: {
+                        'x-user-email': localStorage.getItem('userEmail') || ''
+                    }
+                });
+                const data = await response.json();
+
+                const moderatorsList = document.getElementById('moderatorsList');
+
+                if (data.success && data.moderators) {
+                    if (data.moderators.length === 0) {
+                        moderatorsList.innerHTML = '<p>No moderators found.</p>';
+                        return;
+                    }
+
+                    let html = '';
+                    data.moderators.forEach(moderator => {
+                        html += `
+                            <div class="moderator-item">
+                                <div>
+                                    <strong>${moderator.user_info?.full_name || moderator.user_info?.student_id || 'N/A'}</strong>
+                                    <br>
+                                    <small>${moderator.user_info?.email || 'N/A'}</small>
+                                    <br>
+                                    <small>Permissions: ${
+                                        Object.entries(moderator.permissions)
+                                            .filter(([key, value]) => value)
+                                            .map(([key]) => key.replace(/([A-Z])/g, ' $1').trim())
+                                            .join(', ') || 'None'
+                                    }</small>
+                                </div>
+                                <div class="moderator-actions">
+                                    <button class="demote-btn" onclick="demoteModerator(${moderator.user_id})">
+                                        Demote
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    moderatorsList.innerHTML = html;
+                } else {
+                    moderatorsList.innerHTML = '<p>Error loading moderators.</p>';
+                }
+            } catch (error) {
+                console.error('Load moderators error:', error);
+                document.getElementById('moderatorsList').innerHTML = '<p>Error loading moderators.</p>';
+            }
+        }
+
+        // Load moderator management interface
+        async function loadModeratorManagement() {
+            // Load users for promotion dropdown
+            await loadUsersForPromotion();
+
+            // Load list of current moderators
+            await loadModerators();
+        }
+
+        // Promote user to moderator
+        async function promoteToModerator() {
+            try {
+                const userId = document.getElementById('selectUser').value;
+
+                // Collect permissions
+                const permissions = {
+                    can_manage_tournaments: document.getElementById('canManageTournaments').checked,
+                    can_view_user_data: document.getElementById('canViewUserData').checked,
+                    can_manage_registrations: document.getElementById('canManageReg').checked,
+                    can_send_announcements: document.getElementById('canSendAnnouncements').checked,
+                    can_generate_reports: document.getElementById('canGenerateReports').checked
+                };
+
+                if (!userId) {
+                    alert('Please select a user to promote.');
+                    return;
+                }
+
+                // Check if at least one permission is granted
+                const hasPermission = Object.values(permissions).some(val => val === true);
+                if (!hasPermission) {
+                    alert('Please assign at least one permission to the moderator.');
+                    return;
+                }
+
+                const response = await fetch(`${API_URL}/admin/promote-user`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userId: parseInt(userId),
+                        permissions: permissions
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('User promoted to moderator successfully!');
+                    // Reload the interface to reflect changes
+                    loadModeratorManagement();
+                    // Reset form
+                    document.getElementById('selectUser').value = '';
+                    document.querySelectorAll('.permission-checkbox input[type="checkbox"]').forEach(cb => {
+                        cb.checked = false;
+                    });
+                } else {
+                    alert(`Error promoting user: ${result.message}`);
+                }
+            } catch (error) {
+                console.error('Promote user error:', error);
+                alert('Error promoting user. Please try again.');
+            }
+        }
+
+        // Demote moderator
+        async function demoteModerator(userId) {
+            if (!confirm('Are you sure you want to demote this user from moderator?')) {
+                return;
+            }
+
+            try {
+                const userEmail = localStorage.getItem('userEmail');
+                console.log('Demoting moderator, userEmail:', userEmail); // Debug log
+
+                const response = await fetch(`${API_URL}/admin/demote-moderator/${userId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-user-email': userEmail || '',
+                        'X-User-Email': userEmail || ''  // Also send with capital letters to handle any case sensitivity
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('User demoted successfully!');
+                    // Reload the interface
+                    loadModeratorManagement();
+                } else {
+                    alert(`Error demoting user: ${result.message}`);
+                }
+            } catch (error) {
+                console.error('Demote user error:', error);
+                alert('Error demoting user. Please try again.');
             }
         }
 
         // Load tournaments
         async function loadTournaments() {
             try {
-                const response = await fetch(`${API_URL}/admin/tournaments`);
+                const response = await fetch(`${API_URL}/admin/tournaments`, {
+                    headers: {
+                        'x-user-email': localStorage.getItem('userEmail') || ''
+                    }
+                });
                 const data = await response.json();
 
                 if (data.success && data.tournaments) {
@@ -1223,6 +1884,9 @@
 
                     const response = await fetch(`${API_URL}/admin/tournaments`, {
                         method: 'POST',
+                        headers: {
+                            'x-user-email': localStorage.getItem('userEmail') || ''
+                        },
                         body: formData
                     });
 
@@ -1246,7 +1910,10 @@
                     // If no photo file, send as JSON
                     const response = await fetch(`${API_URL}/admin/tournaments`, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-user-email': localStorage.getItem('userEmail') || ''
+                        },
                         body: JSON.stringify({ title, photoUrl, deadline: deadlineInputValue, games, description })
                     });
 
@@ -1691,7 +2358,10 @@
 
                     const response = await fetch(`${API_URL}/admin/tournaments/${tournamentId}`, {
                         method: 'PUT',
-                        body: formData
+                        headers: {
+                            'x-user-email': localStorage.getItem('userEmail') || ''
+                        },
+                        body: formData  // formData already includes the authentication via headers
                     });
 
                     const result = await response.json();
@@ -1708,7 +2378,10 @@
                     // If no new photo, send as JSON (without photoUrl)
                     const response = await fetch(`${API_URL}/admin/tournaments/${tournamentId}`, {
                         method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-user-email': localStorage.getItem('userEmail') || ''
+                        },
                         body: JSON.stringify({
                             title,
                             // Use deadlineInput which is the raw datetime-local value
@@ -1831,7 +2504,7 @@
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('msAccessToken') || ''}`
+                        'x-user-email': localStorage.getItem('userEmail') || ''
                     }
                 });
 
@@ -1840,8 +2513,10 @@
                 if (result.success) {
                     showAlert('Tournament deleted successfully!', 'success');
                     document.getElementById('deleteModal').style.display = 'none';
-                    // Reload the tournaments list
-                    loadTournaments();
+                    // Reload the tournaments list to sync with database
+                    setTimeout(() => {
+                        loadTournaments();
+                    }, 1000); // Small delay to ensure deletion is processed
                 } else {
                     showAlert(result.message || 'Failed to delete tournament', 'error');
                     confirmBtn.disabled = false;

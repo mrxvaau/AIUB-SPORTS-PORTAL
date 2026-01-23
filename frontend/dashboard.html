@@ -766,6 +766,243 @@
         .view-details-btn:hover {
             background: #2563eb;
         }
+
+        /* Notification Modal */
+        .notification-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .notification-modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .notification-modal-header {
+            font-size: 22px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        .notification-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .notification-item {
+            padding: 15px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .notification-item.unread {
+            background: #f0f9ff;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 5px;
+        }
+
+        .notification-message {
+            color: #6b7280;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .notification-date {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .notification-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .notification-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+
+        .accept-btn {
+            background: #10b981;
+            color: white;
+        }
+
+        .accept-btn:hover {
+            background: #059669;
+        }
+
+        .decline-btn {
+            background: #ef4444;
+            color: white;
+        }
+
+        .decline-btn:hover {
+            background: #dc2626;
+        }
+
+        .mark-read-btn {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .mark-read-btn:hover {
+            background: #e5e7eb;
+        }
+
+        /* Cart Modal */
+        .cart-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .cart-modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .cart-modal-header {
+            font-size: 22px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cart-modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        .cart-item {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .cart-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .cart-item-title {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .cart-item-price {
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        .cart-item-details {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 5px;
+        }
+
+        .cart-total {
+            font-weight: 700;
+            font-size: 16px;
+            text-align: right;
+            padding-top: 10px;
+            border-top: 1px solid #e5e7eb;
+            margin-top: 10px;
+        }
+
+        .pay-now-btn {
+            width: 100%;
+            padding: 12px;
+            background: #f59e0b;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .pay-now-btn:hover {
+            background: #d97706;
+        }
+
+        .remove-from-cart-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .remove-from-cart-btn:hover {
+            background: #dc2626;
+        }
     </style>
 </head>
 <body>
@@ -792,11 +1029,17 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
             </div>
-            <div class="icon-btn">
+            <div class="icon-btn" onclick="openNotificationsModal()">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
-                <span class="notification-badge">1</span>
+                <span class="notification-badge" id="notificationCount">1</span>
+            </div>
+            <div class="icon-btn" onclick="openCartModal()">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <span class="notification-badge" id="cartItemCount">0</span>
             </div>
             <div class="icon-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -808,6 +1051,32 @@
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications Modal -->
+    <div id="notificationsModal" class="notification-modal">
+        <div class="notification-modal-content">
+            <div class="notification-modal-header">
+                <span>Notifications</span>
+                <button class="notification-modal-close" onclick="closeNotificationsModal()">&times;</button>
+            </div>
+            <div class="notification-list" id="notificationList">
+                <p>Loading notifications...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart Modal -->
+    <div id="cartModal" class="cart-modal">
+        <div class="cart-modal-content">
+            <div class="cart-modal-header">
+                <span>Your Cart</span>
+                <button class="cart-modal-close" onclick="closeCartModal()">&times;</button>
+            </div>
+            <div id="cartItemsList">
+                <p>Loading cart items...</p>
             </div>
         </div>
     </div>
@@ -1051,6 +1320,7 @@
                         console.log('User is admin!');
                         document.getElementById('adminBtn').style.display = 'block';
                         localStorage.setItem('isAdmin', 'true');
+                        localStorage.setItem('adminRole', adminData.role || 'ADMIN');
                     }
                 } catch (err) {
                     console.log('Admin check failed:', err);
@@ -1410,6 +1680,217 @@
                 }
             } catch (error) {
                 console.error('Error loading registration status:', error);
+            }
+        }
+
+        // Open notifications modal
+        async function openNotificationsModal() {
+            try {
+                const studentId = localStorage.getItem('studentId');
+                const response = await fetch(`${API_URL}/auth/notifications/${studentId}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const notificationList = document.getElementById('notificationList');
+
+                    if (data.notifications.length === 0) {
+                        notificationList.innerHTML = '<p>No notifications found.</p>';
+                    } else {
+                        let html = '';
+                        data.notifications.forEach(notification => {
+                            const date = new Date(notification.created_at).toLocaleString();
+                            const isUnread = notification.status === 'UNREAD';
+
+                            html += `
+                                <div class="notification-item ${isUnread ? 'unread' : ''}" data-id="${notification.id}">
+                                    <div class="notification-title">${notification.title}</div>
+                                    <div class="notification-message">${notification.message}</div>
+                                    <div class="notification-date">${date}</div>
+                                    <div class="notification-actions">
+                                        ${notification.type === 'TEAM_REQUEST' ?
+                                            `<button class="notification-btn accept-btn" onclick="acceptTeamInvitation(${notification.id})">Accept</button>
+                                            <button class="notification-btn decline-btn" onclick="declineTeamInvitation(${notification.id})">Decline</button>` : ''}
+                                        ${isUnread ? `<button class="notification-btn mark-read-btn" onclick="markNotificationAsRead(${notification.id})">Mark as Read</button>` : ''}
+                                    </div>
+                                </div>
+                            `;
+                        });
+
+                        notificationList.innerHTML = html;
+
+                        // Update notification count
+                        const unreadCount = data.notifications.filter(n => n.status === 'UNREAD').length;
+                        document.getElementById('notificationCount').textContent = unreadCount;
+                    }
+                } else {
+                    document.getElementById('notificationList').innerHTML = '<p>Error loading notifications.</p>';
+                }
+
+                document.getElementById('notificationsModal').style.display = 'flex';
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+                document.getElementById('notificationList').innerHTML = '<p>Error loading notifications.</p>';
+            }
+        }
+
+        // Close notifications modal
+        function closeNotificationsModal() {
+            document.getElementById('notificationsModal').style.display = 'none';
+        }
+
+        // Mark notification as read
+        async function markNotificationAsRead(notificationId) {
+            try {
+                const response = await fetch(`${API_URL}/auth/notifications/${notificationId}/read`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Remove the notification from the list or update its status
+                    const notificationElement = document.querySelector(`[data-id="${notificationId}"]`);
+                    if (notificationElement) {
+                        notificationElement.classList.remove('unread');
+                        notificationElement.querySelector('.mark-read-btn').remove();
+
+                        // Update notification count
+                        const currentCount = parseInt(document.getElementById('notificationCount').textContent);
+                        document.getElementById('notificationCount').textContent = Math.max(0, currentCount - 1);
+                    }
+                }
+            } catch (error) {
+                console.error('Error marking notification as read:', error);
+            }
+        }
+
+        // Accept team invitation
+        async function acceptTeamInvitation(notificationId) {
+            try {
+                const studentId = localStorage.getItem('studentId');
+
+                const response = await fetch(`${API_URL}/auth/accept-invitation`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        studentId: studentId,
+                        notificationId: notificationId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('Team invitation accepted successfully!');
+                    closeNotificationsModal();
+                    // Reload notifications
+                    openNotificationsModal();
+                } else {
+                    alert(`Error accepting invitation: ${data.message}`);
+                }
+            } catch (error) {
+                console.error('Error accepting team invitation:', error);
+                alert('Error accepting team invitation. Please try again.');
+            }
+        }
+
+        // Decline team invitation (just mark as read)
+        function declineTeamInvitation(notificationId) {
+            markNotificationAsRead(notificationId);
+        }
+
+        // Open cart modal
+        async function openCartModal() {
+            try {
+                const studentId = localStorage.getItem('studentId');
+                const response = await fetch(`${API_URL}/auth/cart/${studentId}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const cartItemsList = document.getElementById('cartItemsList');
+
+                    if (data.cartItems.length === 0) {
+                        cartItemsList.innerHTML = '<p>Your cart is empty.</p>';
+                    } else {
+                        let html = '';
+                        let totalAmount = 0;
+
+                        data.cartItems.forEach(item => {
+                            const itemTotal = item.itemTotal || (item.game.feePerPerson * (item.multiplier || 1));
+                            totalAmount += itemTotal;
+
+                            html += `
+                                <div class="cart-item">
+                                    <div class="cart-item-header">
+                                        <div class="cart-item-title">${item.game.name}</div>
+                                        <div class="cart-item-price">৳${itemTotal}</div>
+                                    </div>
+                                    <div class="cart-item-details">
+                                        Tournament: ${item.game.tournamentTitle}<br>
+                                        Category: ${item.game.category}<br>
+                                        Type: ${item.game.type}
+                                    </div>
+                                    <button class="remove-from-cart-btn" onclick="removeFromCart(${item.id})">Remove</button>
+                                </div>
+                            `;
+                        });
+
+                        html += `<div class="cart-total">Total: ৳${totalAmount}</div>`;
+                        html += `<button class="pay-now-btn">Pay Now</button>`;
+
+                        cartItemsList.innerHTML = html;
+
+                        // Update cart count
+                        document.getElementById('cartItemCount').textContent = data.cartItems.length;
+                    }
+                } else {
+                    document.getElementById('cartItemsList').innerHTML = '<p>Error loading cart.</p>';
+                }
+
+                document.getElementById('cartModal').style.display = 'flex';
+            } catch (error) {
+                console.error('Error loading cart:', error);
+                document.getElementById('cartItemsList').innerHTML = '<p>Error loading cart.</p>';
+            }
+        }
+
+        // Close cart modal
+        function closeCartModal() {
+            document.getElementById('cartModal').style.display = 'none';
+        }
+
+        // Remove item from cart
+        async function removeFromCart(cartItemId) {
+            if (!confirm('Are you sure you want to remove this item from your cart?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/auth/cart/${cartItemId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('Item removed from cart successfully!');
+                    closeCartModal();
+                    // Reload cart
+                    openCartModal();
+                } else {
+                    alert(`Error removing item from cart: ${data.message}`);
+                }
+            } catch (error) {
+                console.error('Error removing item from cart:', error);
+                alert('Error removing item from cart. Please try again.');
             }
         }
 

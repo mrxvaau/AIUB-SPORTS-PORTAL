@@ -1,5 +1,7 @@
 -- Enhanced Schema - Add new fields to users table
 -- Version 1.2
+-- NOTE: This schema is deprecated. The application now uses Supabase (PostgreSQL).
+-- See supabase_schema.sql for the current database schema.
 
 -- Add new columns to existing users table
 ALTER TABLE users ADD (

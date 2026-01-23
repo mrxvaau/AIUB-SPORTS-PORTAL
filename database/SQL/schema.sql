@@ -1,6 +1,8 @@
 ﻿-- AIUB Sports Portal Database Schema
 -- Oracle 10g PL/SQL
 -- Version 1.0
+-- NOTE: This schema is deprecated. The application now uses Supabase (PostgreSQL).
+-- See supabase_schema.sql for the current database schema.
 
 -- Drop existing tables if they exist (for clean setup)
 BEGIN

@@ -74,7 +74,9 @@ router.get('/tournaments/:studentId', async (req, res) => {
         const userId = userResult.data.id;
         
         // Get all active tournaments
-        const now = new Date().toISOString();
+        const now = new Date();
+        // Format the current time to match the database timestamp format
+        const nowFormatted = now.toISOString();
         const tournamentResult = await supabase
             .from('tournaments')
             .select(`
@@ -86,7 +88,7 @@ router.get('/tournaments/:studentId', async (req, res) => {
                 created_at
             `)
             .eq('status', 'ACTIVE')
-            .gt('registration_deadline', now)
+            .gt('registration_deadline', nowFormatted)
             .order('registration_deadline', { ascending: true });
             
         if (tournamentResult.error) {
@@ -203,6 +205,9 @@ router.get('/overview/:studentId', async (req, res) => {
 
         const userId = userResult.data.id;
 
+        // Format the current time to match the database timestamp format
+        const nowFormatted = new Date().toISOString();
+
         // Get active tournaments
         const tournamentsResult = await supabase
             .from('tournaments')
@@ -214,7 +219,7 @@ router.get('/overview/:studentId', async (req, res) => {
                 status
             `)
             .eq('status', 'ACTIVE')
-            .gt('registration_deadline', new Date().toISOString())
+            .gt('registration_deadline', nowFormatted)
             .order('registration_deadline', { ascending: true });
 
         // Get user's registrations

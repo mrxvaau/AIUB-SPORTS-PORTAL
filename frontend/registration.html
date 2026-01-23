@@ -82,11 +82,11 @@
             width: 300px;
             height: 200px;
             border-radius: 10px;
-            object-fit: contain;  /* This shows the entire image without cropping */
-            object-position: center;  /* Center the image */
+            object-fit: contain;
+            object-position: center;
             border: 2px solid #e5e7eb;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            background-color: #f9fafb; /* Light gray background in case image fails to load */
+            background-color: #f9fafb;
         }
 
         .tournament-info h1 {
@@ -132,6 +132,7 @@
         .game-card:hover {
             border-color: #1976d2;
             box-shadow: 0 4px 12px rgba(25,118,210,0.2);
+            transform: translateY(-5px);
         }
 
         .game-name {
@@ -174,12 +175,207 @@
         .register-btn:disabled {
             background: #9ca3af;
             cursor: not-allowed;
+            transform: none;
+        }
+
+        .register-btn.cancel {
+            background: #ef4444;
+        }
+
+        .register-btn.cancel:hover {
+            background: #dc2626;
+        }
+
+        .registration-status {
+            margin-top: 8px;
+            padding: 6px;
+            border-radius: 4px;
+            font-size: 14px;
+            text-align: center;
+            font-weight: 600;
         }
 
         .no-tournaments {
             text-align: center;
             padding: 60px;
             color: #666;
+        }
+
+        .team-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .team-modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 800px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .team-modal-header {
+            font-size: 22px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .team-modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        .team-modal-body {
+            max-height: 60vh;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .team-form-group {
+            margin-bottom: 20px;
+        }
+
+        .team-form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .team-form-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .team-members-container {
+            margin-top: 20px;
+        }
+
+        .team-member-slot {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .team-member-slot.leader {
+            background: #dbeafe;
+            border-color: #3b82f6;
+        }
+
+        .team-member-slot .member-role {
+            font-weight: 600;
+            color: #3b82f6;
+            min-width: 60px;
+        }
+
+        .team-member-slot .member-info {
+            flex: 1;
+        }
+
+        .team-member-slot .member-id {
+            font-weight: 500;
+            color: #1f2937;
+        }
+
+        .team-member-slot .member-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .team-member-slot .member-status.pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .team-member-slot .member-status.confirmed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .add-member-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .add-member-btn:hover {
+            background: #059669;
+        }
+
+        .team-modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .btn-cancel {
+            padding: 10px 25px;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid #d1d5db;
+            background: #f9fafb;
+            color: #374151;
+        }
+
+        .btn-cancel:hover {
+            background: #f3f4f6;
+        }
+
+        .btn-confirm {
+            padding: 10px 25px;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-confirm:hover {
+            background: #059669;
+        }
+
+        .btn-confirm:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
         }
 
         .loading {
@@ -222,15 +418,6 @@
             to { transform: rotate(360deg); }
         }
 
-        .game-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .game-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(25, 118, 210, 0.3);
-        }
-
         .tournament-card {
             opacity: 0;
             transform: translateY(20px);
@@ -244,12 +431,108 @@
             }
         }
 
-        /* Add delay to each card for cascading effect */
         .tournament-card:nth-child(1) { animation-delay: 0.1s; }
         .tournament-card:nth-child(2) { animation-delay: 0.2s; }
         .tournament-card:nth-child(3) { animation-delay: 0.3s; }
         .tournament-card:nth-child(4) { animation-delay: 0.4s; }
         .tournament-card:nth-child(5) { animation-delay: 0.5s; }
+
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        .modal-backdrop.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 500px;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            padding: 20px;
+            background: #1976d2;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .field {
+            margin-bottom: 15px;
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            background: #f9fafb;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            font-size: 14px;
+        }
+
+        .btn.primary {
+            background: #1976d2;
+            color: white;
+        }
+
+        .btn.primary:hover {
+            background: #1565c0;
+        }
+
+        .btn.secondary {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .btn.secondary:hover {
+            background: #d1d5db;
+        }
     </style>
 </head>
 <body>
@@ -277,12 +560,57 @@
         <div id="tournamentsContainer"></div>
     </div>
 
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal-backdrop">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="confirmModalTitle">Confirmation</div>
+                <button class="modal-close" type="button" onclick="closeConfirmModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="field">
+                    <p id="confirmModalMessage">Are you sure you want to proceed?</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn secondary" type="button" onclick="closeConfirmModal()">Cancel</button>
+                <button class="btn primary" type="button" id="confirmModalConfirmBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Registration Modal -->
+    <div id="teamModal" class="team-modal">
+        <div class="team-modal-content">
+            <div class="team-modal-header">
+                <span>Create Team for <span id="modalGameName"></span></span>
+                <button class="team-modal-close" onclick="closeTeamModal()">&times;</button>
+            </div>
+            <div class="team-modal-body">
+                <div class="team-form-group">
+                    <label class="team-form-label">Team Name</label>
+                    <input type="text" id="teamName" class="team-form-input" placeholder="Enter team name">
+                </div>
+
+                <div class="team-members-container">
+                    <h3>Team Members</h3>
+                    <div id="teamMembersList"></div>
+                    <button class="add-member-btn" onclick="addTeamMemberSlot()">+ Add Member</button>
+                </div>
+            </div>
+            <div class="team-modal-buttons">
+                <button class="btn-cancel" onclick="closeTeamModal()">Cancel</button>
+                <button class="btn-confirm" onclick="createTeam()">Create Team</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_URL = 'http://localhost:3000/api';
+        const gameDataMap = new Map();
 
         async function loadTournaments() {
             try {
-                // Load user's available tournaments
                 const response = await fetch(`${API_URL}/auth/tournaments`);
                 const data = await response.json();
 
@@ -295,8 +623,22 @@
 
                 const container = document.getElementById('tournamentsContainer');
 
+                // Get user's registrations once to avoid multiple API calls
+                const studentId = localStorage.getItem('studentId');
+                let userRegistrations = [];
+                if (studentId) {
+                    try {
+                        const regResponse = await fetch(`${API_URL}/auth/registrations/${studentId}`);
+                        const regData = await regResponse.json();
+                        if (regData.success && regData.registrations) {
+                            userRegistrations = regData.registrations;
+                        }
+                    } catch (regError) {
+                        console.error('Error fetching user registrations:', regError);
+                    }
+                }
+
                 for (const tournament of data.tournaments) {
-                    // Add a temporary card with loading animation while fetching games
                     const tempCardId = `temp-card-${tournament.id}`;
                     container.innerHTML += `
                         <div class="tournament-card" id="${tempCardId}">
@@ -310,7 +652,6 @@
                     const gamesResponse = await fetch(`${API_URL}/auth/tournaments/${tournament.id}/games`);
                     const gamesData = await gamesResponse.json();
 
-                    // Remove the temporary card and add the actual card
                     const tempCard = document.getElementById(tempCardId);
                     if (tempCard) {
                         tempCard.remove();
@@ -318,8 +659,9 @@
 
                     if (gamesData.success) {
                         container.innerHTML += createTournamentCard(tournament, gamesData.games);
+                        // Pass the user registrations to check status for this tournament
+                        checkRegistrationStatusForTournament(tournament, gamesData.games, userRegistrations);
                     } else {
-                        // If games failed to load, show an error message in the card
                         container.innerHTML += `
                             <div class="tournament-card">
                                 <div class="tournament-header">
@@ -340,52 +682,45 @@
         }
 
         function createTournamentCard(tournament, games) {
-            // For now, we'll show all games and let the registration handle the gender filtering
             const maleGames = games.filter(g => g.category === 'Male');
             const femaleGames = games.filter(g => g.category === 'Female');
             const mixGames = games.filter(g => g.category === 'Mix');
 
-            // Simple image handling - check if a photo_url exists as any common variation
+            [...maleGames, ...femaleGames, ...mixGames].forEach(game => {
+                const gameInfo = {
+                    name: game.game_name,
+                    category: game.category,
+                    type: game.game_type,
+                    fee: game.fee_per_person
+                };
+                gameDataMap.set(String(game.id), gameInfo);
+                gameDataMap.set(Number(game.id), gameInfo);
+            });
+
             let photoUrl = tournament.photo_url || tournament.PHOTO_URL || tournament['photo_url'] || tournament['PHOTO_URL'];
 
             console.log('Tournament data in registration page:', tournament);
             console.log('photo_url value:', photoUrl, 'Type:', typeof photoUrl);
 
             let imageHtml = '';
-            // Check if photoUrl is actually a string before using string methods
             if (photoUrl && typeof photoUrl === 'string') {
-                // If it's already a base64 data URL, use directly
                 if (photoUrl.startsWith('data:image')) {
                     imageHtml = `<img src="${photoUrl}" class="tournament-image" alt="Tournament">`;
-                }
-                // Check if it's an uploads path (new format: /uploads/tournament_name/title_pic/filename.ext)
-                else if (photoUrl.startsWith('/uploads/')) {
-                    // Construct the full URL using the API server base URL instead of window origin
-                    // Extract the base API URL to get the correct server address
+                } else if (photoUrl.startsWith('/uploads/')) {
                     const apiBaseUrl = API_URL.replace('/api', '');
                     const fullPhotoUrl = photoUrl.startsWith('http') ? photoUrl : `${apiBaseUrl}${photoUrl}`;
                     imageHtml = `<img src="${fullPhotoUrl}" class="tournament-image" alt="Tournament" onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<div class=&quot;tournament-image&quot; style=&quot;background: #e5e7eb; display: flex; align-items: center; justify-content: center; color: #6b7280;&quot;>No Image</div>';">`;
-                }
-                // If it's a base64 string without the data:image prefix, add it
-                else if (!photoUrl.startsWith('http')) {
+                } else if (!photoUrl.startsWith('http')) {
                     imageHtml = `<img src="data:image;base64,${photoUrl}" class="tournament-image" alt="Tournament">`;
-                }
-                // If it's a URL that starts with http, use it directly
-                else if (photoUrl.startsWith('http')) {
+                } else if (photoUrl.startsWith('http')) {
                     imageHtml = `<img src="${photoUrl}" class="tournament-image" alt="Tournament" onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<div class=&quot;tournament-image&quot; style=&quot;background: #e5e7eb; display: flex; align-items: center; justify-content: center; color: #6b7280;&quot;>No Image</div>';">`;
-                }
-                // For any other case that doesn't fit, show placeholder
-                else {
+                } else {
                     imageHtml = `<div class="tournament-image" style="background: #e5e7eb; display: flex; align-items: center; justify-content: center; color: #6b7280;">No Image</div>`;
                 }
-            }
-            // Handle case where photoUrl exists but is not a string (like LOB object)
-            else if (photoUrl && typeof photoUrl !== 'string') {
+            } else if (photoUrl && typeof photoUrl !== 'string') {
                 console.warn('photo_url is not a string, type:', typeof photoUrl, 'value:', photoUrl);
                 imageHtml = `<div class="tournament-image" style="background: #e5e7eb; display: flex; align-items: center; justify-content: center; color: #6b7280;">CLOB Type Error</div>`;
-            }
-            else {
-                // If no photoUrl exists at all, show placeholder
+            } else {
                 imageHtml = `<div class="tournament-image" style="background: #e5e7eb; display: flex; align-items: center; justify-content: center; color: #6b7280;">No Image</div>`;
             }
 
@@ -416,11 +751,14 @@
                     <div class="category-title">${category} Category</div>
                     <div class="games-grid">
                         ${games.map(game => `
-                            <div class="game-card">
+                            <div class="game-card" data-game-id="${game.id}">
                                 <div class="game-name">${game.game_name}</div>
                                 <div class="game-type">Type: ${game.game_type}</div>
                                 <div class="game-fee">৳${game.fee_per_person} per person</div>
-                                <button class="register-btn" onclick="registerForGame(${game.id}, '${game.game_name}', '${category}')">
+                                <div class="registration-status" style="display: none; margin-top: 8px; padding: 6px; border-radius: 4px; font-size: 14px; text-align: center;">
+                                    <span class="status-text"></span>
+                                </div>
+                                <button class="register-btn" data-game-id="${game.id}" data-game-name="${game.game_name}" data-game-category="${game.category}">
                                     Register Now
                                 </button>
                             </div>
@@ -429,6 +767,11 @@
                 </div>
             `;
         }
+
+        let currentGameId = null;
+        let currentGameName = null;
+        let currentCategory = null;
+        let teamMemberSlots = 1;
 
         async function registerForGame(gameId, gameName, category) {
             const studentId = localStorage.getItem('studentId');
@@ -439,51 +782,403 @@
                 return;
             }
 
-            if (confirm(`Register for ${gameName} in ${category} category?`)) {
-                // Show loading state on the button
-                const button = document.querySelector(`[onclick="registerForGame(${gameId}, '${gameName}', '${category}')"]`);
-                const originalText = button.innerHTML;
-                button.innerHTML = `
-                    <div style="display:flex; align-items:center; justify-content:center;">
-                        <div class="spinner" style="width:16px; height:16px; margin-right:8px;"></div>
-                        Registering...
-                    </div>
-                `;
-                button.disabled = true;
+            if (category === 'Mix' || gameName.toLowerCase().includes('duo') || gameName.toLowerCase().includes('team') || gameName.toLowerCase().includes('squad') || gameName.toLowerCase().includes('2v2') || gameName.toLowerCase().includes('4v4') || gameName.toLowerCase().includes('5v5')) {
+                openTeamModal(gameId, gameName, category);
+                return;
+            }
 
-                try {
-                    const response = await fetch(`${API_URL}/auth/register`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            studentId: studentId,
-                            gameId: gameId
-                        })
-                    });
+            const gameCard = document.querySelector(`.game-card[data-game-id="${gameId}"]`);
+            if (!gameCard) {
+                console.error(`Game card not found for game ID: ${gameId}`);
+                return;
+            }
 
-                    const result = await response.json();
+            const gameFee = gameCard.querySelector('.game-fee').textContent.match(/৳(\d+)/);
+            const fee = gameFee ? gameFee[1] : '0';
 
-                    if (result.success) {
-                        alert(`Successfully registered for ${gameName}!`);
-                        // Reload the page to update the UI
-                        location.reload();
-                    } else {
-                        alert(`Registration failed: ${result.message || 'Unknown error'}`);
+            const button = gameCard.querySelector('.register-btn');
+            if (!button) {
+                console.error(`Register button not found for game ID: ${gameId}`);
+                return;
+            }
+
+            if (button.textContent.trim() === 'Cancel Registration') {
+                alert(`You are already registered for ${gameName}!`);
+                return;
+            }
+
+            openConfirmModal(
+                'Confirm Registration',
+                `Register for ${gameName} in ${category} category?\nRegistration Fee: ৳${fee}`,
+                async function() {
+                    closeConfirmModal();
+
+                    const originalText = button.innerHTML;
+                    button.innerHTML = `
+                        <div style="display:flex; align-items:center; justify-content:center;">
+                            <div class="spinner" style="width:16px; height:16px; margin-right:8px;"></div>
+                            Registering...
+                        </div>
+                    `;
+                    button.disabled = true;
+
+                    try {
+                        const response = await fetch(`${API_URL}/auth/register`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                studentId: studentId,
+                                gameId: gameId
+                            })
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success) {
+                            button.innerHTML = 'Cancel Registration';
+                            button.className = 'register-btn cancel';
+                            button.disabled = false;
+                            button.setAttribute('data-game-id', gameId);
+                            button.setAttribute('data-game-name', gameName);
+                            button.setAttribute('data-game-category', category);
+                            alert(`Successfully registered for ${gameName}!`);
+                        } else {
+                            alert(`Registration failed: ${result.message || 'Unknown error'}`);
+                            button.innerHTML = originalText;
+                            button.disabled = false;
+                        }
+                    } catch (error) {
+                        console.error('Registration error:', error);
+                        alert('Error registering for game. Please try again.');
+                        button.innerHTML = originalText;
+                        button.disabled = false;
                     }
-                } catch (error) {
-                    console.error('Registration error:', error);
-                    alert('Error registering for game. Please try again.');
-                } finally {
-                    // Restore button state
-                    button.innerHTML = originalText;
-                    button.disabled = false;
                 }
+            );
+        }
+
+        function checkRegistrationStatusForTournament(tournament, games, userRegistrations) {
+            // Create a map of game IDs to registration details from the pre-fetched registrations
+            const registrationMap = new Map();
+            userRegistrations.forEach(reg => {
+                registrationMap.set(reg.game_id, reg);
+            });
+
+            games.forEach(game => {
+                const gameCard = document.querySelector(`.game-card[data-game-id="${game.id}"]`);
+                if (gameCard) {
+                    const button = gameCard.querySelector('.register-btn');
+                    const statusDiv = gameCard.querySelector('.registration-status');
+                    const statusText = gameCard.querySelector('.status-text');
+
+                    if (button) {
+                        // Check for registration using both string and number versions of game ID
+                        // to handle potential type mismatches
+                        let registration = null;
+                        if (registrationMap.has(game.id)) {
+                            registration = registrationMap.get(game.id);
+                        } else if (registrationMap.has(String(game.id))) {
+                            registration = registrationMap.get(String(game.id));
+                        } else if (registrationMap.has(Number(game.id))) {
+                            registration = registrationMap.get(Number(game.id));
+                        }
+
+                        if (registration) {
+                            button.innerHTML = 'Cancel Registration';
+                            button.className = 'register-btn cancel';
+
+                            // Show registration status
+                            if (statusDiv && statusText) {
+                                statusDiv.style.display = 'block';
+
+                                // Set different styles based on payment status
+                                if (registration.payment_status === 'PAID') {
+                                    statusDiv.style.backgroundColor = '#d1fae5';
+                                    statusDiv.style.color = '#065f46';
+                                    statusText.textContent = 'PAID';
+                                } else if (registration.payment_status === 'PENDING') {
+                                    statusDiv.style.backgroundColor = '#fef3c7';
+                                    statusDiv.style.color = '#d97706';
+                                    statusText.textContent = 'PENDING';
+                                } else {
+                                    statusDiv.style.backgroundColor = '#fecaca';
+                                    statusDiv.style.color = '#b91c1c';
+                                    statusText.textContent = 'UNPAID';
+                                }
+                            }
+                        } else {
+                            button.innerHTML = 'Register Now';
+                            button.className = 'register-btn';
+
+                            // Hide status div if not registered
+                            if (statusDiv) {
+                                statusDiv.style.display = 'none';
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function openConfirmModal(title, message, confirmCallback) {
+            document.getElementById('confirmModalTitle').textContent = title;
+            document.getElementById('confirmModalMessage').textContent = message;
+            document.getElementById('confirmModalConfirmBtn').onclick = confirmCallback;
+            document.getElementById('confirmModal').classList.add('active');
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').classList.remove('active');
+        }
+
+        async function cancelRegistration(gameId, gameName, category, button) {
+            const studentId = localStorage.getItem('studentId');
+
+            if (!studentId) {
+                alert('Please log in first!');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            openConfirmModal(
+                'Cancel Registration',
+                `Are you sure you want to cancel your registration for ${gameName}?\nThis action cannot be undone.`,
+                async function() {
+                    closeConfirmModal();
+
+                    const originalText = button.innerHTML;
+                    button.innerHTML = `
+                        <div style="display:flex; align-items:center; justify-content:center;">
+                            <div class="spinner" style="width:16px; height:16px; margin-right:8px;"></div>
+                            Canceling...
+                        </div>
+                    `;
+                    button.disabled = true;
+
+                    try {
+                        const response = await fetch(`${API_URL}/auth/registration/${gameId}/${studentId}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            }
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success) {
+                            button.innerHTML = 'Register Now';
+                            button.className = 'register-btn';
+                            button.disabled = false;
+                            button.setAttribute('data-game-id', gameId);
+                            button.setAttribute('data-game-name', gameName);
+                            button.setAttribute('data-game-category', category);
+                            alert(`Successfully canceled registration for ${gameName}!`);
+                        } else {
+                            alert(`Cancellation failed: ${result.message || 'Unknown error'}`);
+                            button.innerHTML = originalText;
+                            button.disabled = false;
+                        }
+                    } catch (error) {
+                        console.error('Cancellation error:', error);
+                        alert('Error canceling registration. Please try again.');
+                        button.innerHTML = originalText;
+                        button.disabled = false;
+                    }
+                }
+            );
+        }
+
+        function openTeamModal(gameId, gameName, category) {
+            currentGameId = gameId;
+            currentGameName = gameName;
+            currentCategory = category;
+
+            document.getElementById('modalGameName').textContent = gameName;
+            document.getElementById('teamName').value = '';
+
+            const teamMembersList = document.getElementById('teamMembersList');
+            teamMembersList.innerHTML = `
+                <div class="team-member-slot leader">
+                    <div class="member-role">Leader</div>
+                    <div class="member-info">
+                        <div class="member-id">${localStorage.getItem('studentId')}</div>
+                        <div class="member-name">${localStorage.getItem('userName') || 'Current User'}</div>
+                    </div>
+                    <div class="member-status confirmed">Confirmed</div>
+                </div>
+            `;
+
+            teamMemberSlots = 1;
+
+            document.getElementById('teamModal').style.display = 'flex';
+        }
+
+        function closeTeamModal() {
+            document.getElementById('teamModal').style.display = 'none';
+        }
+
+        function addTeamMemberSlot() {
+            const teamMembersList = document.getElementById('teamMembersList');
+            const slotId = `member-slot-${teamMemberSlots}`;
+
+            teamMembersList.innerHTML += `
+                <div class="team-member-slot" id="${slotId}">
+                    <div class="member-role">Member ${teamMemberSlots}</div>
+                    <div class="member-info">
+                        <input type="text" class="team-form-input" placeholder="Enter student ID (XX-XXXXX-X)" data-slot="${teamMemberSlots}">
+                    </div>
+                    <div class="member-status pending">Pending</div>
+                    <button class="add-member-btn" onclick="removeTeamMemberSlot('${slotId}')">Remove</button>
+                </div>
+            `;
+
+            teamMemberSlots++;
+        }
+
+        function removeTeamMemberSlot(slotId) {
+            const slot = document.getElementById(slotId);
+            if (slot) {
+                slot.remove();
             }
         }
 
-        // Check if user is authenticated
+        async function createTeam() {
+            const teamName = document.getElementById('teamName').value.trim();
+            const studentId = localStorage.getItem('studentId');
+
+            if (!teamName) {
+                alert('Please enter a team name');
+                return;
+            }
+
+            const memberInputs = document.querySelectorAll('#teamMembersList .member-info input');
+            const memberIds = [studentId];
+
+            for (const input of memberInputs) {
+                const memberId = input.value.trim();
+                if (memberId) {
+                    memberIds.push(memberId);
+                }
+            }
+
+            for (const memberId of memberIds) {
+                if (!/^\d{2}-\d{5}-\d$/.test(memberId)) {
+                    alert(`Invalid student ID format: ${memberId}. Use XX-XXXXX-X format.`);
+                    return;
+                }
+            }
+
+            const createBtn = document.querySelector('.btn-confirm');
+            const originalText = createBtn.textContent;
+            createBtn.textContent = 'Creating...';
+            createBtn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_URL}/auth/create-team`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        studentId: studentId,
+                        gameId: currentGameId,
+                        teamName: teamName
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    for (let i = 1; i < memberIds.length; i++) {
+                        await addTeamMember(result.team.id, memberIds[i]);
+                    }
+
+                    alert('Team created successfully!');
+
+                    await addToCart(studentId, 'TEAM_REGISTRATION', result.team.id, currentGameId);
+
+                    closeTeamModal();
+                    location.reload();
+                } else {
+                    alert(`Team creation failed: ${result.message || 'Unknown error'}`);
+                }
+            } catch (error) {
+                console.error('Team creation error:', error);
+                alert('Error creating team. Please try again.');
+            } finally {
+                createBtn.textContent = originalText;
+                createBtn.disabled = false;
+            }
+        }
+
+        async function addTeamMember(teamId, studentId) {
+            try {
+                const response = await fetch(`${API_URL}/auth/team/${teamId}/add-member`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        studentId: studentId
+                    })
+                });
+
+                const result = await response.json();
+                return result;
+            } catch (error) {
+                console.error('Add team member error:', error);
+                return { success: false, message: error.message };
+            }
+        }
+
+        async function addToCart(studentId, itemType, itemId, tournamentGameId) {
+            try {
+                const response = await fetch(`${API_URL}/auth/cart/add`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        studentId: studentId,
+                        item_type: itemType,
+                        item_id: itemId,
+                        tournament_game_id: tournamentGameId
+                    })
+                });
+
+                const result = await response.json();
+                return result;
+            } catch (error) {
+                console.error('Add to cart error:', error);
+                return { success: false, message: error.message };
+            }
+        }
+
+        // Event delegation for register buttons
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('register-btn')) {
+                const button = e.target;
+                const gameId = button.getAttribute('data-game-id');
+                const gameName = button.getAttribute('data-game-name');
+                const category = button.getAttribute('data-game-category');
+                
+                if (!gameId || !gameName || !category) {
+                    console.error('Missing button data attributes');
+                    return;
+                }
+
+                const buttonText = button.textContent.trim();
+                
+                if (buttonText === 'Register Now') {
+                    registerForGame(gameId, gameName, category);
+                } else if (buttonText === 'Cancel Registration') {
+                    cancelRegistration(gameId, gameName, category, button);
+                }
+            }
+        });
+
         window.onload = function() {
             if (localStorage.getItem('isAuthenticated') !== 'true') {
                 window.location.href = 'login.html';
@@ -491,6 +1186,18 @@
             }
             loadTournaments();
         };
+
+        // Refresh registration status when user returns to page
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) { // If page was cached and restored
+                if (localStorage.getItem('isAuthenticated') === 'true') {
+                    // Reload the tournament data to refresh registration status
+                    document.getElementById('tournamentsContainer').innerHTML = '';
+                    document.getElementById('loading').style.display = 'flex';
+                    loadTournaments();
+                }
+            }
+        });
     </script>
 </body>
 </html>

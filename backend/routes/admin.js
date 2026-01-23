@@ -74,6 +74,96 @@ function handleMulterError(err, req, res, next) {
     next();
 }
 
+// Middleware to check if user is admin
+async function requireAdmin(req, res, next) {
+    try {
+        // Try to get user email from multiple sources
+        // Check for various possible header names (headers are case-insensitive in HTTP/2 but may vary)
+        let userEmail = req.body.email || req.query.email ||
+                      req.headers['x-user-email'] ||
+                      req.headers['X-User-Email'] ||
+                      req.headers['X-USER-EMAIL'] ||
+                      req.headers['x-useremail'] ||  // Alternative without hyphen
+                      req.headers['X-UserEmail'];     // Alternative without hyphen
+
+        // If not found in headers, try to get from session or other sources
+        if (!userEmail) {
+            // Check if we can get user info from the authentication token
+            // For now, we'll check if there's a user in the session or request
+            // This might come from a previous auth middleware
+            if (req.session && req.session.userEmail) {
+                userEmail = req.session.userEmail;
+            } else if (req.user && req.user.email) {
+                userEmail = req.user.email;
+            }
+        }
+
+        console.log('Admin check - userEmail:', userEmail); // Debug logging
+        console.log('Admin check - all headers:', req.headers); // Debug logging
+        console.log('Admin check - request body:', req.body); // Debug logging
+
+        if (!userEmail) {
+            console.log('Admin check - No email provided');
+            return res.status(401).json({
+                success: false,
+                message: 'Authentication required'
+            });
+        }
+
+        // Use the PostgreSQL function to check admin status and role
+        const { data, error } = await require('../config/supabase').supabase
+            .rpc('check_is_admin', { user_email: userEmail });
+
+        console.log('Admin check - Role check result:', { data, error }); // Debug logging
+
+        if (error) {
+            console.error('Admin check error:', error);
+            return res.status(500).json({
+                success: false,
+                message: 'Authentication error'
+            });
+        }
+
+        if (!data || data.length === 0 || !data[0].is_admin || data[0].role_name === 'NOT_ADMIN') {
+            console.log('Admin check - User is not an admin or has no role');
+            return res.status(403).json({
+                success: false,
+                message: 'Admin access required'
+            });
+        }
+
+        // Get full admin details for the request object
+        const { data: admin, error: adminError } = await require('../config/supabase').supabase
+            .from('admins')
+            .select('id, admin_id, email, full_name, status')
+            .eq('email', userEmail)
+            .single();
+
+        if (adminError || !admin || admin.status !== 'ACTIVE') {
+            console.log('Admin check - Admin not found or inactive');
+            return res.status(403).json({
+                success: false,
+                message: 'Admin access required'
+            });
+        }
+
+        // Add user info and role to request for use in handlers
+        req.user = {
+            ...admin,
+            role: data[0].role_name
+        };
+
+        console.log('Admin check - Access granted for role:', data[0].role_name);
+        next();
+    } catch (error) {
+        console.error('Admin check error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Authentication error'
+        });
+    }
+}
+
 // Check if user is admin
 router.post('/check-admin', async (req, res) => {
     try {
@@ -82,37 +172,265 @@ router.post('/check-admin', async (req, res) => {
         console.log('=== ADMIN CHECK START ===');
         console.log('Checking email:', email);
 
-        const { data: admin, error } = await supabase
-            .from('admins')
-            .select('id, admin_id, email, full_name')
-            .eq('email', email)
-            .single();
+        // Use the PostgreSQL function to check admin status and role
+        const { data, error } = await supabase
+            .rpc('check_is_admin', { user_email: email });
 
-        console.log('Admin found:', !!admin);
-        console.log('=== ADMIN CHECK END ===');
+        console.log('Admin check - Role check result:', { data, error });
 
         if (error) {
-            if (error.code === 'PGRST116' || error.message.includes('Row not found')) {
-                // No admin found, which is valid
-                res.json({ success: true, isAdmin: false });
-            } else {
-                // Actual error occurred
-                console.error('Check admin error:', error);
-                res.status(500).json({ success: false, message: error.message });
-            }
-        } else if (admin) {
-            res.json({ success: true, isAdmin: true, admin: admin });
-        } else {
-            res.json({ success: true, isAdmin: false });
+            console.error('Check admin error:', error);
+            res.status(500).json({ success: false, message: error.message });
+            return;
         }
+
+        if (!data || data.length === 0) {
+            // No admin found
+            res.json({ success: true, isAdmin: false, role: 'NOT_ADMIN' });
+        } else if (data[0].is_admin && data[0].role_name !== 'NOT_ADMIN') {
+            // Admin found with a valid role
+            // Get full admin details
+            const { data: adminDetails, error: adminError } = await supabase
+                .from('admins')
+                .select('id, admin_id, email, full_name, status')
+                .eq('email', email)
+                .single();
+
+            if (adminError) {
+                console.error('Error fetching admin details:', adminError);
+                // If there's an error fetching admin details, just return the role info
+                res.json({
+                    success: true,
+                    isAdmin: data[0].is_admin,
+                    role: data[0].role_name
+                });
+            } else if (!adminDetails) {
+                // Admin exists in the role mapping but not in the admins table - this shouldn't happen
+                res.json({ success: true, isAdmin: false, role: 'NOT_ADMIN' });
+            } else if (adminDetails.status !== 'ACTIVE') {
+                // Admin exists but is not active
+                res.json({ success: true, isAdmin: false, role: 'NOT_ADMIN' });
+            } else {
+                // Admin is valid and active
+                res.json({
+                    success: true,
+                    isAdmin: true,
+                    role: data[0].role_name,
+                    admin: adminDetails
+                });
+            }
+        } else {
+            // User exists in admins table but has no role
+            res.json({ success: true, isAdmin: false, role: 'NOT_ADMIN' });
+        }
+
+        console.log('=== ADMIN CHECK END ===');
     } catch (error) {
         console.error('Check admin error:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 });
 
+// Assign role to admin
+router.post('/promote-user', requireAdmin, async (req, res) => {
+    try {
+        const { email, role_name } = req.body;
+
+        // The requireAdmin middleware already validates that the user is an admin
+        // So we can proceed with the role assignment
+
+        // First, get the admin by email
+        const { data: admin, error: adminError } = await supabase
+            .from('admins')
+            .select('id, email, full_name')
+            .eq('email', email)
+            .single();
+
+        if (adminError || !admin) {
+            return res.status(404).json({
+                success: false,
+                message: 'Admin not found'
+            });
+        }
+
+        // Get the role ID
+        const { data: role, error: roleError } = await supabase
+            .from('admin_roles')
+            .select('id')
+            .eq('role_name', role_name)
+            .single();
+
+        if (roleError || !role) {
+            return res.status(400).json({
+                success: false,
+                message: `Invalid role: ${role_name}. Valid roles are SUPER_ADMIN, ADMIN, MODERATOR.`
+            });
+        }
+
+        // Check if this admin already has this role
+        const { data: existingMapping, error: mappingError } = await supabase
+            .from('admin_role_map')
+            .select('id')
+            .eq('admin_id', admin.id)
+            .eq('role_id', role.id)
+            .single();
+
+        if (existingMapping) {
+            return res.status(400).json({
+                success: false,
+                message: `Admin already has the ${role_name} role`
+            });
+        }
+
+        // Create the role mapping
+        const { data: newRoleMapping, error: mappingCreationError } = await supabase
+            .from('admin_role_map')
+            .insert([{
+                admin_id: admin.id,
+                role_id: role.id
+            }])
+            .select()
+            .single();
+
+        if (mappingCreationError) {
+            console.error('Assign role error:', mappingCreationError);
+            return res.status(500).json({
+                success: false,
+                message: 'Error assigning role to admin',
+                error: mappingCreationError.message
+            });
+        }
+
+        res.json({
+            success: true,
+            message: `Role ${role_name} assigned to admin successfully`,
+            role_mapping: newRoleMapping
+        });
+    } catch (error) {
+        console.error('Assign role error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// Remove role from admin
+router.delete('/demote-moderator/:userId', requireAdmin, async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        // The requireAdmin middleware already validates that the user is an admin
+        // So we can proceed with the role removal
+
+        // Find the admin by ID
+        const { data: admin, error: adminError } = await supabase
+            .from('admins')
+            .select('id, email, full_name')
+            .eq('id', userId)
+            .single();
+
+        if (adminError || !admin) {
+            return res.status(404).json({
+                success: false,
+                message: 'Admin not found'
+            });
+        }
+
+        // Remove all role mappings for this admin
+        const { error: deleteError } = await supabase
+            .from('admin_role_map')
+            .delete()
+            .eq('admin_id', userId);
+
+        if (deleteError) {
+            console.error('Remove admin roles error:', deleteError);
+            return res.status(500).json({
+                success: false,
+                message: 'Error removing roles from admin',
+                error: deleteError.message
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Admin roles removed successfully'
+        });
+    } catch (error) {
+        console.error('Remove admin roles error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// Get all admins with their roles
+router.get('/moderators', requireAdmin, async (req, res) => {
+    try {
+        // The requireAdmin middleware already validates that the user is an admin
+        // So we can proceed to get the admins list with their roles
+
+        const { data: admins, error } = await supabase
+            .from('admins')
+            .select(`
+                id,
+                admin_id,
+                email,
+                full_name,
+                status,
+                created_at
+            `)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Get admins error:', error);
+            return res.status(500).json({ success: false, message: error.message });
+        }
+
+        // For each admin, get their roles
+        const adminsWithRoles = [];
+        for (const admin of admins) {
+            // Get roles for this admin
+            const { data: roleMappings, error: roleError } = await supabase
+                .from('admin_role_map')
+                .select(`
+                    admin_roles(role_name)
+                `)
+                .eq('admin_id', admin.id);
+
+            if (roleError) {
+                console.error('Error getting roles for admin:', admin.id, roleError);
+                continue;
+            }
+
+            // Extract role names
+            const roleNames = roleMappings.map(mapping => mapping.admin_roles?.role_name).filter(Boolean);
+
+            adminsWithRoles.push({
+                id: admin.id,
+                user_id: admin.id, // Using admin id as user_id for compatibility
+                permissions: {
+                    can_manage_tournaments: roleNames.includes('SUPER_ADMIN') || roleNames.includes('ADMIN') || roleNames.includes('MODERATOR'),
+                    can_view_user_data: roleNames.includes('SUPER_ADMIN') || roleNames.includes('ADMIN'),
+                    can_manage_registrations: roleNames.includes('SUPER_ADMIN') || roleNames.includes('ADMIN') || roleNames.includes('MODERATOR'),
+                    can_send_announcements: roleNames.includes('SUPER_ADMIN') || roleNames.includes('ADMIN'),
+                    can_generate_reports: roleNames.includes('SUPER_ADMIN') || roleNames.includes('ADMIN')
+                },
+                user_info: {
+                    student_id: null, // Not available for admins
+                    email: admin.email,
+                    full_name: admin.full_name
+                },
+                roles: roleNames, // Include the actual roles
+                created_at: admin.created_at,
+                updated_at: admin.created_at // Same as created_at for compatibility
+            });
+        }
+
+        res.json({ success: true, moderators: adminsWithRoles });
+    } catch (error) {
+        console.error('Get admins error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // Create tournament
-router.post('/tournaments', upload.single('photo'), handleMulterError, async (req, res) => {
+router.post('/tournaments', requireAdmin, upload.single('photo'), handleMulterError, async (req, res) => {
     try {
         console.log('Create tournament request received');
         console.log('Req.body:', req.body);
@@ -194,7 +512,23 @@ router.post('/tournaments', upload.single('photo'), handleMulterError, async (re
         if (deadline instanceof Date) {
             formattedDeadline = deadline.toISOString();
         } else {
-            const dateObj = new Date(deadline);
+            // Handle the case where the date string is in local time format (YYYY-MM-DDTHH:mm)
+            // If it's in the format from datetime-local input, we need to treat it as local time
+            let dateObj;
+            if (deadline.includes('T') && !deadline.includes('Z') && !deadline.includes('+') && !deadline.includes('-')) {
+                // This is likely a datetime-local format, treat as local time
+                // Convert to local date to UTC for storage
+                const [datePart, timePart] = deadline.split('T');
+                const [year, month, day] = datePart.split('-').map(Number);
+                const [hours, minutes] = timePart.split(':').map(Number);
+
+                // Create a date object with the local time values
+                dateObj = new Date(year, month - 1, day, hours, minutes); // month is 0-indexed
+            } else {
+                // Standard date string, let JS handle it
+                dateObj = new Date(deadline);
+            }
+
             if (isNaN(dateObj.getTime())) {
                 throw new Error('Invalid date format');
             }
@@ -336,7 +670,21 @@ router.get('/tournaments/:id/games', async (req, res) => {
 });
 
 // Update tournament
-router.put('/tournaments/:id', upload.single('photo'), handleMulterError, async (req, res) => {
+router.put('/tournaments/:id', requireAdmin, (req, res, next) => {
+    // Check if the request contains multipart/form-data (file upload)
+    if (req.headers['content-type'] && req.headers['content-type'].startsWith('multipart/form-data')) {
+        // Use upload middleware for file uploads
+        upload.single('photo')(req, res, (err) => {
+            if (err) {
+                return handleMulterError(err, req, res, next);
+            }
+            next();
+        });
+    } else {
+        // For JSON requests, just continue
+        next();
+    }
+}, async (req, res) => {
     try {
         console.log('Update tournament request received for ID:', req.params.id);
         console.log('Req.body:', req.body);
@@ -365,10 +713,19 @@ router.put('/tournaments/:id', upload.single('photo'), handleMulterError, async 
             .eq('id', tournamentId)
             .single();
 
-        if (checkError || !currentTournament) {
+        if (checkError) {
+            console.error('Database error when fetching tournament:', checkError);
+            return res.status(500).json({
+                success: false,
+                message: 'Database error occurred while fetching tournament'
+            });
+        }
+
+        if (!currentTournament) {
+            console.log(`Tournament with ID ${tournamentId} does not exist in the database`);
             return res.status(404).json({
                 success: false,
-                message: 'Tournament not found'
+                message: `Tournament with ID ${tournamentId} does not exist`
             });
         }
 
@@ -443,8 +800,23 @@ router.put('/tournaments/:id', upload.single('photo'), handleMulterError, async 
         if (deadline instanceof Date) {
             formattedDeadline = deadline.toISOString();
         } else {
-            // Try to create a date object from the string
-            const dateObj = new Date(deadline);
+            // Handle the case where the date string is in local time format (YYYY-MM-DDTHH:mm)
+            // If it's in the format from datetime-local input, we need to treat it as local time
+            let dateObj;
+            if (deadline.includes('T') && !deadline.includes('Z') && !deadline.includes('+') && !deadline.includes('-')) {
+                // This is likely a datetime-local format, treat as local time
+                // Convert to local date to UTC for storage
+                const [datePart, timePart] = deadline.split('T');
+                const [year, month, day] = datePart.split('-').map(Number);
+                const [hours, minutes] = timePart.split(':').map(Number);
+
+                // Create a date object with the local time values
+                dateObj = new Date(year, month - 1, day, hours, minutes); // month is 0-indexed
+            } else {
+                // Standard date string, let JS handle it
+                dateObj = new Date(deadline);
+            }
+
             if (isNaN(dateObj.getTime())) {
                 // If the date is invalid, throw an error
                 throw new Error('Invalid date format');
@@ -547,7 +919,7 @@ router.put('/tournaments/:id', upload.single('photo'), handleMulterError, async 
 });
 
 // Delete tournament
-router.delete('/tournaments/:id', async (req, res) => {
+router.delete('/tournaments/:id', requireAdmin, async (req, res) => {
     try {
         const tournamentId = req.params.id;
 
@@ -605,6 +977,77 @@ router.delete('/tournaments/:id', async (req, res) => {
             success: false,
             message: error.message
         });
+    }
+});
+
+// Get all admin roles
+router.get('/roles', requireAdmin, async (req, res) => {
+    try {
+        const { data: roles, error } = await supabase
+            .from('admin_roles')
+            .select('*')
+            .order('role_name');
+
+        if (error) {
+            console.error('Get roles error:', error);
+            return res.status(500).json({ success: false, message: error.message });
+        }
+
+        res.json({ success: true, roles });
+    } catch (error) {
+        console.error('Get roles error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// Create a new admin (without role initially)
+router.post('/create-admin', requireAdmin, async (req, res) => {
+    try {
+        const { email, full_name, admin_id } = req.body;
+
+        // Check if admin already exists
+        const { data: existingAdmin, error: existingError } = await supabase
+            .from('admins')
+            .select('id')
+            .eq('email', email)
+            .single();
+
+        if (existingAdmin) {
+            return res.status(400).json({
+                success: false,
+                message: 'Admin with this email already exists'
+            });
+        }
+
+        // Create admin entry
+        const { data: newAdmin, error: adminError } = await supabase
+            .from('admins')
+            .insert([{
+                admin_id: admin_id || null,
+                email: email,
+                full_name: full_name,
+                status: 'ACTIVE'
+            }])
+            .select()
+            .single();
+
+        if (adminError) {
+            console.error('Create admin error:', adminError);
+            return res.status(500).json({
+                success: false,
+                message: 'Error creating admin',
+                error: adminError.message
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Admin created successfully',
+            admin: newAdmin
+        });
+    } catch (error) {
+        console.error('Create admin error:', error);
+        res.status(500).json({ success: false, message: error.message });
     }
 });
 

@@ -21,7 +21,39 @@ const adminRoutes = require('./routes/admin');
 const dashboardRoutes = require('./routes/dashboard');
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: function(origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+
+        // Define allowed origins
+        const allowedOrigins = [
+            'http://localhost:3001',
+            'http://127.0.0.1:3001',
+            'http://localhost:3000',
+            'http://127.0.0.1:3000'
+        ];
+
+        // Check if the origin is in the allowed list
+        if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development' && process.env.CORS_ORIGIN === '*') {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,  // Allow cookies/auth headers
+    optionsSuccessStatus: 200,  // For older browsers
+    allowedHeaders: [
+        'Content-Type',
+        'Authorization',
+        'X-User-Email',
+        'x-user-email',
+        'X-Requested-With',
+        'Accept',
+        'Origin'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -32,6 +64,11 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
         console.log('Serving file:', filePath);
     }
 }));
+
+// Handle favicon requests to prevent 404 errors
+app.get('/favicon.ico', (req, res) => {
+    res.status(204).end(); // No content response
+});
 
 // Logging middleware
 app.use((req, res, next) => {

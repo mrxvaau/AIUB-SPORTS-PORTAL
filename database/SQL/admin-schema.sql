@@ -1,5 +1,7 @@
 -- Admin & Tournament Schema
 -- Version 1.3
+-- NOTE: This schema is deprecated. The application now uses Supabase (PostgreSQL).
+-- See supabase_schema.sql for the current database schema.
 
 -- Admins Table
 CREATE TABLE admins (
