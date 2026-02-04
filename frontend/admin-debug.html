@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Debug - AIUB Sports Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #1976d2;
+            margin-bottom: 30px;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input[type="email"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        button {
+            background: #1976d2;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        button:hover {
+            background: #1565c0;
+        }
+
+        button:disabled {
+            background: #9e9e9e;
+            cursor: not-allowed;
+        }
+
+        .results {
+            margin-top: 30px;
+        }
+
+        .result-card {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .result-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        .result-content {
+            font-family: 'Courier New', monospace;
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 6px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .status-admin {
+            background: #4caf50;
+            color: white;
+        }
+
+        .status-not-admin {
+            background: #f44336;
+            color: white;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #1976d2;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(100deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Debug Tool</h1>
+        
+        <div class="input-section">
+            <div class="form-group">
+                <label for="email">Enter Email to Check:</label>
+                <input type="email" id="email" placeholder="Enter your email address">
+            </div>
+            <button id="checkBtn">Check Admin Status</button>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Checking admin status...</p>
+        </div>
+
+        <div id="results" class="results" style="display: none;">
+            <div class="result-card">
+                <div class="result-title">Admin Check Result</div>
+                <div id="adminResult" class="result-content"></div>
+            </div>
+            
+            <div class="result-card">
+                <div class="result-title">Detailed Information</div>
+                <div id="detailsResult" class="result-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        
+        document.getElementById('checkBtn').addEventListener('click', async () => {
+            const email = document.getElementById('email').value.trim();
+            
+            if (!email) {
+                alert('Please enter an email address');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/debug-admin`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+                
+                // Hide loading
+                document.getElementById('loading').style.display = 'none';
+                
+                if (data.success) {
+                    // Display admin check result
+                    const adminResult = document.getElementById('adminResult');
+                    adminResult.textContent = JSON.stringify({
+                        email: data.email,
+                        isAdmin: data.isAdmin,
+                        admin_record: data.admin_record,
+                        user_record: data.user_record,
+                        admin_roles: data.admin_roles,
+                        user_roles: data.user_roles
+                    }, null, 2);
+
+                    // Display detailed information
+                    const detailsResult = document.getElementById('detailsResult');
+                    detailsResult.textContent = JSON.stringify({
+                        all_roles: data.all_roles,
+                        role_mappings_for_user: data.role_mappings_for_user
+                    }, null, 2);
+
+                    // Show results
+                    document.getElementById('results').style.display = 'block';
+                } else {
+                    alert('Error: ' + (data.message || 'Unknown error'));
+                }
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                alert('Network error: ' + error.message);
+            }
+        });
+
+        // Auto-fill with stored email if available
+        window.addEventListener('DOMContentLoaded', () => {
+            const storedEmail = localStorage.getItem('userEmail');
+            if (storedEmail) {
+                document.getElementById('email').value = storedEmail;
+            }
+        });
+    </script>
+</body>
+</html>

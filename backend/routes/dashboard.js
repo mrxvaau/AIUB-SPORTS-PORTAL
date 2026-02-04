@@ -232,11 +232,30 @@ router.get('/overview/:studentId', async (req, res) => {
             console.error('Error fetching user registrations:', userRegistrationsResult.error);
         }
 
+        // Get user's team memberships
+        const teamMembershipsResult = await supabase
+            .from('team_members')
+            .select(`
+                id,
+                team_id,
+                role,
+                status,
+                teams(team_name, tournament_game_id)
+            `)
+            .eq('user_id', userId);
+
+        if (teamMembershipsResult.error) {
+            console.error('Error fetching user team memberships:', teamMembershipsResult.error);
+        }
+
         // Count active tournaments
         const activeTournamentsCount = tournamentsResult.data?.length || 0;
 
         // Count registered games
         const registeredGamesCount = userRegistrationsResult.data?.length || 0;
+
+        // Count team memberships
+        const teamMembershipsCount = teamMembershipsResult.data?.length || 0;
 
         // Count pending payments
         const pendingPaymentsCount = userRegistrationsResult.data?.filter(
@@ -246,16 +265,37 @@ router.get('/overview/:studentId', async (req, res) => {
         // Get first 3 active tournaments
         const activeTournaments = tournamentsResult.data?.slice(0, 3) || [];
 
+        // Get user's notifications
+        const notificationsResult = await supabase
+            .from('notifications')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false })
+            .limit(5);
+
+        if (notificationsResult.error) {
+            console.error('Error fetching user notifications:', notificationsResult.error);
+        }
+
         // Format overview data
         const overview = {
             profile: profileResult,
             active_tournaments_count: activeTournamentsCount,
             registered_games_count: registeredGamesCount,
+            team_memberships_count: teamMembershipsCount,
             pending_payments: pendingPaymentsCount,
             active_tournaments: activeTournaments.map(t => ({
                 ...t,
                 deadline: new Date(t.registration_deadline).toISOString().slice(0, 19).replace('T', ' ')
-            }))
+            })),
+            recent_notifications: notificationsResult.data?.map(notif => ({
+                id: notif.id,
+                title: notif.title,
+                message: notif.message,
+                type: notif.type,
+                status: notif.status,
+                created_at: notif.created_at
+            })) || []
         };
 
         return res.json({

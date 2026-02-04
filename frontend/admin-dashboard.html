@@ -1108,14 +1108,14 @@
                 </div>
             </div>
 
-            <!-- Moderator Management Placeholder -->
-            <div id="moderator-management-placeholder" class="content-section">
+            <!-- Admin Management Placeholder -->
+            <div id="admin-management-placeholder" class="content-section">
                 <div class="player-card">
                     <div class="card-header">
-                        <h2>Moderator Management</h2>
+                        <h2>Admin Management</h2>
                     </div>
                     <div class="moderator-section">
-                        <h3>Promote User to Moderator</h3>
+                        <h3>Assign Role to Admin</h3>
                         <div class="player-info-grid">
                             <div class="info-field">
                                 <label class="info-label">Select User</label>
@@ -1123,41 +1123,66 @@
                                     <option value="">Loading users...</option>
                                 </select>
                             </div>
-                        </div>
-
-                        <h3 style="margin-top: 20px;">Assign Permissions</h3>
-                        <div class="moderator-permissions">
-                            <div class="permission-checkbox">
-                                <input type="checkbox" id="canManageTournaments" />
-                                <label for="canManageTournaments">Manage Tournaments</label>
-                            </div>
-                            <div class="permission-checkbox">
-                                <input type="checkbox" id="canViewUserData" />
-                                <label for="canViewUserData">View User Data</label>
-                            </div>
-                            <div class="permission-checkbox">
-                                <input type="checkbox" id="canManageReg" />
-                                <label for="canManageReg">Manage Registrations</label>
-                            </div>
-                            <div class="permission-checkbox">
-                                <input type="checkbox" id="canSendAnnouncements" />
-                                <label for="canSendAnnouncements">Send Announcements</label>
-                            </div>
-                            <div class="permission-checkbox">
-                                <input type="checkbox" id="canGenerateReports" />
-                                <label for="canGenerateReports">Generate Reports</label>
+                            <div class="info-field">
+                                <label class="info-label">Select Role</label>
+                                <select id="selectRole" class="info-input">
+                                    <option value="">Loading roles...</option>
+                                </select>
                             </div>
                         </div>
 
-                        <button class="save-btn" onclick="promoteToModerator()" style="margin-top: 20px;">
-                            Promote User to Moderator
+                        <button class="save-btn" onclick="assignRoleToAdmin()" style="margin-top: 20px;">
+                            Assign Role to Admin
                         </button>
                     </div>
 
                     <div class="moderator-section">
-                        <h3 style="margin-bottom: 15px;">Current Moderators</h3>
+                        <h3>Assign Permission to Role</h3>
+                        <div class="player-info-grid">
+                            <div class="info-field">
+                                <label class="info-label">Select Role</label>
+                                <select id="selectRoleForPermission" class="info-input">
+                                    <option value="">Loading roles...</option>
+                                </select>
+                            </div>
+                            <div class="info-field">
+                                <label class="info-label">Select Permission</label>
+                                <select id="selectPermission" class="info-input">
+                                    <option value="">Loading permissions...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button class="save-btn" onclick="assignPermissionToRole()" style="margin-top: 20px;">
+                            Assign Permission to Role
+                        </button>
+                    </div>
+
+                    <div class="moderator-section">
+                        <h3 style="margin-bottom: 15px;">Current Admins</h3>
                         <div class="moderator-list" id="moderatorsList">
-                            <p>Loading moderators...</p>
+                            <p>Loading admins...</p>
+                        </div>
+                    </div>
+
+                    <div class="moderator-section">
+                        <h3 style="margin-bottom: 15px;">Audit Logs</h3>
+                        <div class="moderator-list" id="auditLogsList">
+                            <p>Loading audit logs...</p>
+                        </div>
+                    </div>
+
+                    <div class="moderator-section">
+                        <h3 style="margin-bottom: 15px;">Tournament Requests</h3>
+                        <div class="moderator-list" id="tournamentRequestsList">
+                            <p>Loading tournament requests...</p>
+                        </div>
+                    </div>
+
+                    <div class="moderator-section">
+                        <h3 style="margin-bottom: 15px;">Game Requests</h3>
+                        <div class="moderator-list" id="gameRequestsList">
+                            <p>Loading game requests...</p>
                         </div>
                     </div>
                 </div>
@@ -1209,7 +1234,10 @@
 
                 const result = await response.json();
 
+                console.log('Admin check result:', result); // Debug log
+
                 if (!result.success || !result.isAdmin) {
+                    console.log('Admin access denied. Result:', result);
                     alert('Access denied. Admin privileges required.');
                     window.location.href = 'dashboard.html'; // Redirect to regular dashboard
                     return false;
@@ -1218,8 +1246,9 @@
                 // Update welcome message based on admin status and role
                 if (result.admin && result.admin.full_name) {
                     const roleName = result.role || 'Admin';
-                    document.getElementById('welcomeName').textContent = `Welcome, ${result.admin.full_name} (${roleName})`;
-                    document.getElementById('welcomeText').textContent = `Welcome, ${result.admin.full_name} (${roleName})`;
+                    const rolesList = result.roles ? `(${result.roles.join(', ')})` : '';
+                    document.getElementById('welcomeName').textContent = `Welcome, ${result.admin.full_name} ${rolesList}`;
+                    document.getElementById('welcomeText').textContent = `Welcome, ${result.admin.full_name} ${rolesList}`;
                 } else {
                     document.getElementById('welcomeName').textContent = 'Admin Dashboard';
                     document.getElementById('welcomeText').textContent = 'Welcome Admin';
@@ -1391,12 +1420,12 @@
             } else if (name === 'System Configuration') {
                 document.getElementById('system-configuration-placeholder').classList.add('active');
             } else if (name === 'Moderator Management') {
-                document.getElementById('moderator-management-placeholder').classList.add('active');
-                loadModeratorManagement();  // Load the moderator management interface
+                document.getElementById('admin-management-placeholder').classList.add('active');
+                loadAdminManagement();  // Load the admin management interface
             }
         }
 
-        // Load users for moderator promotion dropdown
+        // Load users for admin promotion dropdown
         async function loadUsersForPromotion() {
             try {
                 const response = await fetch(`${API_URL}/users/all`);
@@ -1421,6 +1450,70 @@
             } catch (error) {
                 console.error('Load users error:', error);
                 document.getElementById('selectUser').innerHTML = '<option value="">Error loading users</option>';
+            }
+        }
+
+        // Load all available roles
+        async function loadAvailableRoles() {
+            try {
+                const response = await fetch(`${API_URL}/admin/roles`, {
+                    headers: {
+                        'x-user-email': localStorage.getItem('userEmail') || ''
+                    }
+                });
+                const data = await response.json();
+
+                const selectRole = document.getElementById('selectRole');
+
+                if (data.success && data.roles) {
+                    // Clear existing options
+                    selectRole.innerHTML = '<option value="">Select a role</option>';
+
+                    // Add roles to dropdown
+                    data.roles.forEach(role => {
+                        const option = document.createElement('option');
+                        option.value = role.id;
+                        option.textContent = role.role_name;
+                        selectRole.appendChild(option);
+                    });
+                } else {
+                    selectRole.innerHTML = '<option value="">No roles found</option>';
+                }
+            } catch (error) {
+                console.error('Load roles error:', error);
+                document.getElementById('selectRole').innerHTML = '<option value="">Error loading roles</option>';
+            }
+        }
+
+        // Load all available permissions
+        async function loadAvailablePermissions() {
+            try {
+                const response = await fetch(`${API_URL}/admin/permissions`, {
+                    headers: {
+                        'x-user-email': localStorage.getItem('userEmail') || ''
+                    }
+                });
+                const data = await response.json();
+
+                const selectPermission = document.getElementById('selectPermission');
+
+                if (data.success && data.permissions) {
+                    // Clear existing options
+                    selectPermission.innerHTML = '<option value="">Select a permission</option>';
+
+                    // Add permissions to dropdown
+                    data.permissions.forEach(permission => {
+                        const option = document.createElement('option');
+                        option.value = permission.id;
+                        option.textContent = permission.permission_name;
+                        selectPermission.appendChild(option);
+                    });
+                } else {
+                    selectPermission.innerHTML = '<option value="">No permissions found</option>';
+                }
+            } catch (error) {
+                console.error('Load permissions error:', error);
+                document.getElementById('selectPermission').innerHTML = '<option value="">Error loading permissions</option>';
             }
         }
 
@@ -1477,69 +1570,354 @@
             }
         }
 
-        // Load moderator management interface
-        async function loadModeratorManagement() {
-            // Load users for promotion dropdown
+        // Load admin management interface
+        async function loadAdminManagement() {
+            // Load users for role assignment dropdown
             await loadUsersForPromotion();
 
-            // Load list of current moderators
-            await loadModerators();
+            // Load available roles
+            await loadAvailableRoles();
+
+            // Load available permissions
+            await loadAvailablePermissions();
+
+            // Load list of current admins
+            await loadAdmins();
+
+            // Load audit logs
+            await loadAuditLogs();
+
+            // Load tournament requests
+            await loadTournamentRequests();
+
+            // Load game requests
+            await loadGameRequests();
         }
 
-        // Promote user to moderator
-        async function promoteToModerator() {
+        // Load all admins
+        async function loadAdmins() {
+            try {
+                const response = await fetch(`${API_URL}/admin/moderators`, {
+                    headers: {
+                        'x-user-email': localStorage.getItem('userEmail') || ''
+                    }
+                });
+                const data = await response.json();
+
+                const adminsList = document.getElementById('moderatorsList');
+
+                if (data.success && data.moderators) {
+                    if (data.moderators.length === 0) {
+                        adminsList.innerHTML = '<p>No admins found.</p>';
+                        return;
+                    }
+
+                    let html = '';
+                    data.moderators.forEach(admin => {
+                        html += `
+                            <div class="moderator-item">
+                                <div>
+                                    <strong>${admin.user_info?.full_name || admin.user_info?.student_id || 'N/A'}</strong>
+                                    <br>
+                                    <small>${admin.user_info?.email || 'N/A'}</small>
+                                    <br>
+                                    <small>Roles: ${
+                                        admin.roles?.join(', ') || 'None'
+                                    }</small>
+                                    <br>
+                                    <small>Permissions: ${
+                                        Object.entries(admin.permissions)
+                                            .filter(([key, value]) => value)
+                                            .map(([key]) => key.replace(/([A-Z])/g, ' $1').trim())
+                                            .join(', ') || 'None'
+                                    }</small>
+                                </div>
+                                <div class="moderator-actions">
+                                    <button class="demote-btn" onclick="demoteAdmin(${admin.user_id})">
+                                        Remove Role
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    adminsList.innerHTML = html;
+                } else {
+                    adminsList.innerHTML = '<p>Error loading admins.</p>';
+                }
+            } catch (error) {
+                console.error('Load admins error:', error);
+                document.getElementById('moderatorsList').innerHTML = '<p>Error loading admins.</p>';
+            }
+        }
+
+        // Load audit logs
+        async function loadAuditLogs() {
+            try {
+                const response = await fetch(`${API_URL}/admin/audit-logs`, {
+                    headers: {
+                        'x-user-email': localStorage.getItem('userEmail') || ''
+                    }
+                });
+                const data = await response.json();
+
+                const logsList = document.getElementById('auditLogsList');
+
+                if (data.success && data.logs) {
+                    if (data.logs.length === 0) {
+                        logsList.innerHTML = '<p>No audit logs found.</p>';
+                        return;
+                    }
+
+                    let html = '';
+                    data.logs.forEach(log => {
+                        html += `
+                            <div class="moderator-item">
+                                <div>
+                                    <strong>${log.admin?.full_name || 'Unknown Admin'}</strong>
+                                    <br>
+                                    <small>Action: ${log.action}</small>
+                                    <br>
+                                    <small>Target: ${log.target.type} #${log.target.id}</small>
+                                    <br>
+                                    <small>Time: ${new Date(log.timestamp).toLocaleString()}</small>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    logsList.innerHTML = html;
+                } else {
+                    logsList.innerHTML = '<p>Error loading audit logs.</p>';
+                }
+            } catch (error) {
+                console.error('Load audit logs error:', error);
+                document.getElementById('auditLogsList').innerHTML = '<p>Error loading audit logs.</p>';
+            }
+        }
+
+        // Load tournament requests
+        async function loadTournamentRequests() {
+            try {
+                const response = await fetch(`${API_URL}/admin/tournament-requests`, {
+                    headers: {
+                        'x-user-email': localStorage.getItem('userEmail') || ''
+                    }
+                });
+                const data = await response.json();
+
+                const requestsList = document.getElementById('tournamentRequestsList');
+
+                if (data.success && data.requests) {
+                    if (data.requests.length === 0) {
+                        requestsList.innerHTML = '<p>No tournament requests found.</p>';
+                        return;
+                    }
+
+                    let html = '';
+                    data.requests.forEach(request => {
+                        html += `
+                            <div class="moderator-item">
+                                <div>
+                                    <strong>${request.title}</strong>
+                                    <br>
+                                    <small>Requested by: ${request.requested_by.full_name}</small>
+                                    <br>
+                                    <small>Status: ${request.status}</small>
+                                    <br>
+                                    <small>Deadline: ${new Date(request.registration_deadline).toLocaleString()}</small>
+                                    ${request.description ? `<small>Description: ${request.description}</small>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    requestsList.innerHTML = html;
+                } else {
+                    requestsList.innerHTML = '<p>Error loading tournament requests.</p>';
+                }
+            } catch (error) {
+                console.error('Load tournament requests error:', error);
+                document.getElementById('tournamentRequestsList').innerHTML = '<p>Error loading tournament requests.</p>';
+            }
+        }
+
+        // Load game requests
+        async function loadGameRequests() {
+            try {
+                const response = await fetch(`${API_URL}/admin/game-requests`, {
+                    headers: {
+                        'x-user-email': localStorage.getItem('userEmail') || ''
+                    }
+                });
+                const data = await response.json();
+
+                const requestsList = document.getElementById('gameRequestsList');
+
+                if (data.success && data.requests) {
+                    if (data.requests.length === 0) {
+                        requestsList.innerHTML = '<p>No game requests found.</p>';
+                        return;
+                    }
+
+                    let html = '';
+                    data.requests.forEach(request => {
+                        html += `
+                            <div class="moderator-item">
+                                <div>
+                                    <strong>${request.game_name}</strong>
+                                    <br>
+                                    <small>Tournament: ${request.tournament_id}</small>
+                                    <br>
+                                    <small>Category: ${request.category}</small>
+                                    <br>
+                                    <small>Type: ${request.game_type}</small>
+                                    <br>
+                                    <small>Status: ${request.status}</small>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    requestsList.innerHTML = html;
+                } else {
+                    requestsList.innerHTML = '<p>Error loading game requests.</p>';
+                }
+            } catch (error) {
+                console.error('Load game requests error:', error);
+                document.getElementById('gameRequestsList').innerHTML = '<p>Error loading game requests.</p>';
+            }
+        }
+
+        // Assign role to admin
+        async function assignRoleToAdmin() {
             try {
                 const userId = document.getElementById('selectUser').value;
-
-                // Collect permissions
-                const permissions = {
-                    can_manage_tournaments: document.getElementById('canManageTournaments').checked,
-                    can_view_user_data: document.getElementById('canViewUserData').checked,
-                    can_manage_registrations: document.getElementById('canManageReg').checked,
-                    can_send_announcements: document.getElementById('canSendAnnouncements').checked,
-                    can_generate_reports: document.getElementById('canGenerateReports').checked
-                };
+                const roleId = document.getElementById('selectRole').value;
 
                 if (!userId) {
-                    alert('Please select a user to promote.');
+                    alert('Please select a user to assign a role.');
                     return;
                 }
 
-                // Check if at least one permission is granted
-                const hasPermission = Object.values(permissions).some(val => val === true);
-                if (!hasPermission) {
-                    alert('Please assign at least one permission to the moderator.');
+                if (!roleId) {
+                    alert('Please select a role to assign.');
                     return;
                 }
 
-                const response = await fetch(`${API_URL}/admin/promote-user`, {
+                const response = await fetch(`${API_URL}/admin/assign-role`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'x-user-email': localStorage.getItem('userEmail') || ''
                     },
                     body: JSON.stringify({
-                        userId: parseInt(userId),
-                        permissions: permissions
+                        admin_id: parseInt(userId),
+                        role_name: roleId  // This will be the role ID in the updated backend
                     })
                 });
 
                 const result = await response.json();
 
                 if (result.success) {
-                    alert('User promoted to moderator successfully!');
+                    alert('Role assigned to admin successfully!');
                     // Reload the interface to reflect changes
                     loadModeratorManagement();
                     // Reset form
                     document.getElementById('selectUser').value = '';
-                    document.querySelectorAll('.permission-checkbox input[type="checkbox"]').forEach(cb => {
-                        cb.checked = false;
-                    });
+                    document.getElementById('selectRole').value = '';
                 } else {
-                    alert(`Error promoting user: ${result.message}`);
+                    alert(`Error assigning role: ${result.message}`);
                 }
             } catch (error) {
-                console.error('Promote user error:', error);
-                alert('Error promoting user. Please try again.');
+                console.error('Assign role error:', error);
+                alert('Error assigning role. Please try again.');
+            }
+        }
+
+        // Assign permission to role
+        async function assignPermissionToRole() {
+            try {
+                const roleId = document.getElementById('selectRoleForPermission').value;
+                const permissionId = document.getElementById('selectPermission').value;
+
+                if (!roleId) {
+                    alert('Please select a role to assign a permission.');
+                    return;
+                }
+
+                if (!permissionId) {
+                    alert('Please select a permission to assign.');
+                    return;
+                }
+
+                const response = await fetch(`${API_URL}/admin/assign-permission`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-user-email': localStorage.getItem('userEmail') || ''
+                    },
+                    body: JSON.stringify({
+                        role_id: parseInt(roleId),
+                        permission_id: parseInt(permissionId)
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Permission assigned to role successfully!');
+                    // Reset form
+                    document.getElementById('selectRoleForPermission').value = '';
+                    document.getElementById('selectPermission').value = '';
+                } else {
+                    alert(`Error assigning permission: ${result.message}`);
+                }
+            } catch (error) {
+                console.error('Assign permission error:', error);
+                alert('Error assigning permission. Please try again.');
+            }
+        }
+
+        // Demote admin (remove role)
+        async function demoteAdmin(userId) {
+            if (!confirm('Are you sure you want to remove this user from admin role?')) {
+                return;
+            }
+
+            try {
+                const userEmail = localStorage.getItem('userEmail');
+                console.log('Demoting admin, userEmail:', userEmail); // Debug log
+
+                // For this function, we need to know which role to remove
+                // In a real implementation, we might need to select which role to remove
+                // For now, we'll just prompt for the role ID to remove
+                const roleId = prompt('Enter the role ID to remove:');
+                if (!roleId) {
+                    return;
+                }
+
+                const response = await fetch(`${API_URL}/admin/remove-role/${userId}/${roleId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-user-email': userEmail || '',
+                        'X-User-Email': userEmail || ''  // Also send with capital letters to handle any case sensitivity
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Admin role removed successfully!');
+                    // Reload the interface
+                    loadAdminManagement();
+                } else {
+                    alert(`Error removing admin role: ${result.message}`);
+                }
+            } catch (error) {
+                console.error('Demote admin error:', error);
+                alert('Error removing admin role. Please try again.');
             }
         }
 

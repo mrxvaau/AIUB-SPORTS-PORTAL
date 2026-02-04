@@ -68,4 +68,19 @@ router.delete('/cart/clear/:studentId', userController.clearCart);
 // DELETE /api/auth/registration/:gameId/:studentId - Cancel game registration
 router.delete('/registration/:gameId/:studentId', userController.cancelGameRegistration);
 
+// POST /api/auth/request-game - Request a new game for a tournament
+router.post('/request-game', userController.requestGame);
+
+// POST /api/auth/request-tournament - Request a new tournament
+router.post('/request-tournament', userController.requestTournament);
+
+// GET /api/auth/game-requests/:studentId - Get user's game requests
+router.get('/game-requests/:studentId', userController.getUserGameRequests);
+
+// GET /api/auth/tournament-requests/:studentId - Get user's tournament requests
+router.get('/tournament-requests/:studentId', userController.getUserTournamentRequests);
+
+// DEBUG endpoint for admin check
+router.post('/debug-admin', userController.debugAdminCheck);
+
 module.exports = router;

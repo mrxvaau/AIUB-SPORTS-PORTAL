@@ -1,0 +1,346 @@
+// Registration Controller
+// Handles game registration operations
+
+const { supabase } = require('../config/supabase');
+const { EMAIL_PATTERN } = require('./authController');
+
+// Register for a tournament game
+const registerForGame = async (req, res) => {
+    try {
+        const { studentId, gameId } = req.body;
+
+        // Validate inputs
+        if (!studentId || typeof studentId !== 'string' || !EMAIL_PATTERN.test(studentId + '@student.aiub.edu')) {
+            return res.status(400).json({
+                success: false,
+                message: 'Valid student ID is required'
+            });
+        }
+
+        if (!gameId || isNaN(parseInt(gameId))) {
+            return res.status(400).json({
+                success: false,
+                message: 'Valid game ID is required'
+            });
+        }
+
+        // First, get user ID from student ID
+        const { data: user, error: userError } = await supabase
+            .from('users')
+            .select('id, gender')
+            .eq('student_id', studentId)
+            .single();
+
+        if (userError) {
+            if (userError.code === 'PGRST116') { // Row not found
+                return res.status(404).json({
+                    success: false,
+                    message: 'User not found'
+                });
+            }
+
+            console.error('Error fetching user:', userError);
+            return res.status(500).json({
+                success: false,
+                message: 'Error checking user',
+                error: userError.message
+            });
+        }
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        const userId = user.id;
+
+        // Get the game and check if it exists
+        const { data: game, error: gameError } = await supabase
+            .from('tournament_games')
+            .select(`
+                id,
+                category,
+                game_type,
+                fee_per_person,
+                tournament_id,
+                tournaments(registration_deadline)
+            `)
+            .eq('id', gameId)
+            .single();
+
+        if (gameError || !game) {
+            return res.status(404).json({
+                success: false,
+                message: 'Game not found'
+            });
+        }
+
+        // Check if registration deadline has passed
+        const deadline = new Date(game.tournaments.registration_deadline);
+        const now = new Date();
+
+        if (now > deadline) {
+            return res.status(400).json({
+                success: false,
+                message: 'Registration deadline has passed for this tournament'
+            });
+        }
+
+        // Check gender eligibility
+        if (game.category !== 'Mix') {
+            if (user.gender && game.category !== user.gender) {
+                return res.status(400).json({
+                    success: false,
+                    message: `This game is only for ${game.category} participants`
+                });
+            }
+        }
+
+        // Check if game type is Solo (only solo registrations allowed through this endpoint)
+        if (game.game_type !== 'Solo') {
+            return res.status(400).json({
+                success: false,
+                message: 'This game requires team registration. Please create a team instead.'
+            });
+        }
+
+        // Check if user has already registered for this game
+        const { data: existingRegistration, error: checkError } = await supabase
+            .from('game_registrations')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('game_id', gameId)
+            .single();
+
+        if (existingRegistration) {
+            return res.status(400).json({
+                success: false,
+                message: 'Already registered for this game'
+            });
+        }
+
+        // Create registration
+        const { data: registration, error: regError } = await supabase
+            .from('game_registrations')
+            .insert([{
+                user_id: userId,
+                game_id: gameId,
+                payment_status: 'PENDING'
+            }])
+            .select()
+            .single();
+
+        if (regError) {
+            console.error('Error creating registration:', regError);
+
+            // Check for unique constraint violation
+            if (regError.code === '23505') {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Already registered for this game'
+                });
+            }
+
+            return res.status(500).json({
+                success: false,
+                message: 'Error creating registration',
+                error: regError.message
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Registration successful',
+            registration: {
+                id: registration.id,
+                gameId: registration.game_id,
+                paymentStatus: registration.payment_status,
+                registrationDate: registration.registration_date
+            }
+        });
+    } catch (error) {
+        console.error('Register for game error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Get user's registrations
+const getUserRegistrations = async (req, res) => {
+    try {
+        const { studentId } = req.params;
+
+        // Get user ID from student ID
+        const { data: user, error: userError } = await supabase
+            .from('users')
+            .select('id')
+            .eq('student_id', studentId)
+            .single();
+
+        if (userError || !user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        const userId = user.id;
+
+        // Get user's registrations with game and tournament details
+        const { data: registrations, error: regError } = await supabase
+            .from('game_registrations')
+            .select(`
+                id,
+                game_id,
+                payment_status,
+                registration_date,
+                tournament_games(
+                    id,
+                    game_name,
+                    game_type,
+                    category,
+                    fee_per_person,
+                    tournament_id,
+                    tournaments(id, title, registration_deadline, status)
+                )
+            `)
+            .eq('user_id', userId)
+            .order('registration_date', { ascending: false });
+
+        if (regError) {
+            console.error('Error fetching registrations:', regError);
+            return res.status(500).json({
+                success: false,
+                message: 'Error fetching registrations',
+                error: regError.message
+            });
+        }
+
+        // Format the response
+        const formattedRegistrations = registrations.map(reg => ({
+            id: reg.id,
+            gameId: reg.game_id,
+            paymentStatus: reg.payment_status,
+            registrationDate: reg.registration_date,
+            game: {
+                id: reg.tournament_games.id,
+                name: reg.tournament_games.game_name,
+                type: reg.tournament_games.game_type,
+                category: reg.tournament_games.category,
+                feePerPerson: reg.tournament_games.fee_per_person,
+                tournamentId: reg.tournament_games.tournament_id,
+                tournament: {
+                    id: reg.tournament_games.tournaments.id,
+                    title: reg.tournament_games.tournaments.title,
+                    deadline: reg.tournament_games.tournaments.registration_deadline,
+                    status: reg.tournament_games.tournaments.status
+                }
+            }
+        }));
+
+        res.json({
+            success: true,
+            registrations: formattedRegistrations
+        });
+    } catch (error) {
+        console.error('Get user registrations error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Cancel game registration
+const cancelGameRegistration = async (req, res) => {
+    try {
+        const { gameId, studentId } = req.params;
+
+        // Get user ID from student ID
+        const { data: user, error: userError } = await supabase
+            .from('users')
+            .select('id')
+            .eq('student_id', studentId)
+            .single();
+
+        if (userError || !user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        const userId = user.id;
+
+        // Check if the game exists and get tournament deadline
+        const { data: gameData, error: gameError } = await supabase
+            .from('tournament_games')
+            .select(`
+                id,
+                tournament_id,
+                tournaments(registration_deadline)
+            `)
+            .eq('id', gameId)
+            .single();
+
+        if (gameError || !gameData) {
+            return res.status(404).json({
+                success: false,
+                message: 'Game not found'
+            });
+        }
+
+        // Check if registration deadline has passed
+        const deadline = new Date(gameData.tournaments.registration_deadline);
+        const now = new Date();
+
+        if (now > deadline) {
+            return res.status(400).json({
+                success: false,
+                message: 'Registration deadline has passed. Cannot cancel registration.'
+            });
+        }
+
+        // Check if user has registered for this game
+        const { data: existingRegistration, error: checkError } = await supabase
+            .from('game_registrations')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('game_id', gameId)
+            .single();
+
+        if (!existingRegistration) {
+            return res.status(400).json({
+                success: false,
+                message: 'No registration found for this game'
+            });
+        }
+
+        // Delete the registration
+        const { error: deleteError } = await supabase
+            .from('game_registrations')
+            .delete()
+            .eq('id', existingRegistration.id);
+
+        if (deleteError) {
+            console.error('Error canceling registration:', deleteError);
+            return res.status(500).json({
+                success: false,
+                message: 'Error canceling registration',
+                error: deleteError.message
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Registration canceled successfully'
+        });
+    } catch (error) {
+        console.error('Cancel game registration error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+module.exports = {
+    registerForGame,
+    getUserRegistrations,
+    cancelGameRegistration
+};

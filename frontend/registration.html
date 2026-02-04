@@ -739,6 +739,14 @@
                     ${maleGames.length > 0 ? createCategorySection('Male', maleGames) : ''}
                     ${femaleGames.length > 0 ? createCategorySection('Female', femaleGames) : ''}
                     ${mixGames.length > 0 ? createCategorySection('Mix', mixGames) : ''}
+
+                    <!-- Request New Game Button -->
+                    <div style="margin-top: 20px; text-align: center;">
+                        <button class="btn secondary" style="padding: 10px 20px; background: #f59e0b; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600;"
+                                onclick="requestGameForCurrentTournament(${tournament.id}, '${tournament.title.replace(/'/g, "\\'")}')">
+                            Request New Game
+                        </button>
+                    </div>
                 </div>
             `;
         }
@@ -1163,14 +1171,14 @@
                 const gameId = button.getAttribute('data-game-id');
                 const gameName = button.getAttribute('data-game-name');
                 const category = button.getAttribute('data-game-category');
-                
+
                 if (!gameId || !gameName || !category) {
                     console.error('Missing button data attributes');
                     return;
                 }
 
                 const buttonText = button.textContent.trim();
-                
+
                 if (buttonText === 'Register Now') {
                     registerForGame(gameId, gameName, category);
                 } else if (buttonText === 'Cancel Registration') {
@@ -1178,6 +1186,50 @@
                 }
             }
         });
+
+        // Request a new game for the current tournament
+        function requestGameForCurrentTournament(tournamentId, tournamentTitle) {
+            if (!confirm(`Do you want to request a new game for the tournament "${tournamentTitle}"?`)) {
+                return;
+            }
+
+            const gameName = prompt('Enter the name of the game you want to request:');
+            const category = prompt('Enter the category (Male/Female/Mix):');
+            const gameType = prompt('Enter the game type (Solo/Duo/Custom):');
+
+            if (!gameName || !category || !gameType) {
+                alert('All fields are required for the request.');
+                return;
+            }
+
+            const studentId = localStorage.getItem('studentId');
+
+            fetch(`${API_URL}/auth/request-game`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    studentId: studentId,
+                    tournamentId: tournamentId,
+                    gameName: gameName,
+                    category: category,
+                    gameType: gameType
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Game request submitted successfully!');
+                } else {
+                    alert(`Error submitting request: ${data.message}`);
+                }
+            })
+            .catch(error => {
+                console.error('Request game error:', error);
+                alert('Error submitting game request. Please try again.');
+            });
+        }
 
         window.onload = function() {
             if (localStorage.getItem('isAuthenticated') !== 'true') {

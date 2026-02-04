@@ -74,17 +74,17 @@ function handleMulterError(err, req, res, next) {
     next();
 }
 
-// Middleware to check if user is admin
+// Middleware to check if user is admin - SIMPLE VERSION
 async function requireAdmin(req, res, next) {
     try {
         // Try to get user email from multiple sources
         // Check for various possible header names (headers are case-insensitive in HTTP/2 but may vary)
         let userEmail = req.body.email || req.query.email ||
-                      req.headers['x-user-email'] ||
-                      req.headers['X-User-Email'] ||
-                      req.headers['X-USER-EMAIL'] ||
-                      req.headers['x-useremail'] ||  // Alternative without hyphen
-                      req.headers['X-UserEmail'];     // Alternative without hyphen
+            req.headers['x-user-email'] ||
+            req.headers['X-User-Email'] ||
+            req.headers['X-USER-EMAIL'] ||
+            req.headers['x-useremail'] ||  // Alternative without hyphen
+            req.headers['X-UserEmail'];     // Alternative without hyphen
 
         // If not found in headers, try to get from session or other sources
         if (!userEmail) {
@@ -98,9 +98,14 @@ async function requireAdmin(req, res, next) {
             }
         }
 
+        // If still no email found, try to get from the authorization header or other sources
+        if (!userEmail) {
+            // If we have a logged-in user from a previous auth middleware, use their email
+            // This assumes that the user has already been authenticated by another middleware
+            userEmail = req.authenticatedUserEmail || req.currentUserEmail || req.session?.userEmail;
+        }
+
         console.log('Admin check - userEmail:', userEmail); // Debug logging
-        console.log('Admin check - all headers:', req.headers); // Debug logging
-        console.log('Admin check - request body:', req.body); // Debug logging
 
         if (!userEmail) {
             console.log('Admin check - No email provided');
@@ -110,51 +115,44 @@ async function requireAdmin(req, res, next) {
             });
         }
 
-        // Use the PostgreSQL function to check admin status and role
-        const { data, error } = await require('../config/supabase').supabase
-            .rpc('check_is_admin', { user_email: userEmail });
-
-        console.log('Admin check - Role check result:', { data, error }); // Debug logging
-
-        if (error) {
-            console.error('Admin check error:', error);
-            return res.status(500).json({
-                success: false,
-                message: 'Authentication error'
-            });
-        }
-
-        if (!data || data.length === 0 || !data[0].is_admin || data[0].role_name === 'NOT_ADMIN') {
-            console.log('Admin check - User is not an admin or has no role');
-            return res.status(403).json({
-                success: false,
-                message: 'Admin access required'
-            });
-        }
-
-        // Get full admin details for the request object
-        const { data: admin, error: adminError } = await require('../config/supabase').supabase
+        // Simple check: Does the email exist in the admins table with roles?
+        const { data: adminData, error: adminError } = await supabase
             .from('admins')
             .select('id, admin_id, email, full_name, status')
             .eq('email', userEmail)
             .single();
 
-        if (adminError || !admin || admin.status !== 'ACTIVE') {
-            console.log('Admin check - Admin not found or inactive');
-            return res.status(403).json({
-                success: false,
-                message: 'Admin access required'
-            });
+        if (adminData && adminData.status === 'ACTIVE') {
+            // Check if this admin has roles
+            const { data: roleData, error: roleError } = await supabase
+                .from('admin_role_map')
+                .select(`
+                    admin_roles(role_name)
+                `)
+                .eq('admin_id', adminData.id);
+
+            if (roleData && roleData.length > 0) {
+                // Admin exists and has roles
+                const roles = roleData.map(role => role.admin_roles.role_name);
+
+                // Add user info and roles to request for use in handlers
+                req.user = {
+                    ...adminData,
+                    roles: roles
+                };
+
+                console.log('Admin check - Access granted for roles:', roles);
+                next();
+                return;
+            }
         }
 
-        // Add user info and role to request for use in handlers
-        req.user = {
-            ...admin,
-            role: data[0].role_name
-        };
-
-        console.log('Admin check - Access granted for role:', data[0].role_name);
-        next();
+        // If we reach here, user is not an admin
+        console.log('Admin check - User has no admin roles');
+        return res.status(403).json({
+            success: false,
+            message: 'Admin access required'
+        });
     } catch (error) {
         console.error('Admin check error:', error);
         res.status(500).json({
@@ -164,7 +162,7 @@ async function requireAdmin(req, res, next) {
     }
 }
 
-// Check if user is admin
+// Check if user is admin - SIMPLE VERSION
 router.post('/check-admin', async (req, res) => {
     try {
         const { email } = req.body;
@@ -172,61 +170,147 @@ router.post('/check-admin', async (req, res) => {
         console.log('=== ADMIN CHECK START ===');
         console.log('Checking email:', email);
 
-        // Use the PostgreSQL function to check admin status and role
-        const { data, error } = await supabase
-            .rpc('check_is_admin', { user_email: email });
+        // Extract student ID from email (e.g., "24-56434-1" from "24-56434-1@student.aiub.edu")
+        const studentId = email.split('@')[0];
+        console.log('Extracted student ID:', studentId);
 
-        console.log('Admin check - Role check result:', { data, error });
+        // DEBUG: First, let's see ALL admins in the table
+        const { data: allAdmins, error: allError } = await supabase
+            .from('admins')
+            .select('id, admin_id, email, full_name, status');
 
-        if (error) {
-            console.error('Check admin error:', error);
-            res.status(500).json({ success: false, message: error.message });
-            return;
+        console.log('=== ALL ADMINS IN DATABASE ===');
+        console.log(JSON.stringify(allAdmins, null, 2));
+        console.log('==============================');
+
+        // Try multiple matching strategies:
+        // 1. Match by exact email
+        // 2. Match by admin_id (student ID)
+        // 3. Match by email case-insensitive
+
+        let adminData = null;
+        let matchMethod = '';
+
+        // Strategy 1: Exact email match
+        const { data: exactMatch, error: exactError } = await supabase
+            .from('admins')
+            .select('id, admin_id, email, full_name, status')
+            .eq('email', email)
+            .single();
+
+        if (exactMatch) {
+            adminData = exactMatch;
+            matchMethod = 'exact email';
+            console.log('Found admin by exact email match');
         }
 
-        if (!data || data.length === 0) {
-            // No admin found
-            res.json({ success: true, isAdmin: false, role: 'NOT_ADMIN' });
-        } else if (data[0].is_admin && data[0].role_name !== 'NOT_ADMIN') {
-            // Admin found with a valid role
-            // Get full admin details
-            const { data: adminDetails, error: adminError } = await supabase
+        // Strategy 2: Match by admin_id (student ID)
+        if (!adminData) {
+            const { data: idMatch, error: idError } = await supabase
                 .from('admins')
                 .select('id, admin_id, email, full_name, status')
-                .eq('email', email)
+                .eq('admin_id', studentId)
                 .single();
 
-            if (adminError) {
-                console.error('Error fetching admin details:', adminError);
-                // If there's an error fetching admin details, just return the role info
-                res.json({
-                    success: true,
-                    isAdmin: data[0].is_admin,
-                    role: data[0].role_name
-                });
-            } else if (!adminDetails) {
-                // Admin exists in the role mapping but not in the admins table - this shouldn't happen
-                res.json({ success: true, isAdmin: false, role: 'NOT_ADMIN' });
-            } else if (adminDetails.status !== 'ACTIVE') {
-                // Admin exists but is not active
-                res.json({ success: true, isAdmin: false, role: 'NOT_ADMIN' });
-            } else {
-                // Admin is valid and active
+            if (idMatch) {
+                adminData = idMatch;
+                matchMethod = 'admin_id';
+                console.log('Found admin by admin_id match');
+            }
+        }
+
+        // Strategy 3: Match by email containing student ID
+        if (!adminData) {
+            const { data: partialMatch, error: partialError } = await supabase
+                .from('admins')
+                .select('id, admin_id, email, full_name, status')
+                .ilike('email', `%${studentId}%`)
+                .single();
+
+            if (partialMatch) {
+                adminData = partialMatch;
+                matchMethod = 'partial email';
+                console.log('Found admin by partial email match');
+            }
+        }
+
+        console.log('Admin data found:', adminData);
+        console.log('Match method:', matchMethod);
+
+        // Check if admin exists (status can be ACTIVE or null - treat null as active for backwards compatibility)
+        if (adminData && (adminData.status === 'ACTIVE' || adminData.status === null || adminData.status === undefined)) {
+            // Check if this admin has roles
+            const { data: roleData, error: roleError } = await supabase
+                .from('admin_role_map')
+                .select(`
+                    role_id,
+                    admin_roles(id, role_name)
+                `)
+                .eq('admin_id', adminData.id);
+
+            console.log('Role query result:', roleData);
+            console.log('Role query error:', roleError);
+
+            if (roleData && roleData.length > 0) {
+                // Admin exists and has roles
+                const roles = roleData.map(role => role.admin_roles?.role_name).filter(Boolean);
+
+                console.log('Roles found:', roles);
+
                 res.json({
                     success: true,
                     isAdmin: true,
-                    role: data[0].role_name,
-                    admin: adminDetails
+                    role: roles[0] || 'ADMIN',
+                    roles: roles,
+                    admin: adminData
                 });
+                console.log('=== ADMIN CHECK END - ADMIN FOUND ===');
+                return;
+            } else {
+                console.log('Admin found but no roles assigned in admin_role_map');
             }
+        } else if (adminData) {
+            console.log('Admin found but status is not ACTIVE:', adminData.status);
         } else {
-            // User exists in admins table but has no role
-            res.json({ success: true, isAdmin: false, role: 'NOT_ADMIN' });
+            console.log('Admin not found in admins table by any matching strategy');
         }
 
-        console.log('=== ADMIN CHECK END ===');
+        // If we reach here, user is not an admin
+        res.json({
+            success: true,
+            isAdmin: false,
+            role: 'NOT_ADMIN',
+            roles: [],
+            admin: null
+        });
+
+        console.log('=== ADMIN CHECK END - NOT AN ADMIN ===');
     } catch (error) {
         console.error('Check admin error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+
+// DEBUG: List all admins (remove in production)
+router.get('/debug-admins', async (req, res) => {
+    try {
+        const { data: admins, error } = await supabase
+            .from('admins')
+            .select('*');
+
+        const { data: roleMaps, error: roleError } = await supabase
+            .from('admin_role_map')
+            .select('*, admin_roles(role_name)');
+
+        res.json({
+            success: true,
+            admins: admins,
+            role_mappings: roleMaps,
+            error: error?.message,
+            roleError: roleError?.message
+        });
+    } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
 });
@@ -382,7 +466,7 @@ router.get('/moderators', requireAdmin, async (req, res) => {
             return res.status(500).json({ success: false, message: error.message });
         }
 
-        // For each admin, get their roles
+        // For each admin, get their roles and permissions
         const adminsWithRoles = [];
         for (const admin of admins) {
             // Get roles for this admin
@@ -401,16 +485,31 @@ router.get('/moderators', requireAdmin, async (req, res) => {
             // Extract role names
             const roleNames = roleMappings.map(mapping => mapping.admin_roles?.role_name).filter(Boolean);
 
+            // Get permissions for each role
+            let permissions = {};
+            for (const roleMapping of roleMappings) {
+                const { data: permData, error: permError } = await supabase
+                    .from('role_permissions')
+                    .select(`
+                        permissions(permission_name)
+                    `)
+                    .eq('role_id', roleMapping.admin_roles.id);
+
+                if (permData) {
+                    permData.forEach(perm => {
+                        // Convert permission name to camelCase for the response
+                        const permName = perm.permissions.permission_name
+                            .toLowerCase()
+                            .replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase());
+                        permissions[permName] = true;
+                    });
+                }
+            }
+
             adminsWithRoles.push({
                 id: admin.id,
                 user_id: admin.id, // Using admin id as user_id for compatibility
-                permissions: {
-                    can_manage_tournaments: roleNames.includes('SUPER_ADMIN') || roleNames.includes('ADMIN') || roleNames.includes('MODERATOR'),
-                    can_view_user_data: roleNames.includes('SUPER_ADMIN') || roleNames.includes('ADMIN'),
-                    can_manage_registrations: roleNames.includes('SUPER_ADMIN') || roleNames.includes('ADMIN') || roleNames.includes('MODERATOR'),
-                    can_send_announcements: roleNames.includes('SUPER_ADMIN') || roleNames.includes('ADMIN'),
-                    can_generate_reports: roleNames.includes('SUPER_ADMIN') || roleNames.includes('ADMIN')
-                },
+                permissions: permissions,
                 user_info: {
                     student_id: null, // Not available for admins
                     email: admin.email,
@@ -1047,6 +1146,444 @@ router.post('/create-admin', requireAdmin, async (req, res) => {
         });
     } catch (error) {
         console.error('Create admin error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// Create a new admin (without role initially)
+router.post('/create-admin', requireAdmin, async (req, res) => {
+    try {
+        const { email, full_name, admin_id } = req.body;
+
+        // Check if admin already exists
+        const { data: existingAdmin, error: existingError } = await supabase
+            .from('admins')
+            .select('id')
+            .eq('email', email)
+            .single();
+
+        if (existingAdmin) {
+            return res.status(400).json({
+                success: false,
+                message: 'Admin with this email already exists'
+            });
+        }
+
+        // Create admin entry
+        const { data: newAdmin, error: adminError } = await supabase
+            .from('admins')
+            .insert([{
+                admin_id: admin_id || null,
+                email: email,
+                full_name: full_name,
+                status: 'ACTIVE'
+            }])
+            .select()
+            .single();
+
+        if (adminError) {
+            console.error('Create admin error:', adminError);
+            return res.status(500).json({
+                success: false,
+                message: 'Error creating admin',
+                error: adminError.message
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Admin created successfully',
+            admin: newAdmin
+        });
+    } catch (error) {
+        console.error('Create admin error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// Get all admin roles
+router.get('/roles', requireAdmin, async (req, res) => {
+    try {
+        const { data: roles, error } = await supabase
+            .from('admin_roles')
+            .select('*')
+            .order('role_name');
+
+        if (error) {
+            console.error('Get roles error:', error);
+            return res.status(500).json({ success: false, message: error.message });
+        }
+
+        res.json({ success: true, roles });
+    } catch (error) {
+        console.error('Get roles error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// Assign role to admin
+router.post('/assign-role', requireAdmin, async (req, res) => {
+    try {
+        const { admin_id, role_name } = req.body;
+
+        // The requireAdmin middleware already validates that the user is an admin
+        // So we can proceed with the role assignment
+
+        // First, get the admin by ID
+        const { data: admin, error: adminError } = await supabase
+            .from('admins')
+            .select('id, email, full_name')
+            .eq('id', admin_id)
+            .single();
+
+        if (adminError || !admin) {
+            return res.status(404).json({
+                success: false,
+                message: 'Admin not found'
+            });
+        }
+
+        // Get the role ID
+        const { data: role, error: roleError } = await supabase
+            .from('admin_roles')
+            .select('id')
+            .eq('role_name', role_name)
+            .single();
+
+        if (roleError || !role) {
+            return res.status(400).json({
+                success: false,
+                message: `Invalid role: ${role_name}.`
+            });
+        }
+
+        // Check if this admin already has this role
+        const { data: existingMapping, error: mappingError } = await supabase
+            .from('admin_role_map')
+            .select('id')
+            .eq('admin_id', admin.id)
+            .eq('role_id', role.id)
+            .single();
+
+        if (existingMapping) {
+            return res.status(400).json({
+                success: false,
+                message: `Admin already has the ${role_name} role`
+            });
+        }
+
+        // Create the role mapping
+        const { data: newRoleMapping, error: mappingCreationError } = await supabase
+            .from('admin_role_map')
+            .insert([{
+                admin_id: admin.id,
+                role_id: role.id
+            }])
+            .select()
+            .single();
+
+        if (mappingCreationError) {
+            console.error('Assign role error:', mappingCreationError);
+            return res.status(500).json({
+                success: false,
+                message: 'Error assigning role to admin',
+                error: mappingCreationError.message
+            });
+        }
+
+        res.json({
+            success: true,
+            message: `Role ${role_name} assigned to admin successfully`,
+            role_mapping: newRoleMapping
+        });
+    } catch (error) {
+        console.error('Assign role error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// Remove role from admin
+router.delete('/remove-role/:adminId/:roleId', requireAdmin, async (req, res) => {
+    try {
+        const { adminId, roleId } = req.params;
+
+        // The requireAdmin middleware already validates that the user is an admin
+        // So we can proceed with the role removal
+
+        // Find the admin by ID
+        const { data: admin, error: adminError } = await supabase
+            .from('admins')
+            .select('id, email, full_name')
+            .eq('id', adminId)
+            .single();
+
+        if (adminError || !admin) {
+            return res.status(404).json({
+                success: false,
+                message: 'Admin not found'
+            });
+        }
+
+        // Remove the specific role mapping
+        const { error: deleteError } = await supabase
+            .from('admin_role_map')
+            .delete()
+            .eq('admin_id', adminId)
+            .eq('role_id', roleId);
+
+        if (deleteError) {
+            console.error('Remove admin role error:', deleteError);
+            return res.status(500).json({
+                success: false,
+                message: 'Error removing role from admin',
+                error: deleteError.message
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Admin role removed successfully'
+        });
+    } catch (error) {
+        console.error('Remove admin role error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// Get all permissions
+router.get('/permissions', requireAdmin, async (req, res) => {
+    try {
+        const { data: permissions, error } = await supabase
+            .from('permissions')
+            .select('*')
+            .order('permission_name');
+
+        if (error) {
+            console.error('Get permissions error:', error);
+            return res.status(500).json({ success: false, message: error.message });
+        }
+
+        res.json({ success: true, permissions });
+    } catch (error) {
+        console.error('Get permissions error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// Assign permission to role
+router.post('/assign-permission', requireAdmin, async (req, res) => {
+    try {
+        const { role_id, permission_id } = req.body;
+
+        // Check if role and permission exist
+        const { data: role, error: roleError } = await supabase
+            .from('admin_roles')
+            .select('id')
+            .eq('id', role_id)
+            .single();
+
+        if (roleError || !role) {
+            return res.status(404).json({
+                success: false,
+                message: 'Role not found'
+            });
+        }
+
+        const { data: permission, error: permError } = await supabase
+            .from('permissions')
+            .select('id')
+            .eq('id', permission_id)
+            .single();
+
+        if (permError || !permission) {
+            return res.status(404).json({
+                success: false,
+                message: 'Permission not found'
+            });
+        }
+
+        // Check if this role already has this permission
+        const { data: existingMapping, error: mappingError } = await supabase
+            .from('role_permissions')
+            .select('id')
+            .eq('role_id', role_id)
+            .eq('permission_id', permission_id)
+            .single();
+
+        if (existingMapping) {
+            return res.status(400).json({
+                success: false,
+                message: 'Role already has this permission'
+            });
+        }
+
+        // Create the permission mapping
+        const { data: newPermMapping, error: mappingCreationError } = await supabase
+            .from('role_permissions')
+            .insert([{
+                role_id: role_id,
+                permission_id: permission_id
+            }])
+            .select()
+            .single();
+
+        if (mappingCreationError) {
+            console.error('Assign permission error:', mappingCreationError);
+            return res.status(500).json({
+                success: false,
+                message: 'Error assigning permission to role',
+                error: mappingCreationError.message
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Permission assigned to role successfully',
+            permission_mapping: newPermMapping
+        });
+    } catch (error) {
+        console.error('Assign permission error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// Get admin audit logs
+router.get('/audit-logs', requireAdmin, async (req, res) => {
+    try {
+        const { data: logs, error } = await supabase
+            .from('admin_audit_logs')
+            .select(`
+                id,
+                admin_id,
+                action,
+                target_type,
+                target_id,
+                action_time,
+                admins(full_name, email)
+            `)
+            .order('action_time', { ascending: false })
+            .limit(100); // Limit to last 100 logs
+
+        if (error) {
+            console.error('Get audit logs error:', error);
+            return res.status(500).json({ success: false, message: error.message });
+        }
+
+        // Format the logs
+        const formattedLogs = logs.map(log => ({
+            id: log.id,
+            admin: log.admins ? {
+                id: log.admins.id,
+                full_name: log.admins.full_name,
+                email: log.admins.email
+            } : null,
+            action: log.action,
+            target: {
+                type: log.target_type,
+                id: log.target_id
+            },
+            timestamp: log.action_time
+        }));
+
+        res.json({ success: true, logs: formattedLogs });
+    } catch (error) {
+        console.error('Get audit logs error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// Get tournament requests
+router.get('/tournament-requests', requireAdmin, async (req, res) => {
+    try {
+        const { data: requests, error } = await supabase
+            .from('tournament_requests')
+            .select(`
+                id,
+                requested_by,
+                title,
+                description,
+                registration_deadline,
+                status,
+                reviewed_by,
+                reviewed_at,
+                created_at,
+                admins(full_name, email)
+            `)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Get tournament requests error:', error);
+            return res.status(500).json({ success: false, message: error.message });
+        }
+
+        // Format the requests
+        const formattedRequests = requests.map(request => ({
+            id: request.id,
+            requested_by: {
+                id: request.requested_by,
+                full_name: request.admins?.full_name || 'Unknown',
+                email: request.admins?.email || 'unknown@example.com'
+            },
+            title: request.title,
+            description: request.description,
+            registration_deadline: request.registration_deadline,
+            status: request.status,
+            reviewed_by: request.reviewed_by,
+            reviewed_at: request.reviewed_at,
+            created_at: request.created_at
+        }));
+
+        res.json({ success: true, requests: formattedRequests });
+    } catch (error) {
+        console.error('Get tournament requests error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// Get game requests
+router.get('/game-requests', requireAdmin, async (req, res) => {
+    try {
+        const { data: requests, error } = await supabase
+            .from('game_requests')
+            .select(`
+                id,
+                tournament_id,
+                requested_by,
+                game_name,
+                category,
+                game_type,
+                status,
+                approved_by,
+                approved_at,
+                admins(full_name, email)
+            `)
+            .order('approved_at', { ascending: false });
+
+        if (error) {
+            console.error('Get game requests error:', error);
+            return res.status(500).json({ success: false, message: error.message });
+        }
+
+        // Format the requests
+        const formattedRequests = requests.map(request => ({
+            id: request.id,
+            tournament_id: request.tournament_id,
+            requested_by: {
+                id: request.requested_by,
+                full_name: request.admins?.full_name || 'Unknown',
+                email: request.admins?.email || 'unknown@example.com'
+            },
+            game_name: request.game_name,
+            category: request.category,
+            game_type: request.game_type,
+            status: request.status,
+            approved_by: request.approved_by,
+            approved_at: request.approved_at
+        }));
+
+        res.json({ success: true, requests: formattedRequests });
+    } catch (error) {
+        console.error('Get game requests error:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 });

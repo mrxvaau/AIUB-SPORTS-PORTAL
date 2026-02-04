@@ -31,12 +31,26 @@ const API_CONFIG = {
         CART_REMOVE: (cartItemId) => `/auth/cart/${cartItemId}`,
         CART_CLEAR: (studentId) => `/auth/cart/clear/${studentId}`,
         CANCEL_REGISTRATION: (gameId, studentId) => `/auth/registration/${gameId}/${studentId}`,
-        
+
+        // Game and tournament requests
+        REQUEST_GAME: '/auth/request-game',
+        REQUEST_TOURNAMENT: '/auth/request-tournament',
+        GET_USER_GAME_REQUESTS: (studentId) => `/auth/game-requests/${studentId}`,
+        GET_USER_TOURNAMENT_REQUESTS: (studentId) => `/auth/tournament-requests/${studentId}`,
+
         // Admin endpoints
         CHECK_ADMIN: '/admin/check-admin',
         PROMOTE_USER: '/admin/promote-user',
+        ASSIGN_ROLE: '/admin/assign-role',
+        REMOVE_ROLE: (adminId, roleId) => `/admin/remove-role/${adminId}/${roleId}`,
         DEMOTE_MODERATOR: (userId) => `/admin/demote-moderator/${userId}`,
         MODERATORS: '/admin/moderators',
+        ROLES: '/admin/roles',
+        PERMISSIONS: '/admin/permissions',
+        ASSIGN_PERMISSION: '/admin/assign-permission',
+        AUDIT_LOGS: '/admin/audit-logs',
+        TOURNAMENT_REQUESTS: '/admin/tournament-requests',
+        GAME_REQUESTS: '/admin/game-requests',
         CREATE_TOURNAMENT: '/admin/tournaments',
         GET_TOURNAMENTS: '/admin/tournaments',
         GET_TOURNAMENT_GAMES: (id) => `/admin/tournaments/${id}/games`,

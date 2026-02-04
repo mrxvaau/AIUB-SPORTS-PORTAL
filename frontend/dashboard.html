@@ -1306,24 +1306,34 @@
                     return;
                 }
 
-                // Check if admin - SIMPLIFIED
+                // Check if admin
                 try {
                     const adminCheck = await fetch(`${API_URL}/admin/check-admin`, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
                         body: JSON.stringify({ email })
                     });
                     const adminData = await adminCheck.json();
                     console.log('Admin check result:', adminData);
 
-                    if (adminData.isAdmin === true) {
+                    if (adminData.success && adminData.isAdmin === true) {
                         console.log('User is admin!');
                         document.getElementById('adminBtn').style.display = 'block';
                         localStorage.setItem('isAdmin', 'true');
                         localStorage.setItem('adminRole', adminData.role || 'ADMIN');
+                    } else {
+                        console.log('User is not an admin or admin check failed');
+                        document.getElementById('adminBtn').style.display = 'none';
+                        localStorage.removeItem('isAdmin');
+                        localStorage.removeItem('adminRole');
                     }
                 } catch (err) {
                     console.log('Admin check failed:', err);
+                    document.getElementById('adminBtn').style.display = 'none';
+                    localStorage.removeItem('isAdmin');
+                    localStorage.removeItem('adminRole');
                 }
 
                 // Use the new dashboard endpoint for profile data
@@ -1644,6 +1654,85 @@
         // Close tournament modal
         function closeTournamentModal() {
             document.getElementById('tournamentModal').classList.add('hidden');
+        }
+
+        // Request a new game for a tournament
+        async function requestGameForTournament(tournamentId) {
+            const studentId = localStorage.getItem('studentId');
+            const gameName = prompt('Enter the name of the game you want to request:');
+            const category = prompt('Enter the category (Male/Female/Mix):');
+            const gameType = prompt('Enter the game type (Solo/Duo/Custom):');
+
+            if (!gameName || !category || !gameType) {
+                alert('All fields are required for the request.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/auth/request-game`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        studentId: studentId,
+                        tournamentId: tournamentId,
+                        gameName: gameName,
+                        category: category,
+                        gameType: gameType
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('Game request submitted successfully!');
+                } else {
+                    alert(`Error submitting request: ${data.message}`);
+                }
+            } catch (error) {
+                console.error('Request game error:', error);
+                alert('Error submitting game request. Please try again.');
+            }
+        }
+
+        // Request a new tournament
+        async function requestNewTournament() {
+            const studentId = localStorage.getItem('studentId');
+            const title = prompt('Enter the title of the tournament you want to request:');
+            const description = prompt('Enter a description for the tournament:');
+            const deadline = prompt('Enter the registration deadline (YYYY-MM-DD HH:MM):');
+
+            if (!title || !description || !deadline) {
+                alert('All fields are required for the request.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/auth/request-tournament`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        studentId: studentId,
+                        title: title,
+                        description: description,
+                        registrationDeadline: deadline
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('Tournament request submitted successfully!');
+                } else {
+                    alert(`Error submitting request: ${data.message}`);
+                }
+            } catch (error) {
+                console.error('Request tournament error:', error);
+                alert('Error submitting tournament request. Please try again.');
+            }
         }
 
         // Load user registration status
