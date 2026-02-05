@@ -808,7 +808,7 @@ router.put('/tournaments/:id', requireAdmin, (req, res, next) => {
         // First check if tournament exists and get the current photo path
         const { data: currentTournament, error: checkError } = await supabase
             .from('tournaments')
-            .select('id, title as tournament_title, photo_url')
+            .select('id, title, photo_url')
             .eq('id', tournamentId)
             .single();
 
@@ -835,7 +835,7 @@ router.put('/tournaments/:id', requireAdmin, (req, res, next) => {
             console.log('Processing uploaded file for update:', req.file);
             try {
                 // Sanitize the title to be filesystem-safe
-                let tournamentTitle = title || currentTournament.tournament_title || 'untitled';
+                let tournamentTitle = title || currentTournament.title || 'untitled';
                 tournamentTitle = tournamentTitle.replace(/[^a-zA-Z0-9-_]/g, '_');
 
                 // Create the path: uploads/tournament_title/title_pic/
@@ -896,15 +896,24 @@ router.put('/tournaments/:id', requireAdmin, (req, res, next) => {
 
         // Format the deadline properly for Supabase
         let formattedDeadline;
+        if (!deadline) {
+            return res.status(400).json({
+                success: false,
+                message: 'Deadline is required'
+            });
+        }
+
         if (deadline instanceof Date) {
             formattedDeadline = deadline.toISOString();
         } else {
             // Handle the case where the date string is in local time format (YYYY-MM-DDTHH:mm)
-            // If it's in the format from datetime-local input, we need to treat it as local time
+            // datetime-local inputs give us format like "2024-02-05T14:30" without timezone
             let dateObj;
-            if (deadline.includes('T') && !deadline.includes('Z') && !deadline.includes('+') && !deadline.includes('-')) {
+            // Check if it's a datetime-local format (has T separator, no Z or + timezone indicator)
+            const isDatetimeLocal = deadline.includes('T') && !deadline.includes('Z') && !deadline.includes('+') && deadline.split('T')[1] && !deadline.split('T')[1].includes('-');
+
+            if (isDatetimeLocal) {
                 // This is likely a datetime-local format, treat as local time
-                // Convert to local date to UTC for storage
                 const [datePart, timePart] = deadline.split('T');
                 const [year, month, day] = datePart.split('-').map(Number);
                 const [hours, minutes] = timePart.split(':').map(Number);
@@ -917,8 +926,11 @@ router.put('/tournaments/:id', requireAdmin, (req, res, next) => {
             }
 
             if (isNaN(dateObj.getTime())) {
-                // If the date is invalid, throw an error
-                throw new Error('Invalid date format');
+                // If the date is invalid, return error
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid date format for deadline'
+                });
             }
             formattedDeadline = dateObj.toISOString();
         }
@@ -957,49 +969,115 @@ router.put('/tournaments/:id', requireAdmin, (req, res, next) => {
             });
         }
 
-        // Delete existing games for this tournament
-        const { error: deleteError } = await supabase
+        // Handle games update - PRESERVE existing game IDs to maintain registration links!
+        // Don't delete all games - only update/add/remove as needed
+
+        // First, get existing games for this tournament
+        const { data: existingGames, error: fetchGamesError } = await supabase
             .from('tournament_games')
-            .delete()
+            .select('id, category, game_name, game_type, fee_per_person')
             .eq('tournament_id', tournamentId);
 
-        if (deleteError) {
-            console.error('Error deleting existing games:', deleteError);
+        if (fetchGamesError) {
+            console.error('Error fetching existing games:', fetchGamesError);
             return res.status(500).json({
                 success: false,
-                message: 'Error updating tournament',
-                error: deleteError.message
+                message: 'Error fetching existing games',
+                error: fetchGamesError.message
             });
         }
 
-        // Insert new games if provided
+        // Create a map of existing games by category+name+type for quick lookup
+        const existingGamesMap = new Map();
+        (existingGames || []).forEach(game => {
+            const key = `${game.category}|${game.game_name}|${game.game_type}`;
+            existingGamesMap.set(key, game);
+        });
+
+        // Track which existing game IDs we're keeping
+        const keptGameIds = new Set();
+
+        // Process incoming games
         if (games && games.length > 0) {
             for (const game of games) {
-                // Map game types to allowed database values to comply with CHK_GAME_TYPE constraint
+                // Map game types to allowed database values
                 let dbGameType = game.type;
                 if (game.type === 'Duo (Mixed)') {
-                    dbGameType = 'Custom'; // Map Duo (Mixed) to Custom since it's a custom format
+                    dbGameType = 'Custom';
                 } else if (game.type.includes('v')) {
-                    // For team sizes like "5v5", "6v6", etc., store as 'Custom'
                     dbGameType = 'Custom';
                 } else if (!['Solo', 'Duo', 'Custom'].includes(game.type)) {
-                    // For any other custom format, use 'Custom'
                     dbGameType = 'Custom';
                 }
 
-                const { error: gameError } = await supabase
-                    .from('tournament_games')
-                    .insert([{
-                        tournament_id: tournamentId,
-                        category: game.category,
-                        game_name: game.name,
-                        game_type: dbGameType, // Use mapped type that's allowed by the constraint
-                        fee_per_person: game.fee
-                    }]);
+                // Check if this game already exists
+                const key = `${game.category}|${game.name}|${dbGameType}`;
+                const existingGame = existingGamesMap.get(key);
 
-                if (gameError) {
-                    console.error('Error inserting game:', game, 'Error:', gameError);
-                    throw gameError;
+                if (existingGame) {
+                    // Game exists - mark as kept (preserve the ID!)
+                    keptGameIds.add(existingGame.id);
+
+                    // Update fee if changed
+                    if (Number(existingGame.fee_per_person) !== Number(game.fee)) {
+                        const { error: updateGameError } = await supabase
+                            .from('tournament_games')
+                            .update({ fee_per_person: game.fee })
+                            .eq('id', existingGame.id);
+
+                        if (updateGameError) {
+                            console.error('Error updating game fee:', updateGameError);
+                        }
+                    }
+                } else {
+                    // New game - insert it
+                    const { error: gameError } = await supabase
+                        .from('tournament_games')
+                        .insert([{
+                            tournament_id: tournamentId,
+                            category: game.category,
+                            game_name: game.name,
+                            game_type: dbGameType,
+                            fee_per_person: game.fee
+                        }]);
+
+                    if (gameError) {
+                        console.error('Error inserting game:', game, 'Error:', gameError);
+                        throw gameError;
+                    }
+                }
+            }
+        }
+
+        // Delete games that are no longer in the list BUT check for registrations first!
+        const gamesToDelete = (existingGames || []).filter(g => !keptGameIds.has(g.id));
+
+        for (const gameToDelete of gamesToDelete) {
+            // Check if there are any registrations for this game
+            const { data: registrations, error: regCheckError } = await supabase
+                .from('game_registrations')
+                .select('id')
+                .eq('game_id', gameToDelete.id)
+                .limit(1);
+
+            if (regCheckError) {
+                console.error('Error checking registrations for game:', gameToDelete.id, regCheckError);
+                continue; // Skip this game, don't delete
+            }
+
+            if (registrations && registrations.length > 0) {
+                // Game has registrations - DON'T delete, just log warning
+                console.warn(`Cannot delete game ${gameToDelete.id} (${gameToDelete.game_name}) - has active registrations`);
+                // Optionally, you could mark the game as inactive instead of deleting
+            } else {
+                // No registrations - safe to delete
+                const { error: deleteGameError } = await supabase
+                    .from('tournament_games')
+                    .delete()
+                    .eq('id', gameToDelete.id);
+
+                if (deleteGameError) {
+                    console.error('Error deleting game:', gameToDelete.id, deleteGameError);
                 }
             }
         }

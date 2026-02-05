@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -241,7 +242,8 @@
         }
 
         .submenu.expanded {
-            max-height: 500px; /* Adjust as needed */
+            max-height: 500px;
+            /* Adjust as needed */
         }
 
         .content {
@@ -280,7 +282,9 @@
             margin-bottom: 12px;
         }
 
-        .edit-btn, .save-btn, .cancel-btn {
+        .edit-btn,
+        .save-btn,
+        .cancel-btn {
             padding: 8px 16px;
             border-radius: 6px;
             font-size: 14px;
@@ -613,7 +617,10 @@
             justify-content: center;
             z-index: 9999;
         }
-        .modal-backdrop.active { display: flex; }
+
+        .modal-backdrop.active {
+            display: flex;
+        }
 
         .modal {
             width: 100%;
@@ -624,19 +631,57 @@
             border: 1px solid rgba(148, 163, 184, 0.6);
             padding: 18px 18px 16px 18px;
         }
-        .modal-header {
-            display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;
-        }
-        .modal-title {font-size:15px;font-weight:600;}
-        .modal-close {
-            border:none;background:transparent;font-size:18px;cursor:pointer;color:#6b7280;
-        }
-        .modal-body {max-height:60vh;overflow-y:auto;padding-right:4px;}
-        .modal-footer {margin-top:10px;display:flex;justify-content:flex-end;gap:8px;}
 
-        .field {margin-bottom:12px;}
-        .field label {display:block;font-size:13px;font-weight:500;margin-bottom:5px;}
-        .field small {display:block;font-size:11px;color:#6b7280;margin-top:3px;}
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .modal-title {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            border: none;
+            background: transparent;
+            font-size: 18px;
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        .modal-body {
+            max-height: 60vh;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .modal-footer {
+            margin-top: 10px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .field {
+            margin-bottom: 12px;
+        }
+
+        .field label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .field small {
+            display: block;
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 3px;
+        }
 
         input[type="text"],
         input[type="number"],
@@ -649,30 +694,60 @@
             background: #f9fafb;
             outline: none;
         }
-        input:focus, select:focus {
-            border-color:#4f46e5;
-            box-shadow:0 0 0 1px rgba(79,70,229,0.2);
-            background:#fff;
+
+        input:focus,
+        select:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.2);
+            background: #fff;
         }
 
-        .pill-group {display:flex;flex-wrap:wrap;gap:6px;}
+        .pill-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
         .pill-check {
-            display:inline-flex;align-items:center;gap:4px;
-            border-radius:999px;padding:4px 9px;font-size:11px;
-            border:1px solid #d4d4d8;cursor:pointer;background:#f9fafb;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            border-radius: 999px;
+            padding: 4px 9px;
+            font-size: 11px;
+            border: 1px solid #d4d4d8;
+            cursor: pointer;
+            background: #f9fafb;
         }
+
         .pill-check input {
-            width:0;height:0;opacity:0;position:absolute;pointer-events:none;
+            width: 0;
+            height: 0;
+            opacity: 0;
+            position: absolute;
+            pointer-events: none;
         }
+
         .pill-check span.dot {
-            width:6px;height:6px;border-radius:999px;background:#9ca3af;
+            width: 6px;
+            height: 6px;
+            border-radius: 999px;
+            background: #9ca3af;
         }
+
         .pill-check.active {
-            border-color:#4f46e5;background:rgba(79,70,229,0.08);color:#4f46e5;
+            border-color: #4f46e5;
+            background: rgba(79, 70, 229, 0.08);
+            color: #4f46e5;
         }
-        .pill-check.active span.dot {background:#4f46e5;}
+
+        .pill-check.active span.dot {
+            background: #4f46e5;
+        }
+
         .pill-check.disabled {
-            opacity:0.45;cursor:not-allowed;
+            opacity: 0.45;
+            cursor: not-allowed;
         }
 
         .btn {
@@ -687,18 +762,35 @@
             align-items: center;
             gap: 6px;
         }
+
         .btn.primary {
-            background:#4f46e5;color:#fff;
+            background: #4f46e5;
+            color: #fff;
         }
-        .btn.secondary {background:#e5e7eb;}
 
-        .hint {font-size:11px;color:#6b7280;margin-top:4px;}
+        .btn.secondary {
+            background: #e5e7eb;
+        }
 
-        .flex-row {display:flex;gap:8px;}
-        .flex-row .field {flex:1;}
+        .hint {
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        .flex-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .flex-row .field {
+            flex: 1;
+        }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         /* Welcome Screen */
@@ -717,8 +809,13 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
 
         .welcome-content {
@@ -732,6 +829,7 @@
                 opacity: 0;
                 transform: translateY(30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -790,6 +888,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Header -->
     <div class="header">
@@ -811,19 +910,23 @@
             <span class="welcome-text" id="welcomeText">Welcome Admin</span>
             <div class="icon-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
                 <span class="notification-badge">3</span>
             </div>
             <div class="icon-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
             </div>
             <div class="icon-btn logout-btn" onclick="logout()">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
             </div>
         </div>
@@ -836,93 +939,115 @@
             <button class="sidebar-btn" onclick="showSection('existing-tournaments')">
                 <div class="sidebar-btn-content">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                     </svg>
                     <span>Existing Tournaments</span>
                 </div>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"
+                    height="16">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
             <button class="sidebar-btn" onclick="showSection('create-tournament')">
                 <div class="sidebar-btn-content">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
                     <span>Create Tournament</span>
                 </div>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"
+                    height="16">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
             <button class="sidebar-btn" id="databaseMenuBtn" onclick="toggleDatabaseSubmenu()">
                 <div class="sidebar-btn-content">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
                     </svg>
                     <span>Database</span>
                 </div>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16" id="databaseMenuIcon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"
+                    height="16" id="databaseMenuIcon">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
 
             <!-- Database Submenu -->
             <div id="databaseSubmenu" class="submenu">
-                <button class="sidebar-btn" style="width: 100%; justify-content: flex-start;" onclick="showPlaceholder('User Management')">
+                <button class="sidebar-btn" style="width: 100%; justify-content: flex-start;"
+                    onclick="showPlaceholder('User Management')">
                     <div class="sidebar-btn-content" style="padding-left: 10px;">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
                         </svg>
                         <span>User Management</span>
                     </div>
                 </button>
-                <button class="sidebar-btn" style="width: 100%; justify-content: flex-start;" onclick="showPlaceholder('Tournament Data Management')">
+                <button class="sidebar-btn" style="width: 100%; justify-content: flex-start;"
+                    onclick="showPlaceholder('Tournament Data Management')">
                     <div class="sidebar-btn-content" style="padding-left: 10px;">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                         </svg>
                         <span>Tournament Data Management</span>
                     </div>
                 </button>
-                <button class="sidebar-btn" style="width: 100%; justify-content: flex-start;" onclick="showPlaceholder('Registration Management')">
+                <button class="sidebar-btn" style="width: 100%; justify-content: flex-start;"
+                    onclick="showPlaceholder('Registration Management')">
                     <div class="sidebar-btn-content" style="padding-left: 10px;">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                         </svg>
                         <span>Registration Management</span>
                     </div>
                 </button>
-                <button class="sidebar-btn" style="width: 100%; justify-content: flex-start;" onclick="showPlaceholder('Database Maintenance')">
+                <button class="sidebar-btn" style="width: 100%; justify-content: flex-start;"
+                    onclick="showPlaceholder('Database Maintenance')">
                     <div class="sidebar-btn-content" style="padding-left: 10px;">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                         <span>Database Maintenance</span>
                     </div>
                 </button>
-                <button class="sidebar-btn" style="width: 100%; justify-content: flex-start;" onclick="showPlaceholder('Content Management')">
+                <button class="sidebar-btn" style="width: 100%; justify-content: flex-start;"
+                    onclick="showPlaceholder('Content Management')">
                     <div class="sidebar-btn-content" style="padding-left: 10px;">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                         </svg>
                         <span>Content Management</span>
                     </div>
                 </button>
-                <button class="sidebar-btn" style="width: 100%; justify-content: flex-start;" onclick="showPlaceholder('Analytics & Reporting')">
+                <button class="sidebar-btn" style="width: 100%; justify-content: flex-start;"
+                    onclick="showPlaceholder('Analytics & Reporting')">
                     <div class="sidebar-btn-content" style="padding-left: 10px;">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                         </svg>
                         <span>Analytics & Reporting</span>
                     </div>
                 </button>
-                <button class="sidebar-btn" style="width: 100%; justify-content: flex-start;" onclick="showPlaceholder('System Configuration')">
+                <button class="sidebar-btn" style="width: 100%; justify-content: flex-start;"
+                    onclick="showPlaceholder('System Configuration')">
                     <div class="sidebar-btn-content" style="padding-left: 10px;">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                         <span>System Configuration</span>
                     </div>
@@ -931,22 +1056,26 @@
             <button class="sidebar-btn" onclick="showPlaceholder('Messages')">
                 <div class="sidebar-btn-content">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
                     <span>Messages</span>
                 </div>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"
+                    height="16">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
             <button class="sidebar-btn" onclick="showPlaceholder('Bug Report')">
                 <div class="sidebar-btn-content">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <span>Bug Report</span>
                 </div>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"
+                    height="16">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
@@ -1544,12 +1673,11 @@
                                     <br>
                                     <small>${moderator.user_info?.email || 'N/A'}</small>
                                     <br>
-                                    <small>Permissions: ${
-                                        Object.entries(moderator.permissions)
-                                            .filter(([key, value]) => value)
-                                            .map(([key]) => key.replace(/([A-Z])/g, ' $1').trim())
-                                            .join(', ') || 'None'
-                                    }</small>
+                                    <small>Permissions: ${Object.entries(moderator.permissions)
+                                .filter(([key, value]) => value)
+                                .map(([key]) => key.replace(/([A-Z])/g, ' $1').trim())
+                                .join(', ') || 'None'
+                            }</small>
                                 </div>
                                 <div class="moderator-actions">
                                     <button class="demote-btn" onclick="demoteModerator(${moderator.user_id})">
@@ -1621,16 +1749,14 @@
                                     <br>
                                     <small>${admin.user_info?.email || 'N/A'}</small>
                                     <br>
-                                    <small>Roles: ${
-                                        admin.roles?.join(', ') || 'None'
-                                    }</small>
+                                    <small>Roles: ${admin.roles?.join(', ') || 'None'
+                            }</small>
                                     <br>
-                                    <small>Permissions: ${
-                                        Object.entries(admin.permissions)
-                                            .filter(([key, value]) => value)
-                                            .map(([key]) => key.replace(/([A-Z])/g, ' $1').trim())
-                                            .join(', ') || 'None'
-                                    }</small>
+                                    <small>Permissions: ${Object.entries(admin.permissions)
+                                .filter(([key, value]) => value)
+                                .map(([key]) => key.replace(/([A-Z])/g, ' $1').trim())
+                                .join(', ') || 'None'
+                            }</small>
                                 </div>
                                 <div class="moderator-actions">
                                     <button class="demote-btn" onclick="demoteAdmin(${admin.user_id})">
@@ -1986,7 +2112,7 @@
                                 if (tournament.photo_url.startsWith('/uploads/')) {
                                     // It's a file path, construct the full URL - use window origin to ensure correct base
                                     // Use the API server URL instead of window origin for static files
-                                const fullPhotoUrl = `${API_URL.replace('/api', '')}${tournament.photo_url}`;
+                                    const fullPhotoUrl = `${API_URL.replace('/api', '')}${tournament.photo_url}`;
                                     console.log('Photo URL being constructed:', fullPhotoUrl, 'Original API_URL:', API_URL, 'Original photo_url:', tournament.photo_url);
                                     photoHtml = `<img src="${fullPhotoUrl}" style="width: 50px; height: 50px; object-fit: contain; object-position: center; border-radius: 4px; margin-right: 10px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onerror="this.onerror=null; console.error('Failed to load image:', this.src); this.parentElement.innerHTML='<div style=&quot;width: 50px; height: 50px; background: #e5e7eb; border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-right: 10px; color: #9ca3af; font-size: 12px;&quot;>No Image</div>';" onload="console.log(\'Successfully loaded image:\', this.src)">`;
                                 } else if (tournament.photo_url.startsWith('data:image')) {
@@ -2035,7 +2161,7 @@
                             </div>
                         `;
                     });
-                    
+
                     tournamentsList.innerHTML = html;
                 } else {
                     document.getElementById('tournamentsList').innerHTML = '<p class="info-value">Failed to load tournaments.</p>';
@@ -2116,7 +2242,7 @@
                     </div>
                 </form>
             `;
-            
+
             document.getElementById('createTournamentForm').innerHTML = formHtml;
         }
 
@@ -2228,7 +2354,7 @@
             if (photoFile) {
                 // For file uploads, we'll pass the raw deadlineInput value to submitTournament in the callback
                 const reader = new FileReader();
-                reader.onload = async function(e) {
+                reader.onload = async function (e) {
                     // For file uploads, we'll pass photo as file via FormData, not as base64
                     await submitTournament(title, null, null, tournamentGames, description, deadlineInput);
                 };
@@ -2377,23 +2503,23 @@
                     // Pre-fill the form with existing data
                     document.getElementById('title').value = title || '';
                     // Format date properly for datetime-local input (YYYY-MM-DDTHH:mm format)
-            if (deadline) {
-                // If deadline is already in the right format, use it directly
-                if (typeof deadline === 'string' && deadline.includes('T')) {
-                    document.getElementById('deadline').value = deadline.slice(0, 16);
-                } else {
-                    // If it's a different format, create a proper datetime string
-                    const date = new Date(deadline);
-                    const year = date.getFullYear();
-                    const month = String(date.getMonth() + 1).padStart(2, '0');
-                    const day = String(date.getDate()).padStart(2, '0');
-                    const hours = String(date.getHours()).padStart(2, '0');
-                    const minutes = String(date.getMinutes()).padStart(2, '0');
-                    document.getElementById('deadline').value = `${year}-${month}-${day}T${hours}:${minutes}`;
-                }
-            } else {
-                document.getElementById('deadline').value = '';
-            }
+                    if (deadline) {
+                        // If deadline is already in the right format, use it directly
+                        if (typeof deadline === 'string' && deadline.includes('T')) {
+                            document.getElementById('deadline').value = deadline.slice(0, 16);
+                        } else {
+                            // If it's a different format, create a proper datetime string
+                            const date = new Date(deadline);
+                            const year = date.getFullYear();
+                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                            const day = String(date.getDate()).padStart(2, '0');
+                            const hours = String(date.getHours()).padStart(2, '0');
+                            const minutes = String(date.getMinutes()).padStart(2, '0');
+                            document.getElementById('deadline').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+                        }
+                    } else {
+                        document.getElementById('deadline').value = '';
+                    }
                     document.getElementById('description').value = description || '';
 
                     // Reset game containers
@@ -2412,7 +2538,7 @@
                     if (submitButton) {
                         submitButton.textContent = 'Update Tournament';
                         // Store the tournament ID for the update operation
-                        submitButton.onclick = function() {
+                        submitButton.onclick = function () {
                             updateTournament(tournamentId);
                         };
                     }
@@ -2715,6 +2841,39 @@
             // The tournamentGames array is only for newly added games during the add-tournament process
             // During editing, all games should be handled through the UI elements
 
+            // HOWEVER, if games were added via the game modal during editing, include them too
+            // The game modal adds games to tournamentGames array
+            if (typeof tournamentGames !== 'undefined' && tournamentGames.length > 0) {
+                tournamentGames.forEach(game => {
+                    games.push({
+                        category: game.category,
+                        name: game.name,
+                        type: game.type,
+                        fee: game.fee
+                    });
+                });
+                console.log('Added', tournamentGames.length, 'games from modal to update');
+            }
+
+            // Remove duplicate games (same category + name + type)
+            // Keep only the first occurrence of each unique game
+            const uniqueGames = [];
+            const seenGames = new Set();
+            games.forEach(game => {
+                const gameKey = `${game.category}-${game.name}-${game.type}`;
+                if (!seenGames.has(gameKey)) {
+                    seenGames.add(gameKey);
+                    uniqueGames.push(game);
+                } else {
+                    console.log('Duplicate game skipped:', gameKey);
+                }
+            });
+
+            // Replace games array with deduplicated version
+            games.length = 0;
+            uniqueGames.forEach(g => games.push(g));
+            console.log('Final games after deduplication:', games.length);
+
             if (games.length === 0) {
                 showAlert('Please add at least one game', 'error');
                 return;
@@ -2804,10 +2963,65 @@
             const gameElement = document.getElementById(gameElementId);
 
             if (gameElement) {
+                // Get the game name AND type from the display element to find matching form entry
+                const gameName = gameElement.querySelector('strong')?.textContent || '';
+                // Game type is in the span after the strong tag, format: "(Solo)" or "(Duo)"
+                const gameTypeSpan = gameElement.querySelector('span');
+                let gameType = '';
+                if (gameTypeSpan) {
+                    // Extract type from "(Solo)" format - remove parentheses
+                    gameType = gameTypeSpan.textContent.replace(/[()]/g, '').trim();
+                }
+
+                // Determine category from the element ID pattern (male-game-*, female-game-*, mix-game-*)
+                let category = '';
+                if (gameElementId.startsWith('male-game-')) {
+                    category = 'male';
+                } else if (gameElementId.startsWith('female-game-')) {
+                    category = 'female';
+                } else if (gameElementId.startsWith('mix-game-')) {
+                    category = 'mix';
+                }
+
+                // Find and remove the corresponding form entry from the category container
+                // Match by BOTH game name AND game type to avoid removing wrong games
+                if (category) {
+                    const formContainer = document.getElementById(`${category}Games`);
+                    if (formContainer) {
+                        const formEntries = formContainer.querySelectorAll('.game-entry');
+                        let removed = false;
+                        formEntries.forEach(entry => {
+                            if (removed) return; // Only remove first matching entry
+
+                            // Check if this form entry matches the game being deleted
+                            const gameNameSelect = entry.querySelector('.game-name-select');
+                            const gameNameInput = entry.querySelector('.game-name');
+                            const gameTypeSelect = entry.querySelector('.game-type');
+
+                            let formGameName = '';
+                            if (gameNameSelect && gameNameSelect.value && gameNameSelect.value !== 'Custom') {
+                                formGameName = gameNameSelect.value;
+                            } else if (gameNameInput) {
+                                formGameName = gameNameInput.value;
+                            }
+
+                            let formGameType = gameTypeSelect ? gameTypeSelect.value : '';
+
+                            // Match by BOTH name AND type
+                            if (formGameName === gameName && formGameType === gameType) {
+                                entry.remove();
+                                removed = true;
+                                console.log(`Removed form entry for game: ${gameName} (${gameType}) from ${category}Games`);
+                            }
+                        });
+                    }
+                }
+
+                // Remove the display element
+                const parentContainer = gameElement.parentElement;
                 gameElement.remove();
 
                 // Check if any games remain in the parent container
-                const parentContainer = gameElement.parentElement;
                 if (parentContainer && parentContainer.children.length === 0) {
                     // Hide the category header if no more games remain
                     parentContainer.parentElement.style.display = 'none';
@@ -2915,19 +3129,19 @@
 
         // GAME RULES (same logic we discussed)
         const GC_GAME_RULES = {
-            chess:        { solo: true,  duo: false, mixDuo: false, nvn: false, lockSoloOnly: true },
-            carrom:       { solo: true,  duo: true,  mixDuo: true,  nvn: false },
-            badminton:    { solo: true,  duo: true,  mixDuo: true,  nvn: false },
-            lawnTennis:   { solo: true,  duo: true,  mixDuo: true,  nvn: false },
-            tableTennis:  { solo: true,  duo: true,  mixDuo: true,  nvn: false },
-            pool:         { solo: true,  duo: true,  mixDuo: true,  nvn: false },
-            ludo:         { solo: false, duo: true,  mixDuo: true,  nvn: false }, // duo + mix only
-            football:     { solo: false, duo: false, mixDuo: false, nvn: true  },
-            cricket:      { solo: false, duo: false, mixDuo: false, nvn: true  },
-            basketball:   { solo: false, duo: false, mixDuo: false, nvn: true  },
-            futsal:       { solo: false, duo: false, mixDuo: false, nvn: true  },
-            handball:     { solo: false, duo: false, mixDuo: false, nvn: true  },
-            volleyball:   { solo: false, duo: false, mixDuo: false, nvn: true  },
+            chess: { solo: true, duo: false, mixDuo: false, nvn: false, lockSoloOnly: true },
+            carrom: { solo: true, duo: true, mixDuo: true, nvn: false },
+            badminton: { solo: true, duo: true, mixDuo: true, nvn: false },
+            lawnTennis: { solo: true, duo: true, mixDuo: true, nvn: false },
+            tableTennis: { solo: true, duo: true, mixDuo: true, nvn: false },
+            pool: { solo: true, duo: true, mixDuo: true, nvn: false },
+            ludo: { solo: false, duo: true, mixDuo: true, nvn: false }, // duo + mix only
+            football: { solo: false, duo: false, mixDuo: false, nvn: true },
+            cricket: { solo: false, duo: false, mixDuo: false, nvn: true },
+            basketball: { solo: false, duo: false, mixDuo: false, nvn: true },
+            futsal: { solo: false, duo: false, mixDuo: false, nvn: true },
+            handball: { solo: false, duo: false, mixDuo: false, nvn: true },
+            volleyball: { solo: false, duo: false, mixDuo: false, nvn: true },
         };
 
         function openGameCategoryModal() {
@@ -2956,9 +3170,9 @@
 
         function gc_resetFormats() {
             const formatIds = [
-                { pill: 'gc_fmtSolo',  input: 'gc_formatSolo' },
-                { pill: 'gc_fmtDuo',   input: 'gc_formatDuo' },
-                { pill: 'gc_fmtMixDuo',input: 'gc_formatMixDuo' },
+                { pill: 'gc_fmtSolo', input: 'gc_formatSolo' },
+                { pill: 'gc_fmtDuo', input: 'gc_formatDuo' },
+                { pill: 'gc_fmtMixDuo', input: 'gc_formatMixDuo' },
                 { pill: 'gc_fmtSquad', input: 'gc_formatSquad' },
             ];
             formatIds.forEach(({ pill, input }) => {
@@ -3252,143 +3466,149 @@
         <div class="delete-modal-content">
             <div class="delete-modal-header">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                 </svg>
                 Delete Tournament?
             </div>
             <div class="delete-modal-warning">
-                <strong>Warning:</strong> This action cannot be undone. All data related to this tournament will be permanently removed.
+                <strong>Warning:</strong> This action cannot be undone. All data related to this tournament will be
+                permanently removed.
             </div>
             <p>Are you sure you want to delete the tournament "<strong id="deleteTournamentTitle"></strong>"?</p>
             <div class="delete-input-container">
                 <label class="delete-input-label">Type "yes, i want to delete it" to confirm:</label>
-                <input type="text" id="deleteConfirmInput" class="delete-input" placeholder="yes, i want to delete it" oninput="handleDeleteInput()">
+                <input type="text" id="deleteConfirmInput" class="delete-input" placeholder="yes, i want to delete it"
+                    oninput="handleDeleteInput()">
             </div>
             <input type="hidden" id="deleteTournamentId">
             <div class="delete-buttons">
                 <button class="delete-btn delete-btn-cancel" onclick="cancelDelete()">Cancel</button>
-                <button class="delete-btn delete-btn-confirm" id="deleteConfirmBtn" disabled onclick="confirmDelete()">Confirm</button>
+                <button class="delete-btn delete-btn-confirm" id="deleteConfirmBtn" disabled
+                    onclick="confirmDelete()">Confirm</button>
             </div>
         </div>
     </div>
 
     <!-- Game Category Modal -->
     <div class="modal-backdrop" id="gameCategoryModal">
-      <div class="modal">
-        <div class="modal-header">
-          <div class="modal-title">Add game to this tournament</div>
-          <button class="modal-close" type="button" onclick="closeGameCategoryModal()">×</button>
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Add game to this tournament</div>
+                <button class="modal-close" type="button" onclick="closeGameCategoryModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="field">
+                    <label for="gc_gameSelect">Game</label>
+                    <select id="gc_gameSelect" onchange="gc_handleGameChange(this.value)">
+                        <option value="">Select game</option>
+                        <!-- Solo-only -->
+                        <option value="chess">Chess</option>
+                        <!-- Solo + Duo + Mixed (racket-type) -->
+                        <option value="badminton">Badminton</option>
+                        <option value="carrom">Carrom</option>
+                        <option value="lawnTennis">Lawn Tennis</option>
+                        <option value="tableTennis">Table Tennis</option>
+                        <option value="pool">Pool</option>
+                        <!-- Duo + Mixed only -->
+                        <option value="ludo">Ludo</option>
+                        <!-- NVN team games -->
+                        <option value="football">Football</option>
+                        <option value="cricket">Cricket</option>
+                        <option value="basketball">Basketball</option>
+                        <option value="futsal">Futsal</option>
+                        <option value="handball">Handball</option>
+                        <option value="volleyball">Volleyball</option>
+                        <!-- Custom -->
+                        <option value="custom">Custom...</option>
+                    </select>
+                    <small>Select from default list or add a custom game.</small>
+                </div>
+
+                <div class="field" id="gc_customGameField" style="display:none;">
+                    <label for="gc_customGame">Custom game name</label>
+                    <input id="gc_customGame" type="text" placeholder="e.g. PUBG Mobile Squad" />
+                    <small>Useful for future events like PUBG, Valorant, etc.</small>
+                </div>
+
+                <div class="field">
+                    <label>Available for</label>
+                    <div class="pill-group" id="gc_personGroup">
+                        <label class="pill-check active" onclick="gc_togglePill(this)">
+                            <input type="checkbox" checked />
+                            <span class="dot"></span>
+                            Men
+                        </label>
+                        <label class="pill-check active" onclick="gc_togglePill(this)">
+                            <input type="checkbox" checked />
+                            <span class="dot"></span>
+                            Women
+                        </label>
+                    </div>
+                    <div class="hint">
+                        By default, Men and Women are both allowed for all standard games.
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>Tournament format</label>
+                    <div class="pill-group">
+                        <label class="pill-check" id="gc_fmtSolo" onclick="gc_toggleFormatPill(this)">
+                            <input type="checkbox" id="gc_formatSolo" />
+                            <span class="dot"></span>
+                            Solo
+                        </label>
+                        <label class="pill-check" id="gc_fmtDuo" onclick="gc_toggleFormatPill(this)">
+                            <input type="checkbox" id="gc_formatDuo" />
+                            <span class="dot"></span>
+                            Duo
+                        </label>
+                        <label class="pill-check" id="gc_fmtMixDuo" onclick="gc_toggleFormatPill(this)">
+                            <input type="checkbox" id="gc_formatMixDuo" />
+                            <span class="dot"></span>
+                            Duo (Mixed)
+                        </label>
+                        <label class="pill-check" id="gc_fmtSquad" onclick="gc_toggleFormatPill(this)">
+                            <input type="checkbox" id="gc_formatSquad" />
+                            <span class="dot"></span>
+                            Squad / Team (NVN)
+                        </label>
+                    </div>
+                    <div class="hint">
+                        Logic: Chess = only Solo, Pool = Solo+Duo+Mixed, Ludo = Duo+Mixed, Football = Squad only, etc.
+                    </div>
+                </div>
+
+                <div class="flex-row" id="gc_customTeamSizeRow" style="margin-top:8px;display:none;">
+                    <div class="field">
+                        <label for="gc_teamSize">Players per team (for Squad)</label>
+                        <input id="gc_teamSize" type="text" placeholder="e.g. 6, 7, 8, 9, 10, 11" />
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="gc_entryFee">Entry fee per person (৳)</label>
+                    <input id="gc_entryFee" type="number" min="0" value="100" />
+                    <small>Default is <strong>100 taka per person</strong>. Change if needed.</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn secondary" type="button" onclick="closeGameCategoryModal()">Cancel</button>
+                <button class="btn primary" type="button" onclick="gc_saveGame()">
+                    Save game
+                </button>
+            </div>
         </div>
-        <div class="modal-body">
-          <div class="field">
-            <label for="gc_gameSelect">Game</label>
-            <select id="gc_gameSelect" onchange="gc_handleGameChange(this.value)">
-              <option value="">Select game</option>
-              <!-- Solo-only -->
-              <option value="chess">Chess</option>
-              <!-- Solo + Duo + Mixed (racket-type) -->
-              <option value="badminton">Badminton</option>
-              <option value="carrom">Carrom</option>
-              <option value="lawnTennis">Lawn Tennis</option>
-              <option value="tableTennis">Table Tennis</option>
-              <option value="pool">Pool</option>
-              <!-- Duo + Mixed only -->
-              <option value="ludo">Ludo</option>
-              <!-- NVN team games -->
-              <option value="football">Football</option>
-              <option value="cricket">Cricket</option>
-              <option value="basketball">Basketball</option>
-              <option value="futsal">Futsal</option>
-              <option value="handball">Handball</option>
-              <option value="volleyball">Volleyball</option>
-              <!-- Custom -->
-              <option value="custom">Custom...</option>
-            </select>
-            <small>Select from default list or add a custom game.</small>
-          </div>
-
-          <div class="field" id="gc_customGameField" style="display:none;">
-            <label for="gc_customGame">Custom game name</label>
-            <input id="gc_customGame" type="text" placeholder="e.g. PUBG Mobile Squad" />
-            <small>Useful for future events like PUBG, Valorant, etc.</small>
-          </div>
-
-          <div class="field">
-            <label>Available for</label>
-            <div class="pill-group" id="gc_personGroup">
-              <label class="pill-check active" onclick="gc_togglePill(this)">
-                <input type="checkbox" checked />
-                <span class="dot"></span>
-                Men
-              </label>
-              <label class="pill-check active" onclick="gc_togglePill(this)">
-                <input type="checkbox" checked />
-                <span class="dot"></span>
-                Women
-              </label>
-            </div>
-            <div class="hint">
-              By default, Men and Women are both allowed for all standard games.
-            </div>
-          </div>
-
-          <div class="field">
-            <label>Tournament format</label>
-            <div class="pill-group">
-              <label class="pill-check" id="gc_fmtSolo" onclick="gc_toggleFormatPill(this)">
-                <input type="checkbox" id="gc_formatSolo" />
-                <span class="dot"></span>
-                Solo
-              </label>
-              <label class="pill-check" id="gc_fmtDuo" onclick="gc_toggleFormatPill(this)">
-                <input type="checkbox" id="gc_formatDuo" />
-                <span class="dot"></span>
-                Duo
-              </label>
-              <label class="pill-check" id="gc_fmtMixDuo" onclick="gc_toggleFormatPill(this)">
-                <input type="checkbox" id="gc_formatMixDuo" />
-                <span class="dot"></span>
-                Duo (Mixed)
-              </label>
-              <label class="pill-check" id="gc_fmtSquad" onclick="gc_toggleFormatPill(this)">
-                <input type="checkbox" id="gc_formatSquad" />
-                <span class="dot"></span>
-                Squad / Team (NVN)
-              </label>
-            </div>
-            <div class="hint">
-              Logic: Chess = only Solo, Pool = Solo+Duo+Mixed, Ludo = Duo+Mixed, Football = Squad only, etc.
-            </div>
-          </div>
-
-          <div class="flex-row" id="gc_customTeamSizeRow" style="margin-top:8px;display:none;">
-            <div class="field">
-              <label for="gc_teamSize">Players per team (for Squad)</label>
-              <input id="gc_teamSize" type="text" placeholder="e.g. 6, 7, 8, 9, 10, 11" />
-            </div>
-          </div>
-
-          <div class="field">
-            <label for="gc_entryFee">Entry fee per person (৳)</label>
-            <input id="gc_entryFee" type="number" min="0" value="100" />
-            <small>Default is <strong>100 taka per person</strong>. Change if needed.</small>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn secondary" type="button" onclick="closeGameCategoryModal()">Cancel</button>
-          <button class="btn primary" type="button" onclick="gc_saveGame()">
-            Save game
-          </button>
-        </div>
-      </div>
     </div>
 
     <!-- Custom Confirmation Modal for Removing Games -->
     <div id="removeGameConfirmModal" class="delete-modal" style="display: none; z-index: 10001;">
         <div class="delete-modal-content">
             <div class="delete-modal-header" style="background: #f87171; color: white;">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 24px; height: 24px; margin-right: 8px;">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                    style="width: 24px; height: 24px; margin-right: 8px;">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                 </svg>
                 Confirm Remove
             </div>
@@ -3399,9 +3619,11 @@
             <input type="hidden" id="removeGameElementId">
             <div class="delete-buttons">
                 <button class="btn-cancel" onclick="closeRemoveGameConfirmModal()">Cancel</button>
-                <button class="btn-confirm" onclick="confirmRemoveGame()" style="background: #ef4444; color: white; padding: 10px 25px;">Confirm</button>
+                <button class="btn-confirm" onclick="confirmRemoveGame()"
+                    style="background: #ef4444; color: white; padding: 10px 25px;">Confirm</button>
             </div>
         </div>
     </div>
 </body>
+
 </html>

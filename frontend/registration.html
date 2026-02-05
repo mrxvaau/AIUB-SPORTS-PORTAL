@@ -1,13 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tournament Registration</title>
     <link rel="icon" type="image/svg+xml" href="images/logo.svg">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f9fafb;
@@ -68,7 +73,7 @@
             border-radius: 10px;
             padding: 30px;
             margin-bottom: 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
         .tournament-header {
@@ -131,7 +136,7 @@
 
         .game-card:hover {
             border-color: #1976d2;
-            box-shadow: 0 4px 12px rgba(25,118,210,0.2);
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.2);
             transform: translateY(-5px);
         }
 
@@ -408,14 +413,16 @@
             display: inline-block;
             width: 20px;
             height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
+            border: 3px solid rgba(255, 255, 255, .3);
             border-radius: 50%;
             border-top-color: #fff;
             animation: spin 1s ease-in-out infinite;
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         .tournament-card {
@@ -431,11 +438,25 @@
             }
         }
 
-        .tournament-card:nth-child(1) { animation-delay: 0.1s; }
-        .tournament-card:nth-child(2) { animation-delay: 0.2s; }
-        .tournament-card:nth-child(3) { animation-delay: 0.3s; }
-        .tournament-card:nth-child(4) { animation-delay: 0.4s; }
-        .tournament-card:nth-child(5) { animation-delay: 0.5s; }
+        .tournament-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .tournament-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .tournament-card:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .tournament-card:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+        .tournament-card:nth-child(5) {
+            animation-delay: 0.5s;
+        }
 
         .modal-backdrop {
             position: fixed;
@@ -535,6 +556,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="header">
         <div class="header-left">
@@ -818,7 +840,7 @@
             openConfirmModal(
                 'Confirm Registration',
                 `Register for ${gameName} in ${category} category?\nRegistration Fee: ৳${fee}`,
-                async function() {
+                async function () {
                     closeConfirmModal();
 
                     const originalText = button.innerHTML;
@@ -845,13 +867,33 @@
                         const result = await response.json();
 
                         if (result.success) {
+                            // Add to cart after successful registration
+                            try {
+                                await fetch(`${API_URL}/auth/cart/add`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                        studentId: studentId,
+                                        item_type: 'GAME_REGISTRATION',
+                                        item_id: result.registration.id,
+                                        tournament_game_id: gameId
+                                    })
+                                });
+                                console.log('Added registration to cart');
+                            } catch (cartError) {
+                                console.error('Error adding to cart:', cartError);
+                                // Don't fail registration if cart add fails
+                            }
+
                             button.innerHTML = 'Cancel Registration';
                             button.className = 'register-btn cancel';
                             button.disabled = false;
                             button.setAttribute('data-game-id', gameId);
                             button.setAttribute('data-game-name', gameName);
                             button.setAttribute('data-game-category', category);
-                            alert(`Successfully registered for ${gameName}!`);
+                            alert(`Successfully registered for ${gameName}! Added to cart.`);
                         } else {
                             alert(`Registration failed: ${result.message || 'Unknown error'}`);
                             button.innerHTML = originalText;
@@ -869,9 +911,14 @@
 
         function checkRegistrationStatusForTournament(tournament, games, userRegistrations) {
             // Create a map of game IDs to registration details from the pre-fetched registrations
+            // Backend returns "gameId" (camelCase), not "game_id" (snake_case)
             const registrationMap = new Map();
             userRegistrations.forEach(reg => {
-                registrationMap.set(reg.game_id, reg);
+                // Support both gameId (backend format) and game_id (possible legacy format)
+                const gid = reg.gameId || reg.game_id;
+                registrationMap.set(gid, reg);
+                registrationMap.set(String(gid), reg);
+                registrationMap.set(Number(gid), reg);
             });
 
             games.forEach(game => {
@@ -901,12 +948,15 @@
                             if (statusDiv && statusText) {
                                 statusDiv.style.display = 'block';
 
+                                // Get payment status - support both camelCase (backend) and snake_case (legacy)
+                                const paymentStatus = registration.paymentStatus || registration.payment_status;
+
                                 // Set different styles based on payment status
-                                if (registration.payment_status === 'PAID') {
+                                if (paymentStatus === 'PAID') {
                                     statusDiv.style.backgroundColor = '#d1fae5';
                                     statusDiv.style.color = '#065f46';
                                     statusText.textContent = 'PAID';
-                                } else if (registration.payment_status === 'PENDING') {
+                                } else if (paymentStatus === 'PENDING') {
                                     statusDiv.style.backgroundColor = '#fef3c7';
                                     statusDiv.style.color = '#d97706';
                                     statusText.textContent = 'PENDING';
@@ -953,7 +1003,7 @@
             openConfirmModal(
                 'Cancel Registration',
                 `Are you sure you want to cancel your registration for ${gameName}?\nThis action cannot be undone.`,
-                async function() {
+                async function () {
                     closeConfirmModal();
 
                     const originalText = button.innerHTML;
@@ -976,13 +1026,37 @@
                         const result = await response.json();
 
                         if (result.success) {
+                            // Remove from cart after successful cancellation
+                            try {
+                                await fetch(`${API_URL}/auth/cart/game/${gameId}/${studentId}`, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    }
+                                });
+                                console.log('Removed registration from cart');
+                            } catch (cartError) {
+                                console.error('Error removing from cart:', cartError);
+                                // Don't fail cancellation if cart removal fails
+                            }
+
                             button.innerHTML = 'Register Now';
                             button.className = 'register-btn';
                             button.disabled = false;
                             button.setAttribute('data-game-id', gameId);
                             button.setAttribute('data-game-name', gameName);
                             button.setAttribute('data-game-category', category);
-                            alert(`Successfully canceled registration for ${gameName}!`);
+
+                            // Hide status div
+                            const gameCard = button.closest('.game-card');
+                            if (gameCard) {
+                                const statusDiv = gameCard.querySelector('.registration-status');
+                                if (statusDiv) {
+                                    statusDiv.style.display = 'none';
+                                }
+                            }
+
+                            alert(`Successfully canceled registration for ${gameName}! Removed from cart.`);
                         } else {
                             alert(`Cancellation failed: ${result.message || 'Unknown error'}`);
                             button.innerHTML = originalText;
@@ -1165,7 +1239,7 @@
         }
 
         // Event delegation for register buttons
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             if (e.target.classList.contains('register-btn')) {
                 const button = e.target;
                 const gameId = button.getAttribute('data-game-id');
@@ -1217,21 +1291,21 @@
                     gameType: gameType
                 })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Game request submitted successfully!');
-                } else {
-                    alert(`Error submitting request: ${data.message}`);
-                }
-            })
-            .catch(error => {
-                console.error('Request game error:', error);
-                alert('Error submitting game request. Please try again.');
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Game request submitted successfully!');
+                    } else {
+                        alert(`Error submitting request: ${data.message}`);
+                    }
+                })
+                .catch(error => {
+                    console.error('Request game error:', error);
+                    alert('Error submitting game request. Please try again.');
+                });
         }
 
-        window.onload = function() {
+        window.onload = function () {
             if (localStorage.getItem('isAuthenticated') !== 'true') {
                 window.location.href = 'login.html';
                 return;
@@ -1240,7 +1314,7 @@
         };
 
         // Refresh registration status when user returns to page
-        window.addEventListener('pageshow', function(event) {
+        window.addEventListener('pageshow', function (event) {
             if (event.persisted) { // If page was cached and restored
                 if (localStorage.getItem('isAuthenticated') === 'true') {
                     // Reload the tournament data to refresh registration status
@@ -1252,4 +1326,5 @@
         });
     </script>
 </body>
+
 </html>

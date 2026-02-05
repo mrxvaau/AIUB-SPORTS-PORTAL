@@ -1,0 +1,674 @@
+/**
+ * AIUB Sports Portal - Common Styles
+ * Shared styles across all pages (header, sidebar, buttons, modals, utilities)
+ */
+
+/* ========================================
+   CSS Reset & Base
+   ======================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f9fafb;
+    min-height: 100vh;
+}
+
+/* ========================================
+   Header
+   ======================================== */
+.header {
+    background: white;
+    border: 2px solid #d1d5db;
+    border-radius: 8px;
+    margin: 16px;
+    margin-bottom: 8px;
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.logo-img {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+}
+
+.logo-text h1 {
+    color: #1e3a8a;
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.logo-text p {
+    color: #6b7280;
+    font-size: 12px;
+    margin-top: 2px;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-left: 32px;
+}
+
+.nav-link {
+    color: #3b82f6;
+    font-size: 14px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.welcome-text {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+/* ========================================
+   Icon Buttons
+   ======================================== */
+.icon-btn {
+    position: relative;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.icon-btn:hover {
+    background: #f3f4f6;
+}
+
+.icon-btn svg {
+    width: 20px;
+    height: 20px;
+    color: #6b7280;
+}
+
+.notification-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: #ef4444;
+    color: white;
+    font-size: 10px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logout-btn {
+    cursor: pointer;
+}
+
+/* ========================================
+   Main Layout
+   ======================================== */
+.main-container {
+    display: flex;
+    gap: 16px;
+    padding: 0 16px;
+}
+
+.content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* ========================================
+   Sidebar
+   ======================================== */
+.sidebar {
+    width: 224px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.sidebar-btn {
+    width: 100%;
+    background: #1e40af;
+    color: white;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.sidebar-btn:hover {
+    background: #1e3a8a;
+}
+
+.sidebar-btn-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sidebar-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.submenu {
+    padding-left: 20px;
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.3s ease-out;
+}
+
+.submenu.expanded {
+    max-height: 500px;
+}
+
+/* ========================================
+   Buttons - Base Styles
+   ======================================== */
+.btn {
+    font-size: 13px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    background: #e5e7eb;
+    color: #111827;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn.primary {
+    background: #4f46e5;
+    color: #fff;
+}
+
+.btn.secondary {
+    background: #e5e7eb;
+}
+
+.edit-btn, .save-btn, .cancel-btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.edit-btn {
+    background: white;
+    border: 1px solid #d1d5db;
+    color: #374151;
+}
+
+.edit-btn:hover {
+    background: #f9fafb;
+}
+
+.save-btn {
+    background: #1e40af;
+    border: none;
+    color: white;
+}
+
+.save-btn:hover {
+    background: #1e3a8a;
+}
+
+.cancel-btn {
+    background: white;
+    border: 1px solid #d1d5db;
+    color: #374151;
+    margin-left: 8px;
+}
+
+.cancel-btn:hover {
+    background: #f9fafb;
+}
+
+.disabled-btn {
+    background: #fca5a5;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: not-allowed;
+}
+
+/* ========================================
+   Alerts
+   ======================================== */
+.alert {
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    font-size: 14px;
+}
+
+.alert-success {
+    background: #d1fae5;
+    border: 1px solid #6ee7b7;
+    color: #065f46;
+}
+
+.alert-error {
+    background: #fee2e2;
+    border: 1px solid #fca5a5;
+    color: #991b1b;
+}
+
+/* ========================================
+   Modals - Common Styles
+   ======================================== */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.35);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.modal-backdrop.active {
+    display: flex;
+}
+
+.modal {
+    width: 100%;
+    max-width: 520px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.45);
+    border: 1px solid rgba(148, 163, 184, 0.6);
+    padding: 18px 18px 16px 18px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.modal-title {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.modal-close {
+    border: none;
+    background: transparent;
+    font-size: 18px;
+    cursor: pointer;
+    color: #6b7280;
+}
+
+.modal-body {
+    max-height: 60vh;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.modal-footer {
+    margin-top: 10px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+/* Delete Modal */
+.delete-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+}
+
+.delete-modal-content {
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.delete-modal-header {
+    font-size: 20px;
+    font-weight: 700;
+    color: #dc2626;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.delete-modal-header svg {
+    width: 24px;
+    height: 24px;
+}
+
+.delete-modal-warning {
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: 6px;
+    padding: 12px;
+    margin: 15px 0;
+    font-size: 14px;
+    color: #92400e;
+}
+
+.delete-input-container {
+    margin: 15px 0;
+}
+
+.delete-input-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.delete-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.delete-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.delete-btn {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+}
+
+.delete-btn-cancel {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.delete-btn-confirm {
+    background: #dc2626;
+    color: white;
+}
+
+.delete-btn-confirm:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+}
+
+.delete-btn-confirm:not(:disabled):hover {
+    background: #b91c1c;
+}
+
+/* ========================================
+   Form Elements
+   ======================================== */
+.field {
+    margin-bottom: 12px;
+}
+
+.field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+.field small {
+    display: block;
+    font-size: 11px;
+    color: #6b7280;
+    margin-top: 3px;
+}
+
+input[type="text"],
+input[type="number"],
+select {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 9px;
+    border: 1px solid #e5e7eb;
+    font-size: 13px;
+    background: #f9fafb;
+    outline: none;
+}
+
+input:focus, select:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.2);
+    background: #fff;
+}
+
+/* Pill Checkboxes */
+.pill-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.pill-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border-radius: 999px;
+    padding: 4px 9px;
+    font-size: 11px;
+    border: 1px solid #d4d4d8;
+    cursor: pointer;
+    background: #f9fafb;
+}
+
+.pill-check input {
+    width: 0;
+    height: 0;
+    opacity: 0;
+    position: absolute;
+    pointer-events: none;
+}
+
+.pill-check span.dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: #9ca3af;
+}
+
+.pill-check.active {
+    border-color: #4f46e5;
+    background: rgba(79, 70, 229, 0.08);
+    color: #4f46e5;
+}
+
+.pill-check.active span.dot {
+    background: #4f46e5;
+}
+
+.pill-check.disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* Info Fields */
+.info-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-label {
+    font-size: 14px;
+    color: #374151;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.info-value {
+    font-size: 14px;
+    color: #1f2937;
+}
+
+.info-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    background: white;
+}
+
+.info-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+}
+
+.info-input:disabled {
+    background: #f3f4f6;
+    cursor: not-allowed;
+}
+
+/* ========================================
+   Utilities
+   ======================================== */
+.hidden {
+    display: none;
+}
+
+.flex-row {
+    display: flex;
+    gap: 8px;
+}
+
+.flex-row .field {
+    flex: 1;
+}
+
+.hint {
+    font-size: 11px;
+    color: #6b7280;
+    margin-top: 4px;
+}
+
+/* ========================================
+   Badges
+   ======================================== */
+.locked-badge {
+    display: none;
+    background: #3b82f6;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+.editable-badge {
+    display: none;
+    background: #10b981;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+.editing .locked-badge,
+.editing .editable-badge {
+    display: inline-block;
+}
+
+/* ========================================
+   Animations
+   ======================================== */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}

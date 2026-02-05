@@ -65,6 +65,9 @@ router.delete('/cart/:cartItemId', userController.removeFromCart);
 // DELETE /api/auth/cart/clear/:studentId - Clear user's cart
 router.delete('/cart/clear/:studentId', userController.clearCart);
 
+// DELETE /api/auth/cart/game/:gameId/:studentId - Remove cart item by game ID
+router.delete('/cart/game/:gameId/:studentId', userController.removeFromCartByGameId);
+
 // DELETE /api/auth/registration/:gameId/:studentId - Cancel game registration
 router.delete('/registration/:gameId/:studentId', userController.cancelGameRegistration);
 

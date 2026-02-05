@@ -49,6 +49,7 @@ exports.markNotificationAsRead = notificationController.markNotificationAsRead;
 exports.addToCart = cartController.addToCart;
 exports.getCart = cartController.getCart;
 exports.removeFromCart = cartController.removeFromCart;
+exports.removeFromCartByGameId = cartController.removeFromCartByGameId;
 exports.clearCart = cartController.clearCart;
 
 // Request functions (from requestController)
