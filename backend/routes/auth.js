@@ -35,11 +35,26 @@ router.post('/create-team', userController.createTeam);
 // GET /api/auth/team/:teamId - Get team details
 router.get('/team/:teamId', userController.getTeamDetails);
 
+// GET /api/auth/team-by-game/:gameId/:studentId - Get team by game and student
+router.get('/team-by-game/:gameId/:studentId', userController.getTeamByGame);
+
 // POST /api/auth/team/:teamId/add-member - Add a member to a team
 router.post('/team/:teamId/add-member', userController.addTeamMember);
 
+// POST /api/auth/validate-member - Validate a member before adding to team
+router.post('/validate-member', userController.validateMember);
+
+// DELETE /api/auth/team/:teamId/member/:memberId - Remove a member from a team
+router.delete('/team/:teamId/member/:memberId', userController.removeTeamMember);
+
+// PUT /api/auth/team/:teamId/member/:memberId/replace - Replace a member with a new person
+router.put('/team/:teamId/member/:memberId/replace', userController.replaceMember);
+
 // POST /api/auth/accept-invitation - Accept a team invitation
 router.post('/accept-invitation', userController.acceptTeamInvitation);
+
+// POST /api/auth/reject-invitation - Reject a team invitation
+router.post('/reject-invitation', userController.rejectTeamInvitation);
 
 // POST /api/auth/confirm-team/:teamId - Confirm team registration
 router.post('/confirm-team/:teamId', userController.confirmTeamRegistration);

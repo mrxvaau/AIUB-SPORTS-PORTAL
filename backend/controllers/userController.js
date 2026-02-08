@@ -36,10 +36,15 @@ exports.cancelGameRegistration = registrationController.cancelGameRegistration;
 // Team functions (from teamController)
 exports.createTeam = teamController.createTeam;
 exports.getTeamDetails = teamController.getTeamDetails;
+exports.getTeamByGame = teamController.getTeamByGame;
 exports.addTeamMember = teamController.addTeamMember;
+exports.removeTeamMember = teamController.removeTeamMember;
+exports.replaceMember = teamController.replaceMember;
 exports.acceptTeamInvitation = teamController.acceptTeamInvitation;
+exports.rejectTeamInvitation = teamController.rejectTeamInvitation;
 exports.confirmTeamRegistration = teamController.confirmTeamRegistration;
 exports.getPendingTeamInvitations = teamController.getPendingTeamInvitations;
+exports.validateMember = teamController.validateMember;
 
 // Notification functions (from notificationController)
 exports.getNotifications = notificationController.getNotifications;

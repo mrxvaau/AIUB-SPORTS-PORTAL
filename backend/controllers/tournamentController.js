@@ -42,7 +42,7 @@ const getTournamentGames = async (req, res) => {
 
         const { data: games, error } = await supabase
             .from('tournament_games')
-            .select('id, category, game_name, game_type, fee_per_person')
+            .select('id, category, game_name, game_type, fee_per_person, team_size')
             .eq('tournament_id', tournamentId)
             .order('category')
             .order('game_name');

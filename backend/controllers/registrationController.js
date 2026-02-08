@@ -63,6 +63,7 @@ const registerForGame = async (req, res) => {
                 id,
                 category,
                 game_type,
+                team_size,
                 fee_per_person,
                 tournament_id,
                 tournaments(registration_deadline)
@@ -98,8 +99,9 @@ const registerForGame = async (req, res) => {
             }
         }
 
-        // Check if game type is Solo (only solo registrations allowed through this endpoint)
-        if (game.game_type !== 'Solo') {
+        // Check if game requires team registration (team_size > 1)
+        const teamSize = game.team_size || 1;
+        if (teamSize > 1) {
             return res.status(400).json({
                 success: false,
                 message: 'This game requires team registration. Please create a team instead.'
@@ -193,12 +195,14 @@ const getUserRegistrations = async (req, res) => {
             .select(`
                 id,
                 game_id,
+                team_id,
                 payment_status,
                 registration_date,
                 tournament_games(
                     id,
                     game_name,
                     game_type,
+                    team_size,
                     category,
                     fee_per_person,
                     tournament_id,
@@ -221,12 +225,14 @@ const getUserRegistrations = async (req, res) => {
         const formattedRegistrations = registrations.map(reg => ({
             id: reg.id,
             gameId: reg.game_id,
+            teamId: reg.team_id,
             paymentStatus: reg.payment_status,
             registrationDate: reg.registration_date,
             game: {
                 id: reg.tournament_games.id,
                 name: reg.tournament_games.game_name,
                 type: reg.tournament_games.game_type,
+                teamSize: reg.tournament_games.team_size,
                 category: reg.tournament_games.category,
                 feePerPerson: reg.tournament_games.fee_per_person,
                 tournamentId: reg.tournament_games.tournament_id,

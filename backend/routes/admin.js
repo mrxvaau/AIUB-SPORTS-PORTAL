@@ -74,6 +74,135 @@ function handleMulterError(err, req, res, next) {
     next();
 }
 
+// DEBUG: List all teams (for troubleshooting)
+router.get('/debug/teams', async (req, res) => {
+    try {
+        const { data: teams, error } = await supabase
+            .from('teams')
+            .select(`
+                id,
+                team_name,
+                leader_user_id,
+                tournament_game_id,
+                created_at,
+                team_members(id, user_id, role, status)
+            `)
+            .order('created_at', { ascending: false })
+            .limit(20);
+
+        if (error) {
+            return res.status(500).json({ success: false, error: error.message });
+        }
+
+        res.json({ success: true, count: teams.length, teams });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// DEBUG: List all users (for troubleshooting)
+router.get('/debug/users', async (req, res) => {
+    try {
+        const { data: users, error } = await supabase
+            .from('users')
+            .select('id, student_id, full_name, email, gender, created_at')
+            .order('created_at', { ascending: false })
+            .limit(30);
+
+        if (error) {
+            return res.status(500).json({ success: false, error: error.message });
+        }
+
+        res.json({ success: true, count: users.length, users });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// DEBUG: List all team_members (for troubleshooting)
+router.get('/debug/team-members', async (req, res) => {
+    try {
+        const { data: members, error } = await supabase
+            .from('team_members')
+            .select(`
+                id, 
+                team_id, 
+                user_id, 
+                role, 
+                status, 
+                created_at,
+                users(student_id, full_name),
+                teams(id, team_name, tournament_game_id)
+            `)
+            .order('created_at', { ascending: false })
+            .limit(50);
+
+        if (error) {
+            return res.status(500).json({ success: false, error: error.message });
+        }
+
+        res.json({ success: true, count: members.length, members });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// DEBUG: Get members for a specific team
+router.get('/debug/team/:teamId/members', async (req, res) => {
+    try {
+        const { teamId } = req.params;
+
+        const { data: members, error } = await supabase
+            .from('team_members')
+            .select(`
+                id, 
+                team_id, 
+                user_id, 
+                role, 
+                status,
+                users(student_id, full_name)
+            `)
+            .eq('team_id', teamId);
+
+        if (error) {
+            return res.status(500).json({ success: false, error: error.message });
+        }
+
+        res.json({ success: true, teamId: parseInt(teamId), count: members.length, members });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// DEBUG: Confirm a pending team member (via GET for easy browser access)
+router.get('/debug/confirm-member/:memberId', async (req, res) => {
+    try {
+        const { memberId } = req.params;
+
+        const { data: member, error } = await supabase
+            .from('team_members')
+            .update({ status: 'CONFIRMED' })
+            .eq('id', memberId)
+            .select(`
+                id, team_id, status,
+                users(student_id, full_name)
+            `)
+            .single();
+
+        if (error) {
+            return res.status(500).json({ success: false, error: error.message });
+        }
+
+        res.json({
+            success: true,
+            message: `Member ${member.users?.full_name} (${member.users?.student_id}) confirmed!`,
+            member
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // Middleware to check if user is admin - SIMPLE VERSION
 async function requireAdmin(req, res, next) {
     try {
@@ -667,14 +796,29 @@ router.post('/tournaments', requireAdmin, upload.single('photo'), handleMulterEr
                 try {
                     // Map game types to allowed database values
                     let dbGameType = game.type;
+                    let teamSize = game.team_size || 1; // Default to 1 (solo)
+
                     if (game.type === 'Duo (Mixed)') {
                         dbGameType = 'Custom'; // Map Duo (Mixed) to Custom since it's a custom format
+                        teamSize = 2;
+                    } else if (game.type === 'Duo') {
+                        teamSize = 2;
                     } else if (game.type.includes('v')) {
                         // For team sizes like "5v5", "6v6", etc., store as 'Custom'
                         dbGameType = 'Custom';
+                        // Extract team size from format like "5v5"
+                        const match = game.type.match(/(\d+)v\d+/);
+                        if (match) {
+                            teamSize = parseInt(match[1], 10);
+                        }
                     } else if (!['Solo', 'Duo', 'Custom'].includes(game.type)) {
                         // For any other custom format, use 'Custom'
                         dbGameType = 'Custom';
+                    }
+
+                    // Mix category games are duo by default if not specified
+                    if (game.category === 'Mix' && !game.team_size) {
+                        teamSize = 2;
                     }
 
                     const { error: gameError } = await supabase
@@ -684,7 +828,8 @@ router.post('/tournaments', requireAdmin, upload.single('photo'), handleMulterEr
                             category: game.category,
                             game_name: game.name,
                             game_type: dbGameType,
-                            fee_per_person: game.fee
+                            fee_per_person: game.fee,
+                            team_size: teamSize
                         }]);
 
                     if (gameError) {
@@ -751,7 +896,7 @@ router.get('/tournaments/:id/games', async (req, res) => {
 
         const { data: games, error } = await supabase
             .from('tournament_games')
-            .select('id, category, game_name, game_type, fee_per_person')
+            .select('id, category, game_name, game_type, fee_per_person, team_size')
             .eq('tournament_id', tournamentId)
             .order('category')
             .order('game_name');

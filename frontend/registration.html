@@ -554,6 +554,114 @@
         .btn.secondary:hover {
             background: #d1d5db;
         }
+
+        /* Toast Notification Styles */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 400px;
+        }
+
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.4s ease-out, fadeOut 0.4s ease-in forwards;
+            animation-delay: 0s, 3.5s;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+
+        .toast-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .toast-error {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+
+        .toast-info {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+        }
+
+        .toast-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+
+        .toast-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-weight: 700;
+            font-size: 15px;
+            margin-bottom: 2px;
+        }
+
+        .toast-message {
+            font-size: 14px;
+            opacity: 0.95;
+        }
+
+        .toast-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+
+        .toast-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+        }
     </style>
 </head>
 
@@ -568,6 +676,9 @@
         </div>
         <button class="back-btn" onclick="window.location.href='dashboard.html'">← Back to Dashboard</button>
     </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="toast-container"></div>
 
     <div class="container">
         <div id="loading" class="loading-with-animation">
@@ -605,24 +716,87 @@
     <div id="teamModal" class="team-modal">
         <div class="team-modal-content">
             <div class="team-modal-header">
-                <span>Create Team for <span id="modalGameName"></span></span>
+                <div>
+                    <span>Create Team for <span id="modalGameName"></span></span>
+                    <div class="team-modal-subtitle"
+                        style="font-size: 14px; font-weight: 400; color: #666; margin-top: 5px;"></div>
+                </div>
                 <button class="team-modal-close" onclick="closeTeamModal()">&times;</button>
             </div>
             <div class="team-modal-body">
                 <div class="team-form-group">
                     <label class="team-form-label">Team Name</label>
-                    <input type="text" id="teamName" class="team-form-input" placeholder="Enter team name">
+                    <input type="text" id="teamName" class="team-form-input" placeholder="Enter team name" required>
+                    <span id="teamNameError" style="display: none; color: #dc2626; font-size: 13px; margin-top: 5px;">⚠️
+                        Team name is required</span>
                 </div>
 
                 <div class="team-members-container">
                     <h3>Team Members</h3>
                     <div id="teamMembersList"></div>
-                    <button class="add-member-btn" onclick="addTeamMemberSlot()">+ Add Member</button>
+                    <p class="team-required-msg"
+                        style="margin-top: 15px; padding: 12px; background: #fef3c7; border-radius: 6px; color: #92400e; font-size: 14px;">
+                    </p>
                 </div>
             </div>
             <div class="team-modal-buttons">
                 <button class="btn-cancel" onclick="closeTeamModal()">Cancel</button>
-                <button class="btn-confirm" onclick="createTeam()">Create Team</button>
+                <button class="btn-confirm" onclick="createTeam()">Create Team & Register</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Replace Member Modal -->
+    <div id="replaceMemberModal" class="modal-backdrop" style="display: none;">
+        <div class="modal" style="max-width: 450px;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;">
+                <div class="modal-title">🔄 Replace Team Member</div>
+                <button class="modal-close" type="button" onclick="closeReplaceMemberModal()"
+                    style="color: white;">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <div id="currentMemberInfo"
+                    style="background: #fef3c7; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
+                    <p style="margin: 0; font-size: 14px; color: #92400e;">
+                        <strong>Replacing:</strong> <span id="currentMemberName">Loading...</span>
+                    </p>
+                </div>
+
+                <div class="field" style="margin-bottom: 15px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">New Member's
+                        Student ID:</label>
+                    <input type="text" id="newMemberStudentId" placeholder="e.g., 23-54919-3"
+                        style="width: 100%; padding: 12px; border: 2px solid #d1d5db; border-radius: 8px; font-size: 15px; transition: border-color 0.2s;"
+                        onfocus="this.style.borderColor='#f59e0b'" onblur="this.style.borderColor='#d1d5db'">
+                    <p id="newMemberInfo"
+                        style="margin-top: 10px; padding: 10px; background: #ecfdf5; border-radius: 6px; color: #065f46; display: none;">
+                        <!-- Will show new member name when found -->
+                    </p>
+                    <p id="newMemberError"
+                        style="margin-top: 10px; padding: 10px; background: #fef2f2; border-radius: 6px; color: #dc2626; display: none;">
+                        <!-- Will show error message -->
+                    </p>
+                </div>
+
+                <div id="replaceConfirmation"
+                    style="background: #fff7ed; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b; display: none;">
+                    <p style="margin: 0; font-size: 14px; color: #9a3412;">
+                        ⚠️ <strong>Are you sure?</strong><br>
+                        <span id="confirmationText">This will remove the current member and invite the new
+                            member.</span>
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer"
+                style="display: flex; gap: 10px; justify-content: flex-end; padding: 15px 20px; background: #f9fafb; border-top: 1px solid #e5e7eb;">
+                <button class="btn secondary" type="button" onclick="closeReplaceMemberModal()"
+                    style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                    Cancel
+                </button>
+                <button class="btn primary" type="button" id="confirmReplaceBtn" onclick="confirmReplaceMember()"
+                    style="padding: 10px 20px; background: #f59e0b; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                    🔄 Replace Member
+                </button>
             </div>
         </div>
     </div>
@@ -630,6 +804,46 @@
     <script>
         const API_URL = 'http://localhost:3000/api';
         const gameDataMap = new Map();
+
+        // Beautiful toast notification function
+        function showToast(message, type = 'success', title = null) {
+            const container = document.getElementById('toastContainer');
+
+            const icons = {
+                success: '✅',
+                error: '❌',
+                info: 'ℹ️',
+                warning: '⚠️'
+            };
+
+            const titles = {
+                success: 'Success!',
+                error: 'Error',
+                info: 'Info',
+                warning: 'Warning'
+            };
+
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <div class="toast-icon">${icons[type] || '✅'}</div>
+                <div class="toast-content">
+                    <div class="toast-title">${title || titles[type]}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+            `;
+
+            container.appendChild(toast);
+
+            // Click to dismiss
+            toast.addEventListener('click', () => toast.remove());
+
+            // Auto-remove after animation
+            setTimeout(() => {
+                if (toast.parentElement) toast.remove();
+            }, 4000);
+        }
 
         async function loadTournaments() {
             try {
@@ -713,10 +927,13 @@
                     name: game.game_name,
                     category: game.category,
                     type: game.game_type,
-                    fee: game.fee_per_person
+                    fee: game.fee_per_person,
+                    fee_per_person: game.fee_per_person,
+                    team_size: game.team_size || 1 // Include team_size from API
                 };
                 gameDataMap.set(String(game.id), gameInfo);
                 gameDataMap.set(Number(game.id), gameInfo);
+                console.log(`Game ${game.id} (${game.game_name}): team_size=${gameInfo.team_size}`);
             });
 
             let photoUrl = tournament.photo_url || tournament.PHOTO_URL || tournament['photo_url'] || tournament['PHOTO_URL'];
@@ -781,16 +998,23 @@
                     <div class="category-title">${category} Category</div>
                     <div class="games-grid">
                         ${games.map(game => `
-                            <div class="game-card" data-game-id="${game.id}">
+                            <div class="game-card" data-game-id="${game.id}" data-team-size="${game.team_size || 1}">
                                 <div class="game-name">${game.game_name}</div>
-                                <div class="game-type">Type: ${game.game_type}</div>
+                                <div class="game-type">Type: ${game.game_type}${(game.team_size || 1) > 1 ? ` (Team of ${game.team_size})` : ''}</div>
                                 <div class="game-fee">৳${game.fee_per_person} per person</div>
                                 <div class="registration-status" style="display: none; margin-top: 8px; padding: 6px; border-radius: 4px; font-size: 14px; text-align: center;">
                                     <span class="status-text"></span>
                                 </div>
-                                <button class="register-btn" data-game-id="${game.id}" data-game-name="${game.game_name}" data-game-category="${game.category}">
-                                    Register Now
-                                </button>
+                                <div class="button-group" style="display: flex; gap: 8px; margin-top: 10px;">
+                                    <button class="register-btn" data-game-id="${game.id}" data-game-name="${game.game_name}" data-game-category="${game.category}" style="flex: 1;">
+                                        Register Now
+                                    </button>
+                                    <button class="edit-team-btn" data-game-id="${game.id}" data-game-name="${game.game_name}" data-game-category="${game.category}" 
+                                            style="display: none; flex: 0 0 auto; padding: 10px 15px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;"
+                                            onclick="editTeam(${game.id}, '${game.game_name.replace(/'/g, "\\'")}', '${game.category}')">
+                                        ✏️ Edit Team
+                                    </button>
+                                </div>
                             </div>
                         `).join('')}
                     </div>
@@ -812,10 +1036,17 @@
                 return;
             }
 
-            if (category === 'Mix' || gameName.toLowerCase().includes('duo') || gameName.toLowerCase().includes('team') || gameName.toLowerCase().includes('squad') || gameName.toLowerCase().includes('2v2') || gameName.toLowerCase().includes('4v4') || gameName.toLowerCase().includes('5v5')) {
-                openTeamModal(gameId, gameName, category);
+            // Get game data from our cached map - includes team_size
+            const gameData = gameDataMap.get(gameId) || gameDataMap.get(String(gameId)) || gameDataMap.get(Number(gameId));
+            const teamSize = gameData?.team_size || 1;
+
+            // Multi-player games (team_size > 1) require team modal
+            if (teamSize > 1) {
+                openTeamModal(gameId, gameName, category, teamSize);
                 return;
             }
+
+            // Solo games (team_size = 1): Direct 1-click registration
 
             const gameCard = document.querySelector(`.game-card[data-game-id="${gameId}"]`);
             if (!gameCard) {
@@ -893,15 +1124,15 @@
                             button.setAttribute('data-game-id', gameId);
                             button.setAttribute('data-game-name', gameName);
                             button.setAttribute('data-game-category', category);
-                            alert(`Successfully registered for ${gameName}! Added to cart.`);
+                            showToast(`Successfully registered for ${gameName}!`, 'success', 'Registered');
                         } else {
-                            alert(`Registration failed: ${result.message || 'Unknown error'}`);
+                            showToast(`${result.message || 'Unknown error'}`, 'error', 'Registration Failed');
                             button.innerHTML = originalText;
                             button.disabled = false;
                         }
                     } catch (error) {
                         console.error('Registration error:', error);
-                        alert('Error registering for game. Please try again.');
+                        showToast('Error registering for game. Please try again.', 'error');
                         button.innerHTML = originalText;
                         button.disabled = false;
                     }
@@ -965,14 +1196,30 @@
                                     statusDiv.style.color = '#b91c1c';
                                     statusText.textContent = 'UNPAID';
                                 }
+
+                                // Show Edit Team button for team games with PENDING status
+                                const editTeamBtn = gameCard.querySelector('.edit-team-btn');
+                                const teamSize = parseInt(gameCard.dataset.teamSize) || 1;
+
+                                if (editTeamBtn) {
+                                    if (teamSize > 1 && paymentStatus === 'PENDING') {
+                                        editTeamBtn.style.display = 'block';
+                                    } else {
+                                        editTeamBtn.style.display = 'none';
+                                    }
+                                }
                             }
                         } else {
                             button.innerHTML = 'Register Now';
                             button.className = 'register-btn';
 
-                            // Hide status div if not registered
+                            // Hide status div and edit button if not registered
                             if (statusDiv) {
                                 statusDiv.style.display = 'none';
+                            }
+                            const editTeamBtn = gameCard.querySelector('.edit-team-btn');
+                            if (editTeamBtn) {
+                                editTeamBtn.style.display = 'none';
                             }
                         }
                     }
@@ -1047,24 +1294,29 @@
                             button.setAttribute('data-game-name', gameName);
                             button.setAttribute('data-game-category', category);
 
-                            // Hide status div
+                            // Hide status div and Edit Team button
                             const gameCard = button.closest('.game-card');
                             if (gameCard) {
                                 const statusDiv = gameCard.querySelector('.registration-status');
                                 if (statusDiv) {
                                     statusDiv.style.display = 'none';
                                 }
+                                // Also hide Edit Team button
+                                const editTeamBtn = gameCard.querySelector('.edit-team-btn');
+                                if (editTeamBtn) {
+                                    editTeamBtn.style.display = 'none';
+                                }
                             }
 
-                            alert(`Successfully canceled registration for ${gameName}! Removed from cart.`);
+                            showToast(`Registration for ${gameName} has been canceled and removed from cart.`, 'success', 'Registration Canceled');
                         } else {
-                            alert(`Cancellation failed: ${result.message || 'Unknown error'}`);
+                            showToast(`${result.message || 'Unknown error'}`, 'error', 'Cancellation Failed');
                             button.innerHTML = originalText;
                             button.disabled = false;
                         }
                     } catch (error) {
                         console.error('Cancellation error:', error);
-                        alert('Error canceling registration. Please try again.');
+                        showToast('Error canceling registration. Please try again.', 'error');
                         button.innerHTML = originalText;
                         button.disabled = false;
                     }
@@ -1072,27 +1324,308 @@
             );
         }
 
-        function openTeamModal(gameId, gameName, category) {
+        let currentTeamSize = 2; // Default team size
+        let currentTeamId = null; // Track current team ID for editing
+        let isEditMode = false; // Track if we're editing vs creating
+
+        // Edit existing team - fetch team data and open modal
+        async function editTeam(gameId, gameName, category) {
+            const studentId = localStorage.getItem('studentId');
+            if (!studentId) {
+                alert('Please log in first!');
+                return;
+            }
+
+            try {
+                // Fetch team directly using game ID and student ID
+                // This works even for legacy registrations that don't have team_id linked
+                const teamResponse = await fetch(`${API_URL}/auth/team-by-game/${gameId}/${studentId}`);
+                const teamData = await teamResponse.json();
+
+                if (!teamData.success) {
+                    alert(teamData.message || 'No team found for this game.');
+                    return;
+                }
+
+                const team = teamData.team;
+                console.log('Edit Team - Full team data:', team);
+                console.log('Edit Team - Members array:', team.members);
+                console.log('Edit Team - Members count:', team.members?.length);
+
+                const gameData = gameDataMap.get(gameId) || gameDataMap.get(String(gameId)) || gameDataMap.get(Number(gameId));
+                const teamSize = team.game?.teamSize || gameData?.team_size || 2;
+
+                // Set edit mode
+                isEditMode = true;
+                currentTeamId = team.id;
+                currentGameId = gameId;
+                currentGameName = gameName;
+                currentCategory = category;
+                currentTeamSize = teamSize;
+
+                // Open the modal in edit mode
+                document.getElementById('modalGameName').textContent = gameName + ' (Edit Team)';
+                document.getElementById('teamName').value = team.team_name;
+                document.getElementById('teamName').disabled = true; // Can't change team name
+
+                // Update subtitle
+                const modalSubtitle = document.querySelector('.team-modal-subtitle');
+                if (modalSubtitle) {
+                    const feePerPerson = gameData?.fee_per_person || 0;
+                    modalSubtitle.textContent = `${category} Category | Editing Team Members`;
+                }
+
+                // Generate member slots with existing data
+                const teamMembersList = document.getElementById('teamMembersList');
+                let slotsHtml = '';
+
+                // Show all members with their status
+                team.members.forEach((member, index) => {
+                    const isLeader = member.role === 'LEADER';
+                    const statusClass = member.status === 'CONFIRMED' ? 'confirmed' :
+                        member.status === 'REJECTED' ? 'rejected' : 'pending';
+                    const statusIcon = member.status === 'CONFIRMED' ? '✅' :
+                        member.status === 'REJECTED' ? '❌' : '⏳';
+
+                    slotsHtml += `
+                        <div class="team-member-slot ${isLeader ? 'leader' : ''}" data-member-id="${member.id}">
+                            <div class="member-role">${isLeader ? '👑 Leader' : `👤 Member ${index + 1}`}</div>
+                            <div class="member-info">
+                                <div class="member-id">${member.user?.student_id || 'Pending...'}</div>
+                                <div class="member-name">${member.user?.name || 'Awaiting Response'}</div>
+                            </div>
+                            <div class="member-status ${statusClass}">${statusIcon} ${member.status}</div>
+                            ${!isLeader ? `
+                                <button class="replace-member-btn" style="padding: 5px 12px; background: #f59e0b; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600;"
+                                        onclick="replaceMember(${team.id}, ${member.id}, '${(member.user?.name || 'Unknown').replace(/'/g, "\\'")}', '${member.user?.student_id || 'Unknown'}')">
+                                    🔄 Replace
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+
+                teamMembersList.innerHTML = slotsHtml;
+
+                // Update modal buttons for edit mode
+                const modalButtons = document.querySelector('.team-modal-buttons');
+                modalButtons.innerHTML = `
+                    <button class="btn-cancel" onclick="closeTeamModal()">Close</button>
+                `;
+
+                // Show required message
+                const requiredMsg = document.querySelector('.team-required-msg');
+                if (requiredMsg) {
+                    const confirmedCount = team.members.filter(m => m.status === 'CONFIRMED').length;
+                    const pendingCount = team.members.filter(m => m.status === 'PENDING').length;
+                    requiredMsg.innerHTML = `
+                        📊 Team Status: ${confirmedCount}/${teamSize} confirmed | ${pendingCount} pending
+                        <br><small>Click 🔄 Replace to swap any member before payment.</small>
+                    `;
+                }
+
+                document.getElementById('teamModal').style.display = 'flex';
+
+            } catch (error) {
+                console.error('Error fetching team:', error);
+                alert('Error loading team data. Please try again.');
+            }
+        }
+
+        // Replace a team member with a new person
+        async function replaceMember(teamId, memberId, memberName, memberStudentId) {
+            const leaderStudentId = localStorage.getItem('studentId');
+
+            // Ask for new member's student ID
+            const newMemberId = prompt(`Enter the Student ID of the new member to replace ${memberName}:\n(format: XX-XXXXX-X)`);
+            if (!newMemberId) return; // Cancelled
+
+            if (!newMemberId.match(/^\d{2}-\d{5}-\d$/)) {
+                showToast('Invalid student ID format. Use: XX-XXXXX-X', 'error', 'Invalid Format');
+                return;
+            }
+
+            // Confirm replacement
+            if (!confirm(`Are you sure you want to replace ${memberName} (${memberStudentId}) with ${newMemberId}?\n\nThe new member will receive an invitation and must accept to join the team.`)) {
+                return;
+            }
+
+            try {
+                // Debug: log what we're sending
+                console.log('Replace member - sending:', { teamId, memberId, leaderStudentId, newMemberId });
+
+                // Validate leader student ID
+                if (!leaderStudentId) {
+                    showToast('You must be logged in to replace team members.', 'error', 'Not Logged In');
+                    return;
+                }
+
+                const response = await fetch(`${API_URL}/auth/team/${teamId}/member/${memberId}/replace`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        studentId: leaderStudentId,
+                        newMemberStudentId: newMemberId
+                    })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showToast(result.message || 'Member replaced successfully!', 'success', 'Member Replaced');
+                    // Refresh the edit modal with updated team data
+                    editTeam(currentGameId, currentGameName, currentCategory);
+                } else {
+                    showToast(result.message || 'Failed to replace member', 'error', 'Replace Failed');
+                }
+            } catch (error) {
+                console.error('Error replacing member:', error);
+                alert('Error replacing member. Please try again.');
+            }
+        }
+
+        // Remove a team member
+        async function removeMember(teamId, memberId) {
+            const studentId = localStorage.getItem('studentId');
+            if (!confirm('Are you sure you want to remove this member?')) return;
+
+            try {
+                const response = await fetch(`${API_URL}/auth/team/${teamId}/member/${memberId}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ studentId })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('Member removed successfully!');
+                    // Refresh the edit modal
+                    editTeam(currentGameId, currentGameName, currentCategory);
+                } else {
+                    alert(result.message || 'Failed to remove member');
+                }
+            } catch (error) {
+                console.error('Error removing member:', error);
+                alert('Error removing member. Please try again.');
+            }
+        }
+
+        // Add a new member to existing team
+        async function addNewMember() {
+            const memberId = prompt('Enter the Student ID of the new member (format: XX-XXXXX-X):');
+            if (!memberId || !memberId.match(/^\d{2}-\d{5}-\d$/)) {
+                if (memberId) alert('Invalid student ID format. Use: XX-XXXXX-X');
+                return;
+            }
+
+            const studentId = localStorage.getItem('studentId');
+            try {
+                const response = await fetch(`${API_URL}/auth/team/${currentTeamId}/add-member`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ studentId, memberStudentId: memberId })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('Member added successfully! They will receive an invitation.');
+                    // Refresh the edit modal
+                    editTeam(currentGameId, currentGameName, currentCategory);
+                } else {
+                    alert(result.message || 'Failed to add member');
+                }
+            } catch (error) {
+                console.error('Error adding member:', error);
+                alert('Error adding member. Please try again.');
+            }
+        }
+
+        function openTeamModal(gameId, gameName, category, teamSize = 2) {
+            // Reset edit mode when creating new team
+            isEditMode = false;
+            currentTeamId = null;
+            document.getElementById('teamName').disabled = false;
             currentGameId = gameId;
             currentGameName = gameName;
             currentCategory = category;
+            currentTeamSize = teamSize;
 
             document.getElementById('modalGameName').textContent = gameName;
             document.getElementById('teamName').value = '';
 
+            // Reset any error styling on team name
+            const teamNameInput = document.getElementById('teamName');
+            const teamNameError = document.getElementById('teamNameError');
+            teamNameInput.style.borderColor = '';
+            teamNameInput.style.borderBottomWidth = '';
+            teamNameInput.style.background = '';
+            if (teamNameError) teamNameError.style.display = 'none';
+
+            // Clear error when user starts typing
+            teamNameInput.oninput = function () {
+                this.style.borderColor = '';
+                this.style.borderBottomWidth = '';
+                this.style.background = '';
+                if (teamNameError) teamNameError.style.display = 'none';
+            };
+
+            // Get game data for fee display
+            const gameData = gameDataMap.get(gameId) || gameDataMap.get(String(gameId)) || gameDataMap.get(Number(gameId));
+            const feePerPerson = gameData?.fee_per_person || 0;
+            const totalFee = feePerPerson * teamSize;
+
+            // Update modal subtitle with team size and fee info
+            const modalSubtitle = document.querySelector('.team-modal-subtitle');
+            if (modalSubtitle) {
+                modalSubtitle.textContent = `${category} Category | Team Size: ${teamSize} | Fee: ৳${feePerPerson} × ${teamSize} = ৳${totalFee}`;
+            }
+
             const teamMembersList = document.getElementById('teamMembersList');
-            teamMembersList.innerHTML = `
+
+            // Generate leader slot
+            let slotsHtml = `
                 <div class="team-member-slot leader">
-                    <div class="member-role">Leader</div>
+                    <div class="member-role">👑 Leader</div>
                     <div class="member-info">
                         <div class="member-id">${localStorage.getItem('studentId')}</div>
-                        <div class="member-name">${localStorage.getItem('userName') || 'Current User'}</div>
+                        <div class="member-name">${localStorage.getItem('userName') || 'You'}</div>
                     </div>
-                    <div class="member-status confirmed">Confirmed</div>
+                    <div class="member-status confirmed">✅ Confirmed</div>
                 </div>
             `;
 
-            teamMemberSlots = 1;
+            // Generate teammate slots (team_size - 1)
+            for (let i = 1; i < teamSize; i++) {
+                slotsHtml += `
+                    <div class="team-member-slot" id="member-slot-${i}" data-slot-index="${i}">
+                        <div class="member-role">👤 Member ${i + 1}</div>
+                        <div class="member-info">
+                            <input type="text" class="team-form-input member-id-input" 
+                                   placeholder="Enter student ID (XX-XXXXX-X)" 
+                                   data-slot="${i}"
+                                   pattern="\\d{2}-\\d{5}-\\d">
+                        </div>
+                        <div class="member-status pending">⏳ Pending</div>
+                    </div>
+                `;
+            }
+
+            teamMembersList.innerHTML = slotsHtml;
+            teamMemberSlots = teamSize;
+
+            // Show required members message
+            const requiredMsg = document.querySelector('.team-required-msg');
+            if (requiredMsg) {
+                requiredMsg.textContent = `⚠️ All ${teamSize} members must confirm their participation before you can finalize registration.`;
+            }
+
+            // Reset modal buttons to CREATE mode (not edit mode)
+            const modalButtons = document.querySelector('.team-modal-buttons');
+            if (modalButtons) {
+                modalButtons.innerHTML = `
+                    <button class="btn-cancel" onclick="closeTeamModal()">Cancel</button>
+                    <button class="btn-confirm" onclick="createTeam()">Create Team & Register</button>
+                `;
+            }
 
             document.getElementById('teamModal').style.display = 'flex';
         }
@@ -1101,37 +1634,41 @@
             document.getElementById('teamModal').style.display = 'none';
         }
 
+        // Note: addTeamMemberSlot is no longer needed since slots are pre-generated based on team_size
         function addTeamMemberSlot() {
-            const teamMembersList = document.getElementById('teamMembersList');
-            const slotId = `member-slot-${teamMemberSlots}`;
-
-            teamMembersList.innerHTML += `
-                <div class="team-member-slot" id="${slotId}">
-                    <div class="member-role">Member ${teamMemberSlots}</div>
-                    <div class="member-info">
-                        <input type="text" class="team-form-input" placeholder="Enter student ID (XX-XXXXX-X)" data-slot="${teamMemberSlots}">
-                    </div>
-                    <div class="member-status pending">Pending</div>
-                    <button class="add-member-btn" onclick="removeTeamMemberSlot('${slotId}')">Remove</button>
-                </div>
-            `;
-
-            teamMemberSlots++;
+            // This function is deprecated - slots are now generated dynamically based on team_size
+            console.warn('addTeamMemberSlot is deprecated. Slots are generated based on team_size.');
         }
 
         function removeTeamMemberSlot(slotId) {
+            // Only allow clearing input, not removing slots (fixed team size)
             const slot = document.getElementById(slotId);
             if (slot) {
-                slot.remove();
+                const input = slot.querySelector('input');
+                if (input) {
+                    input.value = '';
+                }
             }
         }
 
         async function createTeam() {
-            const teamName = document.getElementById('teamName').value.trim();
+            const teamNameInput = document.getElementById('teamName');
+            const teamName = teamNameInput.value.trim();
             const studentId = localStorage.getItem('studentId');
+            const teamNameError = document.getElementById('teamNameError');
+
+            // Reset previous error styling
+            teamNameInput.style.borderColor = '';
+            teamNameInput.style.borderBottomColor = '';
+            if (teamNameError) teamNameError.style.display = 'none';
 
             if (!teamName) {
-                alert('Please enter a team name');
+                // Show UI error instead of alert
+                teamNameInput.style.borderColor = '#dc2626';
+                teamNameInput.style.borderBottomWidth = '3px';
+                teamNameInput.style.background = '#fef2f2';
+                if (teamNameError) teamNameError.style.display = 'block';
+                teamNameInput.focus();
                 return;
             }
 
@@ -1147,17 +1684,70 @@
 
             for (const memberId of memberIds) {
                 if (!/^\d{2}-\d{5}-\d$/.test(memberId)) {
-                    alert(`Invalid student ID format: ${memberId}. Use XX-XXXXX-X format.`);
+                    showToast(`Invalid student ID format: ${memberId}. Use XX-XXXXX-X format.`, 'error', 'Invalid Format');
                     return;
+                }
+            }
+
+            // Check for duplicate IDs
+            const uniqueIds = new Set(memberIds);
+            if (uniqueIds.size !== memberIds.length) {
+                // Find the duplicate
+                const seen = new Set();
+                for (const id of memberIds) {
+                    if (seen.has(id)) {
+                        showToast(`Student ID ${id} is entered more than once. Each team member must have a unique ID.`, 'error', 'Duplicate ID');
+                        return;
+                    }
+                    seen.add(id);
                 }
             }
 
             const createBtn = document.querySelector('.btn-confirm');
             const originalText = createBtn.textContent;
-            createBtn.textContent = 'Creating...';
+            createBtn.textContent = 'Validating...';
             createBtn.disabled = true;
 
             try {
+                // STEP 1: Validate ALL members BEFORE creating the team
+                if (memberIds.length > 1) {
+                    createBtn.textContent = 'Checking members...';
+
+                    for (let i = 1; i < memberIds.length; i++) {
+                        const validateResponse = await fetch(`${API_URL}/auth/validate-member`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                memberStudentId: memberIds[i],
+                                gameId: currentGameId,
+                                leaderStudentId: studentId
+                            })
+                        });
+
+                        const validateResult = await validateResponse.json();
+
+                        if (!validateResult.success) {
+                            // Show gender validation error popup
+                            createBtn.textContent = originalText;
+                            createBtn.disabled = false;
+
+                            // Update the member input field styling to show error
+                            const memberInputs = document.querySelectorAll('.member-student-id');
+                            if (memberInputs[i - 1]) {
+                                memberInputs[i - 1].style.borderColor = '#dc2626';
+                                memberInputs[i - 1].style.background = '#fef2f2';
+                            }
+
+                            // Show proper error modal
+                            showGenderErrorPopup(validateResult, memberIds[i], i);
+                            return; // Stop - don't create team
+                        }
+                    }
+                }
+
+                // STEP 2: All members validated - now create the team
+                createBtn.textContent = 'Creating...';
+
                 const response = await fetch(`${API_URL}/auth/create-team`, {
                     method: 'POST',
                     headers: {
@@ -1173,18 +1763,22 @@
                 const result = await response.json();
 
                 if (result.success) {
+                    // Add all validated members
+                    createBtn.textContent = 'Adding members...';
+
                     for (let i = 1; i < memberIds.length; i++) {
                         await addTeamMember(result.team.id, memberIds[i]);
                     }
 
-                    alert('Team created successfully!');
+                    // Success!
+                    showToast('Your team has been created and added to cart!', 'success', 'Team Created');
 
                     await addToCart(studentId, 'TEAM_REGISTRATION', result.team.id, currentGameId);
 
                     closeTeamModal();
                     location.reload();
                 } else {
-                    alert(`Team creation failed: ${result.message || 'Unknown error'}`);
+                    showToast(`${result.message || 'Unknown error'}`, 'error', 'Team Creation Failed');
                 }
             } catch (error) {
                 console.error('Team creation error:', error);
@@ -1195,23 +1789,213 @@
             }
         }
 
-        async function addTeamMember(teamId, studentId) {
+        // Show Gender Error Popup for member validation
+        function showGenderErrorPopup(result, studentId, memberIndex) {
+            const requiredGender = result.requiredGender || 'correct gender';
+            const memberName = result.memberName || studentId;
+            const memberGender = result.memberGender || 'unknown';
+
+            // Create modal overlay
+            const overlay = document.createElement('div');
+            overlay.id = 'genderErrorOverlay';
+            overlay.style.cssText = `
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.5); display: flex; align-items: center;
+                justify-content: center; z-index: 10000;
+            `;
+
+            overlay.innerHTML = `
+                <div style="background: white; border-radius: 12px; max-width: 450px; width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.3); overflow: hidden;">
+                    <div style="background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; padding: 20px; text-align: center;">
+                        <div style="font-size: 48px; margin-bottom: 10px;">⚠️</div>
+                        <h3 style="margin: 0; font-size: 20px;">Gender Mismatch</h3>
+                    </div>
+                    <div style="padding: 25px;">
+                        <div style="background: #fef2f2; border-left: 4px solid #dc2626; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                            <p style="margin: 0; color: #991b1b; font-size: 15px;">
+                                <strong>${memberName}</strong> is <strong style="color: ${memberGender.toLowerCase() === 'female' ? '#c026d3' : '#2563eb'}">${memberGender}</strong>
+                                <br><br>
+                                This game requires a <strong style="color: ${requiredGender.toLowerCase() === 'female' ? '#c026d3' : '#2563eb'}">${requiredGender}</strong> team member.
+                            </p>
+                        </div>
+                        <p style="margin: 0 0 20px 0; color: #4b5563; text-align: center; font-size: 14px;">
+                            Please enter a valid ${requiredGender} student ID.
+                        </p>
+                        <div style="display: flex; gap: 12px; justify-content: center;">
+                            <button onclick="document.getElementById('genderErrorOverlay').remove();"
+                                    style="padding: 12px 25px; background: #f59e0b; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 15px;">
+                                ✏️ Change Member ID
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(overlay);
+
+            // Focus on the member input
+            const memberInputs = document.querySelectorAll('.member-student-id');
+            if (memberInputs[memberIndex - 1]) {
+                setTimeout(() => {
+                    memberInputs[memberIndex - 1].focus();
+                    memberInputs[memberIndex - 1].select();
+                }, 100);
+            }
+        }
+
+        async function addTeamMember(teamId, memberStudentId) {
+            const leaderStudentId = localStorage.getItem('studentId');
             try {
+                console.log(`Adding member ${memberStudentId} to team ${teamId} (leader: ${leaderStudentId})`);
                 const response = await fetch(`${API_URL}/auth/team/${teamId}/add-member`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        studentId: studentId
+                        leaderStudentId: leaderStudentId,
+                        memberStudentId: memberStudentId
                     })
                 });
 
                 const result = await response.json();
+                console.log('addTeamMember result:', result);
+                if (!result.success) {
+                    console.error('Failed to add member:', result.message);
+                }
                 return result;
             } catch (error) {
                 console.error('Add team member error:', error);
                 return { success: false, message: error.message };
+            }
+        }
+
+        // Replace Member Modal Functions
+        let replaceModalData = {
+            teamId: null,
+            memberId: null,
+            currentMemberName: null,
+            currentMemberStudentId: null
+        };
+
+        function openReplaceMemberModal(teamId, memberId, memberName, memberStudentId) {
+            replaceModalData = {
+                teamId: teamId,
+                memberId: memberId,
+                currentMemberName: memberName || 'Unknown',
+                currentMemberStudentId: memberStudentId || 'Unknown'
+            };
+
+            // Set current member info
+            document.getElementById('currentMemberName').textContent =
+                `${replaceModalData.currentMemberName} (${replaceModalData.currentMemberStudentId})`;
+
+            // Reset input and messages
+            document.getElementById('newMemberStudentId').value = '';
+            document.getElementById('newMemberInfo').style.display = 'none';
+            document.getElementById('newMemberError').style.display = 'none';
+            document.getElementById('replaceConfirmation').style.display = 'none';
+
+            // Show modal
+            document.getElementById('replaceMemberModal').style.display = 'flex';
+        }
+
+        function closeReplaceMemberModal() {
+            document.getElementById('replaceMemberModal').style.display = 'none';
+            replaceModalData = { teamId: null, memberId: null, currentMemberName: null, currentMemberStudentId: null };
+        }
+
+        // Called when Replace button is clicked (old function - now opens modal)
+        function replaceMember(teamId, memberId, memberName, memberStudentId) {
+            openReplaceMemberModal(teamId, memberId, memberName, memberStudentId);
+        }
+
+        async function confirmReplaceMember() {
+            const newStudentId = document.getElementById('newMemberStudentId').value.trim();
+            const leaderStudentId = localStorage.getItem('studentId');
+
+            // Validate input
+            if (!newStudentId) {
+                document.getElementById('newMemberError').textContent = '❌ Please enter a student ID';
+                document.getElementById('newMemberError').style.display = 'block';
+                document.getElementById('newMemberInfo').style.display = 'none';
+                return;
+            }
+
+            // Basic format validation
+            const idPattern = /^\d{2}-\d{5}-\d{1}$/;
+            if (!idPattern.test(newStudentId)) {
+                document.getElementById('newMemberError').textContent = '❌ Invalid format. Use: XX-XXXXX-X (e.g., 23-54919-3)';
+                document.getElementById('newMemberError').style.display = 'block';
+                document.getElementById('newMemberInfo').style.display = 'none';
+                return;
+            }
+
+            // Can't replace with self
+            if (newStudentId === leaderStudentId) {
+                document.getElementById('newMemberError').textContent = '❌ You cannot add yourself as a team member';
+                document.getElementById('newMemberError').style.display = 'block';
+                document.getElementById('newMemberInfo').style.display = 'none';
+                return;
+            }
+
+            // Can't replace with same person
+            if (newStudentId === replaceModalData.currentMemberStudentId) {
+                document.getElementById('newMemberError').textContent = '❌ This is the same person you are trying to replace';
+                document.getElementById('newMemberError').style.display = 'block';
+                document.getElementById('newMemberInfo').style.display = 'none';
+                return;
+            }
+
+            // Show confirmation
+            document.getElementById('replaceConfirmation').style.display = 'block';
+            document.getElementById('confirmationText').innerHTML =
+                `This will remove <strong>${replaceModalData.currentMemberName}</strong> and invite <strong>${newStudentId}</strong> to the team.`;
+
+            // Disable button and show loading
+            const confirmBtn = document.getElementById('confirmReplaceBtn');
+            const originalText = confirmBtn.textContent;
+            confirmBtn.textContent = 'Replacing...';
+            confirmBtn.disabled = true;
+
+            try {
+                // Call replace member API
+                const response = await fetch(`${API_URL}/auth/team/${replaceModalData.teamId}/member/${replaceModalData.memberId}/replace`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        studentId: leaderStudentId,
+                        newMemberStudentId: newStudentId
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    document.getElementById('newMemberInfo').innerHTML = `✅ <strong>Success!</strong> ${result.message}`;
+                    document.getElementById('newMemberInfo').style.display = 'block';
+                    document.getElementById('newMemberError').style.display = 'none';
+
+                    // Close modal after short delay and refresh team display
+                    setTimeout(() => {
+                        closeReplaceMemberModal();
+                        // Refresh the team modal if still open
+                        if (currentTeamId && currentGameId) {
+                            editTeam(currentGameId, currentGameName, currentCategory);
+                        }
+                    }, 1500);
+                } else {
+                    document.getElementById('newMemberError').textContent = `❌ ${result.message || 'Failed to replace member'}`;
+                    document.getElementById('newMemberError').style.display = 'block';
+                    document.getElementById('newMemberInfo').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Replace member error:', error);
+                document.getElementById('newMemberError').textContent = '❌ Network error. Please try again.';
+                document.getElementById('newMemberError').style.display = 'block';
+            } finally {
+                confirmBtn.textContent = originalText;
+                confirmBtn.disabled = false;
             }
         }
 
