@@ -530,6 +530,39 @@ const addTeamMember = async (req, res) => {
                 }
             }
 
+            // NEW: Check if user is already CONFIRMED on another team for the same game
+            // Get the tournament_game_id from the current team
+            const { data: currentTeamGame, error: gameError } = await supabase
+                .from('teams')
+                .select('tournament_game_id')
+                .eq('id', teamId)
+                .single();
+
+            if (!gameError && currentTeamGame) {
+                const currentGameId = currentTeamGame.tournament_game_id;
+
+                // Check if user is CONFIRMED on any other team for this game
+                const { data: confirmedMemberships, error: membershipError } = await supabase
+                    .from('team_members')
+                    .select(`
+                        id,
+                        team_id,
+                        teams!inner(tournament_game_id)
+                    `)
+                    .eq('user_id', userIdToAdd)
+                    .eq('status', 'CONFIRMED')
+                    .eq('teams.tournament_game_id', currentGameId);
+
+                if (!membershipError && confirmedMemberships && confirmedMemberships.length > 0) {
+                    console.log(`❌ User ${userToAdd.student_id} is already CONFIRMED on another team for this game`);
+                    return res.status(400).json({
+                        success: false,
+                        message: `This user is already on a team for this game. Please choose a new member.`,
+                        alreadyOnTeam: true
+                    });
+                }
+            }
+
             // Check if user is already in the team
             const { data: existingMember, error: existingError } = await supabase
                 .from('team_members')
@@ -688,6 +721,71 @@ const acceptTeamInvitation = async (req, res) => {
             });
         }
 
+        // NEW: Remove user from all other PENDING teams for the same game
+        let removedTeamsCount = 0;
+
+        try {
+            // Get the tournament_game_id from the accepted team
+            const { data: acceptedTeam, error: acceptedTeamError } = await supabase
+                .from('teams')
+                .select('tournament_game_id')
+                .eq('id', teamId)
+                .single();
+
+            if (!acceptedTeamError && acceptedTeam) {
+                const currentGameId = acceptedTeam.tournament_game_id;
+
+                // Find all OTHER teams for the same game where user is PENDING
+                const { data: otherPendingMemberships, error: pendingError } = await supabase
+                    .from('team_members')
+                    .select(`
+                        id,
+                        team_id,
+                        teams!inner(tournament_game_id)
+                    `)
+                    .eq('user_id', userId)
+                    .eq('status', 'PENDING')
+                    .eq('teams.tournament_game_id', currentGameId)
+                    .neq('team_id', teamId); // Exclude the team they just accepted
+
+                if (!pendingError && otherPendingMemberships && otherPendingMemberships.length > 0) {
+                    console.log(`🧹 Removing user from ${otherPendingMemberships.length} other pending team(s)`);
+
+                    const teamIdsToRemove = otherPendingMemberships.map(m => m.team_id);
+                    removedTeamsCount = otherPendingMemberships.length;
+
+                    // Delete the pending memberships
+                    const { error: deleteError } = await supabase
+                        .from('team_members')
+                        .delete()
+                        .in('id', otherPendingMemberships.map(m => m.id));
+
+                    if (deleteError) {
+                        console.error('Error removing other team memberships:', deleteError);
+                    } else {
+                        console.log(`✅ Successfully removed user from ${removedTeamsCount} pending team(s)`);
+
+                        // Archive related notifications for those teams
+                        const { error: archiveError } = await supabase
+                            .from('notifications')
+                            .update({ status: 'ARCHIVED' })
+                            .eq('user_id', userId)
+                            .eq('type', 'TEAM_REQUEST')
+                            .in('related_id', teamIdsToRemove);
+
+                        if (archiveError) {
+                            console.error('Error archiving notifications:', archiveError);
+                        } else {
+                            console.log(`✅ Archived ${removedTeamsCount} team invitation notification(s)`);
+                        }
+                    }
+                }
+            }
+        } catch (cleanupError) {
+            console.error('Error during cleanup of other teams:', cleanupError);
+            // Don't fail the whole operation if cleanup fails
+        }
+
         // Mark the notification as read
         await supabase
             .from('notifications')
@@ -696,7 +794,10 @@ const acceptTeamInvitation = async (req, res) => {
 
         res.json({
             success: true,
-            message: 'Team invitation accepted successfully'
+            message: removedTeamsCount > 0
+                ? `Team invitation accepted successfully! You were removed from ${removedTeamsCount} other pending team(s).`
+                : 'Team invitation accepted successfully',
+            removedTeamsCount: removedTeamsCount
         });
     } catch (error) {
         console.error('Accept team invitation error:', error);

@@ -1860,6 +1860,13 @@
 
                 const result = await response.json();
                 console.log('addTeamMember result:', result);
+
+                // NEW: Handle duplicate team membership error
+                if (result.alreadyOnTeam) {
+                    show Toast(result.message || 'This user is already on a team for this game. Please choose a new member.', 'error', 'Already on Team');
+                    return result;
+                }
+
                 if (!result.success) {
                     console.error('Failed to add member:', result.message);
                 }
