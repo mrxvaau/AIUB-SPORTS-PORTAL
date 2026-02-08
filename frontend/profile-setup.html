@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,19 +34,16 @@
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         /* Hide content initially */
         .content-hidden {
             display: none;
         }
-    </style>
 
-    <script>
-        // Immediately hide content until profile is checked
-        document.documentElement.style.display = 'none';
-    </script>
         .setup-container {
             background: white;
             border-radius: 10px;
@@ -103,7 +101,8 @@
             margin-bottom: 8px;
         }
 
-        .form-input, .form-select {
+        .form-input,
+        .form-select {
             width: 100%;
             padding: 12px 15px;
             border: 2px solid #e0e0e0;
@@ -112,12 +111,14 @@
             transition: border-color 0.3s;
         }
 
-        .form-input:focus, .form-select:focus {
+        .form-input:focus,
+        .form-select:focus {
             outline: none;
             border-color: #1976d2;
         }
 
-        .form-input:disabled, .form-select:disabled {
+        .form-input:disabled,
+        .form-select:disabled {
             background: #f5f5f5;
             cursor: not-allowed;
         }
@@ -211,7 +212,9 @@
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         /* Modal */
@@ -256,7 +259,8 @@
             justify-content: flex-end;
         }
 
-        .btn-cancel, .btn-confirm {
+        .btn-cancel,
+        .btn-confirm {
             padding: 10px 25px;
             border-radius: 6px;
             font-size: 15px;
@@ -275,7 +279,13 @@
             color: white;
         }
     </style>
+
+    <script>
+        // Immediately hide content until profile is checked
+        document.documentElement.style.display = 'none';
+    </script>
 </head>
+
 <body>
     <div class="setup-container">
         <div class="logo-section">
@@ -291,7 +301,7 @@
                 <!-- Student ID -->
                 <div class="form-group">
                     <label class="form-label">
-                        Student ID 
+                        Student ID
                         <span class="locked-badge">🔒 LOCKED</span>
                     </label>
                     <input type="text" id="studentId" class="form-input" disabled>
@@ -300,7 +310,7 @@
                 <!-- Email -->
                 <div class="form-group">
                     <label class="form-label">
-                        Email 
+                        Email
                         <span class="locked-badge">🔒 LOCKED</span>
                     </label>
                     <input type="email" id="email" class="form-input" disabled>
@@ -315,7 +325,8 @@
                 <!-- Phone Number -->
                 <div class="form-group">
                     <label class="form-label">Phone Number</label>
-                    <input type="tel" id="phoneNumber" class="form-input" placeholder="01XXXXXXXXX" pattern="[0-9]{11}" required>
+                    <input type="tel" id="phoneNumber" class="form-input" placeholder="01XXXXXXXXX" pattern="[0-9]{11}"
+                        required>
                 </div>
 
                 <!-- Gender -->
@@ -455,16 +466,16 @@
         function updateDepartmentOptions(programLevel) {
             const deptSelect = document.getElementById('department');
             deptSelect.innerHTML = '<option value="">Select Department</option>';
-            
+
             const depts = programLevel === 'Undergraduate' ? undergraduateDepts : postgraduateDepts;
-            
+
             depts.forEach(dept => {
                 const option = document.createElement('option');
                 option.value = dept;
                 option.textContent = dept;
                 deptSelect.appendChild(option);
             });
-            
+
             deptSelect.disabled = false;
         }
 
@@ -474,10 +485,10 @@
 
             const programLevel = document.querySelector('input[name="programLevel"]:checked')?.value;
             const department = document.getElementById('department').value;
-            
-            document.getElementById('modalMessage').textContent = 
+
+            document.getElementById('modalMessage').textContent =
                 `You are about to set your program level as "${programLevel}" and department as "${department}". These CANNOT be changed later. Are you sure?`;
-            
+
             document.getElementById('confirmModal').style.display = 'block';
         });
 
@@ -518,7 +529,7 @@
                     // Set flag for welcome screen
                     sessionStorage.setItem('profileJustCompleted', 'true');
                     localStorage.setItem('userName', formData.fullName);
-                    
+
                     // Redirect to dashboard
                     window.location.href = 'dashboard.html';
                 } else {
@@ -550,4 +561,5 @@
         };
     </script>
 </body>
+
 </html>
