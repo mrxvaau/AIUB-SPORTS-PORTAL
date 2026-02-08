@@ -1,6 +1,6 @@
 # 🧠 AIUB Sports Portal - Project Memory
 
-**Last Updated**: 2026-02-08 @ 11:44  
+**Last Updated**: 2026-02-08 @ 12:47  
 **Version**: 2.0  
 **Status**: ✅ Stable - Development Active
 
@@ -11,6 +11,22 @@
 ## 🔥 Recent Updates Log
 
 > ⚡ **Chain Reaction Rule**: Always READ this section → Work → UPDATE this section → READ again
+
+### 2026-02-08 12:47 - Implemented: Team Mutual Exclusivity System
+- **What**: Added duplicate prevention + auto-removal for team memberships per game
+- **Where**: `teamController.js` (backend), `registration.html` + `dashboard.html` (frontend)
+- **Features**:
+  1. **Duplicate Prevention**: Leaders can't add users already CONFIRMED on another team for same game
+  2. **Auto-Removal**: Users accepting one team are auto-removed from all other PENDING teams for that game
+- **Impact**: Prevents confusion, ensures one user = one team per game
+- **Files Modified**: `teamController.js`, `registration.html`, `dashboard.html`
+
+### 2026-02-08 12:23 - Fixed: Profile Setup Page CSS Not Loading
+- **What**: Fixed critical CSS bug causing profile-setup.html to display unst yled
+- **Root Cause**: `</style>` tag closed on line 43, but CSS continued outside (lines 49-277)
+- **Solution**: Moved closing style tag to after all CSS rules (line 277)
+- **Impact**: Profile setup page now displays correctly with proper styling
+- **Files Modified**: `profile-setup.html`
 
 ### 2026-02-08 11:44 - Created: PROJECT_MEMORY.md System
 - **What**: Initialized comprehensive memory file with full project documentation
@@ -29,23 +45,25 @@
 
 ## 📋 Last Session Work
 
-**Session**: 2026-02-08 @ 11:35-11:44  
-**Agent**: Antigravity (account switch recovery session)  
-**Focus**: Creating project memory system
+**Session**: 2026-02-08 @ 05:45-12:47 (7 hours)  
+**Agent**: Antigravity  
+**Focus**: Team Mutual Exclusivity + Profile Setup Bug Fix
 
 **Completed**:
-- ✅ Explored entire project structure (backend/frontend/database)
-- ✅ Read all key configuration files
-- ✅ Documented database schema (10 tables via Supabase MCP)
-- ✅ Identified completed features and recent bug fixes
-- ✅ Created PROJECT_MEMORY.md with comprehensive documentation
-- ✅ Created memory-update.md workflow for continuous updates
+- ✅ Implemented Team Mutual Exclusivity (2 complementary features)
+  - Duplicate Prevention: Blocks adding users already on another team for same game
+  - Auto-Removal: Removes user from pending teams when accepting one invite
+- ✅ Fixed profile-setup.html CSS rendering issue (styles outside `<style>` tags)
+- ✅ Updated backend `teamController.js` with validation + cleanup logic
+- ✅ Updated frontend `registration.html` + `dashboard.html` with error handling
+- ✅ Created comprehensive walkthrough documentation
+- ✅ Updated PROJECT_MEMORY.md with all changes
 
 **Next Session Should**:
-- Read this memory file first
+- Test team mutual exclusivity manually (multiple teams, same user)
+- Consider adding automated tests for team logic
 - Continue with planned features or bug fixes
-- Update "Recent Updates Log" above as you work
-- Document any new discoveries or issues
+- Update "Recent Updates Log" as you work
 
 ---
 
@@ -212,6 +230,18 @@ AIUB-SPORTS-PORTAL/
 6. Members accept/reject team invitations
 7. Cart holds registrations until checkout
 
+**🆕 Team Mutual Exclusivity** (Added 2026-02-08):
+- **Duplicate Prevention**: Leaders cannot add users who are already CONFIRMED on another team for the same game
+  - Backend validates in `addTeamMember` function
+  - Returns error: `"This user is already on a team for this game"`
+  - Frontend shows error toast in `registration.html`
+- **Auto-Removal**: When user accepts one team invitation:
+  - System finds all OTHER pending team memberships for same game
+  - Automatically deletes those memberships
+  - Archives related notifications
+  - Returns count of removed teams in success message
+  - Frontend displays: `"Accepted! You were removed from X other pending team(s)."`
+
 ### 5. Cart System
 - Holds both individual and team registrations
 - UNIQUE constraint: one item per (user_id, tournament_game_id)
@@ -360,6 +390,21 @@ curl http://localhost:3000/api/health
 
 **Files Modified**:
 - `backend/routes/admin.js` (tournament update endpoint)
+
+---
+
+#### 6. ✅ FIXED: Profile Setup Page CSS Not Rendering
+**Problem**: Profile setup page displayed completely unstyled - CSS shown as text on page.
+
+**Root Cause**: `</style>` tag closed prematurely on line 43, but CSS rules continued outside the style block from lines 49-277.
+
+**Solution**:
+- Removed early closing `</style>` tag on line 43
+- Moved closing tag to line 277 (after all CSS rules)
+- Moved content-hiding script to proper location
+
+**Files Modified**:
+- `frontend/profile-setup.html` (lines 35-277)
 
 ---
 
@@ -683,7 +728,7 @@ try {
 
 ---
 
-**Last Updated**: 2026-02-08 @ 11:44 GMT+6  
+**Last Updated**: 2026-02-08 @ 12:47 GMT+6  
 **Next Review**: Start of every new session (read the "Recent Updates Log")  
 
 **Remember**: This is a LIVING DOCUMENT - Read it, Update it, Read it again! 🔁 Future you (or another agent) will thank you! 🙏
