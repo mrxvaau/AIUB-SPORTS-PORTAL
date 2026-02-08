@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,7 +25,7 @@
             background: white;
             border-radius: 10px;
             padding: 30px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
 
         h1 {
@@ -143,15 +144,21 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(100deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(100deg);
+            }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>Admin Debug Tool</h1>
-        
+
         <div class="input-section">
             <div class="form-group">
                 <label for="email">Enter Email to Check:</label>
@@ -170,7 +177,7 @@
                 <div class="result-title">Admin Check Result</div>
                 <div id="adminResult" class="result-content"></div>
             </div>
-            
+
             <div class="result-card">
                 <div class="result-title">Detailed Information</div>
                 <div id="detailsResult" class="result-content"></div>
@@ -178,12 +185,14 @@
         </div>
     </div>
 
+    <script src="js/tunnel-config.js"></script>
+    <script src="api-config.js"></script>
     <script>
-        const API_URL = 'http://localhost:3000/api';
-        
+        const API_URL = typeof API_CONFIG !== 'undefined' ? API_CONFIG.API_BASE_URL : 'http://localhost:3000/api';
+
         document.getElementById('checkBtn').addEventListener('click', async () => {
             const email = document.getElementById('email').value.trim();
-            
+
             if (!email) {
                 alert('Please enter an email address');
                 return;
@@ -192,7 +201,7 @@
             // Show loading
             document.getElementById('loading').style.display = 'block';
             document.getElementById('results').style.display = 'none';
-            
+
             try {
                 const response = await fetch(`${API_URL}/auth/debug-admin`, {
                     method: 'POST',
@@ -203,10 +212,10 @@
                 });
 
                 const data = await response.json();
-                
+
                 // Hide loading
                 document.getElementById('loading').style.display = 'none';
-                
+
                 if (data.success) {
                     // Display admin check result
                     const adminResult = document.getElementById('adminResult');
@@ -246,4 +255,5 @@
         });
     </script>
 </body>
+
 </html>

@@ -1225,14 +1225,88 @@
                 </div>
             </div>
 
-            <!-- System Configuration Placeholder -->
+            <!-- System Configuration -->
             <div id="system-configuration-placeholder" class="content-section">
                 <div class="player-card">
                     <div class="card-header">
                         <h2>System Configuration</h2>
                     </div>
-                    <div class="warning-box">
-                        <p>This panel is under development. Will be fixed soon.</p>
+
+                    <!-- Port Forwarding Section -->
+                    <div class="moderator-section" style="margin-top: 20px;">
+                        <div class="flex-row"
+                            style="justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <div>
+                                <h3>Port Forwarding (Tunneling)</h3>
+                                <p class="hint">Expose your local server to the internet for testing</p>
+                            </div>
+                            <div class="status-badge" id="tunnelStatusBadge"
+                                style="padding: 4px 12px; border-radius: 99px; font-weight: 600; font-size: 12px; background: #fee2e2; color: #991b1b;">
+                                OFFLINE
+                            </div>
+                        </div>
+
+                        <div class="info-field" style="margin-bottom: 20px;">
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <label class="info-label" style="margin-bottom: 0;">Enable Port Forwarding</label>
+                                <!-- Custom Toggle Switch -->
+                                <div id="tunnelToggleWrapper"
+                                    style="position: relative; width: 44px; height: 24px; background: #e5e7eb; border-radius: 99px; cursor: pointer; transition: background 0.3s;"
+                                    onclick="toggleTunnel()">
+                                    <div id="tunnelToggleDot"
+                                        style="position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: transform 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="tunnelLoading" style="display: none; text-align: center; padding: 20px;">
+                            <div class="spinner"
+                                style="border-color: #3b82f6; border-top-color: transparent; width: 24px; height: 24px;">
+                            </div>
+                            <p class="hint" style="margin-top: 10px;">Connecting to tunnel service...</p>
+                        </div>
+
+                        <div id="tunnelDetails" style="display: none; animation: slideUp 0.3s ease;">
+                            <div class="info-field">
+                                <label class="info-label">Frontend URL (Share this one)</label>
+                                <div class="flex-row">
+                                    <input type="text" id="tunnelFrontendUrl" class="info-input" readonly
+                                        placeholder="Waiting for URL..." value="">
+                                    <button class="btn secondary"
+                                        onclick="copyToClipboard('tunnelFrontendUrl')">Copy</button>
+                                    <a id="tunnelFrontendLink" href="#" target="_blank" class="btn primary">Open</a>
+                                </div>
+                            </div>
+
+                            <div class="info-field">
+                                <label class="info-label">Backend URL (API)</label>
+                                <div class="flex-row">
+                                    <input type="text" id="tunnelBackendUrl" class="info-input" readonly
+                                        placeholder="Waiting for URL..." value="">
+                                    <button class="btn secondary"
+                                        onclick="copyToClipboard('tunnelBackendUrl')">Copy</button>
+                                </div>
+                            </div>
+
+                            <div class="announcement"
+                                style="margin-top: 15px; background: #fffbeb; border-color: #fcd34d;">
+                                <p style="color: #92400e; font-size: 12px;">
+                                    <strong>Note:</strong> Tunnels are temporary. The URL will change if you restart the
+                                    tunnel.
+                                    Update your Azure AD Redirect URIs if using Microsoft Login with these URLs.
+                                </p>
+                            </div>
+
+                            <div class="announcement"
+                                style="margin-top: 10px; background: #e0f2fe; border-color: #bae6fd;">
+                                <p style="color: #0369a1; font-size: 12px;">
+                                    <strong>🚀 Crucial Step:</strong> After starting, open the <b>Backend URL</b> in a
+                                    new tab once and click "Click to Continue". This bypasses the tunnel security check
+                                    so the app can connect to the API.
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1328,6 +1402,7 @@
         </div>
     </div>
 
+    <script src="js/tunnel-config.js"></script>
     <script src="api-config.js"></script>
     <script>
         // Load API configuration with fallback
@@ -1548,9 +1623,14 @@
                 document.getElementById('analytics-reporting-placeholder').classList.add('active');
             } else if (name === 'System Configuration') {
                 document.getElementById('system-configuration-placeholder').classList.add('active');
+                if (typeof initTunnelControl === 'function') {
+                    initTunnelControl();
+                }
             } else if (name === 'Moderator Management') {
                 document.getElementById('admin-management-placeholder').classList.add('active');
-                loadAdminManagement();  // Load the admin management interface
+                if (typeof loadAdminManagement === 'function') {
+                    loadAdminManagement();  // Load the admin management interface
+                }
             }
         }
 
@@ -3624,6 +3704,147 @@
             </div>
         </div>
     </div>
+    <script>
+        // ==========================================
+        // PORT FORWARDING / TUNNEL CONTROL
+        // ==========================================
+        let isTunnelLoading = false;
+
+        async function initTunnelControl() {
+            // Check if section is active
+            const section = document.getElementById('system-configuration-placeholder');
+            if (!section || !section.classList.contains('active')) return;
+
+            try {
+                // Get user email
+                const userEmail = localStorage.getItem('userEmail');
+
+                const response = await fetch(`${API_URL}/admin/tunnel/status`, {
+                    headers: {
+                        'x-user-email': userEmail || ''
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    updateTunnelUI(data.active, data.frontendUrl, data.backendUrl);
+                }
+            } catch (error) {
+                console.error('Error fetching tunnel status:', error);
+            }
+        }
+
+        function updateTunnelUI(active, frontendUrl, backendUrl) {
+            const toggleWrapper = document.getElementById('tunnelToggleWrapper');
+            const toggleDot = document.getElementById('tunnelToggleDot');
+            const statusBadge = document.getElementById('tunnelStatusBadge');
+            const loadingDiv = document.getElementById('tunnelLoading');
+            const detailsDiv = document.getElementById('tunnelDetails');
+
+            if (!toggleWrapper || !statusBadge) return;
+
+            // Hide loading
+            if (loadingDiv) loadingDiv.style.display = 'none';
+            isTunnelLoading = false;
+
+            if (active) {
+                // Active state
+                toggleWrapper.style.background = '#4f46e5';
+                toggleDot.style.transform = 'translateX(20px)';
+
+                statusBadge.textContent = 'ONLINE';
+                statusBadge.style.background = '#dcfce7';
+                statusBadge.style.color = '#166534';
+
+                if (detailsDiv) detailsDiv.style.display = 'block';
+
+                const frontendInput = document.getElementById('tunnelFrontendUrl');
+                const backendInput = document.getElementById('tunnelBackendUrl');
+                const frontendLink = document.getElementById('tunnelFrontendLink');
+
+                if (frontendInput) frontendInput.value = frontendUrl || '';
+                if (backendInput) backendInput.value = backendUrl || '';
+                if (frontendLink) frontendLink.href = frontendUrl || '#';
+            } else {
+                // Inactive state
+                toggleWrapper.style.background = '#e5e7eb';
+                toggleDot.style.transform = 'translateX(0)';
+
+                statusBadge.textContent = 'OFFLINE';
+                statusBadge.style.background = '#fee2e2';
+                statusBadge.style.color = '#991b1b';
+
+                if (detailsDiv) detailsDiv.style.display = 'none';
+            }
+        }
+
+        async function toggleTunnel() {
+            if (isTunnelLoading) return;
+
+            const statusBadge = document.getElementById('tunnelStatusBadge');
+            if (!statusBadge) return;
+
+            const isOnline = statusBadge.textContent === 'ONLINE';
+            const endpoint = isOnline ? '/admin/tunnel/stop' : '/admin/tunnel/start';
+
+            // Show loading state
+            isTunnelLoading = true;
+            const loadingDiv = document.getElementById('tunnelLoading');
+            const detailsDiv = document.getElementById('tunnelDetails');
+
+            if (loadingDiv) loadingDiv.style.display = 'block';
+            if (detailsDiv) detailsDiv.style.display = 'none';
+
+            try {
+                const userEmail = localStorage.getItem('userEmail');
+
+                const response = await fetch(`${API_URL}${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-user-email': userEmail || ''
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    if (isOnline) {
+                        updateTunnelUI(false, null, null);
+                    } else {
+                        updateTunnelUI(true, result.frontendUrl, result.backendUrl);
+                    }
+                } else {
+                    alert('Error: ' + (result.message || 'Operation failed'));
+                    // Revert UI to previous state
+                    initTunnelControl();
+                }
+            } catch (error) {
+                console.error('Tunnel toggle error:', error);
+                alert('Connection failed. Please check server logs.');
+                // Revert UI to previous state by fetching status
+                initTunnelControl();
+            }
+        }
+
+        function copyToClipboard(elementId) {
+            const copyText = document.getElementById(elementId);
+            if (!copyText) return;
+
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); // For mobile devices
+            navigator.clipboard.writeText(copyText.value);
+
+            // Show simple feedback
+            const btn = event.target;
+            const originalBtnText = btn.textContent;
+            btn.textContent = 'Copied!';
+            setTimeout(() => {
+                btn.textContent = originalBtnText;
+            }, 2000);
+        }
+    </script>
 </body>
 
 </html>

@@ -22,7 +22,7 @@ const dashboardRoutes = require('./routes/dashboard');
 
 // Middleware
 app.use(cors({
-    origin: function(origin, callback) {
+    origin: function (origin, callback) {
         // Allow requests with no origin (like mobile apps or curl requests)
         if (!origin) return callback(null, true);
 
@@ -33,6 +33,11 @@ app.use(cors({
             'http://localhost:3000',
             'http://127.0.0.1:3000'
         ];
+
+        // Add tunnel frontend URL if available (set when tunnels are started)
+        if (process.env.TUNNEL_FRONTEND_URL) {
+            allowedOrigins.push(process.env.TUNNEL_FRONTEND_URL);
+        }
 
         // Check if the origin is in the allowed list
         if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development' && process.env.CORS_ORIGIN === '*') {

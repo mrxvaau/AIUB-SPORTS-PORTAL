@@ -1,6 +1,6 @@
 # 🧠 AIUB Sports Portal - Project Memory
 
-**Last Updated**: 2026-02-08 @ 12:47  
+**Last Updated**: 2026-02-08 @ 23:35  
 **Version**: 2.0  
 **Status**: ✅ Stable - Development Active
 
@@ -11,6 +11,16 @@
 ## 🔥 Recent Updates Log
 
 > ⚡ **Chain Reaction Rule**: Always READ this section → Work → UPDATE this section → READ again
+
+### 2026-02-08 23:35 - Implemented: Port Forwarding System
+- **What**: Added secure, admin-controlled tunneling for temporary online testing
+- **Where**: Admin Dashboard > System Config (`admin-dashboard.html`)
+- **Features**:
+  1. **One-Click Tunneling**: Start/Stop `localtunnel` from UI
+  2. **Dynamic Config**: Frontend automatically switches API URL based on tunnel hostname
+  3. **Security**: Protected by admin auth, processes cleaned up on shutdown
+- **Impact**: Enables real-world testing without deployment
+- **Files Modified**: `tunnelController.js`, `API config`, Admin UI
 
 ### 2026-02-08 12:47 - Implemented: Team Mutual Exclusivity System
 - **What**: Added duplicate prevention + auto-removal for team memberships per game
@@ -50,6 +60,10 @@
 **Focus**: Team Mutual Exclusivity + Profile Setup Bug Fix
 
 **Completed**:
+- ✅ Implemented **Port Forwarding System** (Full Stack)
+  - Backend: `tunnelController.js` managing `localtunnel` processes
+  - Frontend: Admin Dashboard UI for start/stop control
+  - Config: Dynamic API URL switching via `tunnel-config.js` and `api-config.js`
 - ✅ Implemented Team Mutual Exclusivity (2 complementary features)
   - Duplicate Prevention: Blocks adding users already on another team for same game
   - Auto-Removal: Removes user from pending teams when accepting one invite

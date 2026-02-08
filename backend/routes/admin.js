@@ -1811,4 +1811,18 @@ router.get('/game-requests', requireAdmin, async (req, res) => {
     }
 });
 
+// ==========================================
+// TUNNEL MANAGEMENT ROUTES
+// ==========================================
+const tunnelController = require('../controllers/tunnelController');
+
+// Start port forwarding tunnels
+router.post('/tunnel/start', requireAdmin, tunnelController.startTunnels);
+
+// Stop port forwarding tunnels
+router.post('/tunnel/stop', requireAdmin, tunnelController.stopTunnels);
+
+// Get tunnel status
+router.get('/tunnel/status', requireAdmin, tunnelController.getTunnelStatus);
+
 module.exports = router;

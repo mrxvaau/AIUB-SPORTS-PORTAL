@@ -404,8 +404,10 @@
         </div>
     </div>
 
+    <script src="js/tunnel-config.js"></script>
+    <script src="api-config.js"></script>
     <script>
-        const API_URL = 'http://localhost:3000/api';
+        const API_URL = typeof API_CONFIG !== 'undefined' ? API_CONFIG.API_BASE_URL : 'http://localhost:3000/api';
 
         const undergraduateDepts = ['English', 'MMC', 'Economics', 'LLB', 'BBA', 'B.Arch.', 'EEE', 'IPE', 'COE', 'Pharmacy', 'CSE', 'DS', 'CNCS'];
         const postgraduateDepts = ['MDS', 'MPH', 'EMBA', 'MBA', 'MEEE', 'MTel', 'LL.M', 'MSCS'];

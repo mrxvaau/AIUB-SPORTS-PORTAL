@@ -2,10 +2,24 @@
 // This file contains the API endpoints for the AIUB Sports Portal
 // To switch environments, update the API_BASE_URL
 
+// Default base URL
+// Check for tunnel configuration (loaded from js/tunnel-config.js)
+let apiBaseUrl = 'http://localhost:3000/api';
+
+// If we are on a tunnel hostname (loca.lt) AND we have a backend URL configured
+if (typeof window !== 'undefined' && window.location.hostname.includes('loca.lt')) {
+    if (typeof TUNNEL_CONFIG !== 'undefined' && TUNNEL_CONFIG.backendUrl) {
+        apiBaseUrl = TUNNEL_CONFIG.backendUrl + '/api';
+        console.log('[API Config] Using Tunnel Backend:', apiBaseUrl);
+    } else {
+        console.warn('[API Config] Running on tunnel but no backend URL found in TUNNEL_CONFIG');
+    }
+}
+
 const API_CONFIG = {
-    // Base URL for the API - change this to match your backend server
-    API_BASE_URL: 'http://localhost:3000/api', // Default for development
-    
+    // Base URL for the API
+    API_BASE_URL: apiBaseUrl,
+
     // Specific endpoints
     ENDPOINTS: {
         AUTH_LOGIN: '/auth/login',
@@ -56,13 +70,13 @@ const API_CONFIG = {
         GET_TOURNAMENT_GAMES: (id) => `/admin/tournaments/${id}/games`,
         UPDATE_TOURNAMENT: (id) => `/admin/tournaments/${id}`,
         DELETE_TOURNAMENT: (id) => `/admin/tournaments/${id}`,
-        
+
         // Dashboard endpoints
         DASHBOARD_PROFILE: (studentId) => `/dashboard/profile/${studentId}`,
         DASHBOARD_TOURNAMENTS: (studentId) => `/dashboard/tournaments/${studentId}`,
         DASHBOARD_REGISTRATIONS: (studentId) => `/dashboard/registrations/${studentId}`,
         DASHBOARD_OVERVIEW: (studentId) => `/dashboard/overview/${studentId}`,
-        
+
         // Health check
         HEALTH: '/health'
     }

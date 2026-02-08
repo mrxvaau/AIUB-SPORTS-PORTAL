@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
     <link rel="stylesheet" href="css/common.css">
     <link rel="stylesheet" href="css/admin-dashboard.css">
 </head>
+
 <body>
     <!-- Header -->
     <div class="header">
@@ -30,19 +32,23 @@
             <span class="welcome-text" id="welcomeText">Welcome Admin</span>
             <div class="icon-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
                 <span class="notification-badge">3</span>
             </div>
             <div class="icon-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
             </div>
             <div class="icon-btn logout-btn" onclick="logout()">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
             </div>
         </div>
@@ -55,65 +61,77 @@
             <button class="sidebar-btn" onclick="showSection('existing-tournaments')">
                 <div class="sidebar-btn-content">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                     </svg>
                     <span>Existing Tournaments</span>
                 </div>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"
+                    height="16">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
             <button class="sidebar-btn" onclick="showSection('create-tournament')">
                 <div class="sidebar-btn-content">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
                     <span>Create Tournament</span>
                 </div>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"
+                    height="16">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
             <button class="sidebar-btn" id="databaseMenuBtn" onclick="toggleDatabaseSubmenu()">
                 <div class="sidebar-btn-content">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
                     </svg>
                     <span>Database</span>
                 </div>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16" id="databaseMenuIcon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"
+                    height="16" id="databaseMenuIcon">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
 
             <!-- Database Submenu -->
             <div id="databaseSubmenu" class="submenu">
-                <button class="sidebar-btn" style="width: 100%; justify-content: flex-start;" onclick="showPlaceholder('User Management')">
+                <button class="sidebar-btn" style="width: 100%; justify-content: flex-start;"
+                    onclick="showPlaceholder('User Management')">
                     <div class="sidebar-btn-content" style="padding-left: 10px;">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
                         </svg>
                         <span>User Management</span>
                     </div>
                 </button>
-                <button class="sidebar-btn" style="width: 100%; justify-content: flex-start;" onclick="showPlaceholder('Moderator Management')">
+                <button class="sidebar-btn" style="width: 100%; justify-content: flex-start;"
+                    onclick="showPlaceholder('Moderator Management')">
                     <div class="sidebar-btn-content" style="padding-left: 10px;">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                         </svg>
                         <span>Admin Management</span>
                     </div>
                 </button>
             </div>
-            
+
             <button class="sidebar-btn" onclick="showPlaceholder('Messages')">
                 <div class="sidebar-btn-content">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
                     <span>Messages</span>
                 </div>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"
+                    height="16">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
@@ -259,129 +277,135 @@
         <div class="delete-modal-content">
             <div class="delete-modal-header">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                 </svg>
                 Delete Tournament?
             </div>
             <div class="delete-modal-warning">
-                <strong>Warning:</strong> This action cannot be undone. All data related to this tournament will be permanently removed.
+                <strong>Warning:</strong> This action cannot be undone. All data related to this tournament will be
+                permanently removed.
             </div>
             <p>Are you sure you want to delete the tournament "<strong id="deleteTournamentTitle"></strong>"?</p>
             <div class="delete-input-container">
                 <label class="delete-input-label">Type "yes, i want to delete it" to confirm:</label>
-                <input type="text" id="deleteConfirmInput" class="delete-input" placeholder="yes, i want to delete it" oninput="handleDeleteInput()">
+                <input type="text" id="deleteConfirmInput" class="delete-input" placeholder="yes, i want to delete it"
+                    oninput="handleDeleteInput()">
             </div>
             <input type="hidden" id="deleteTournamentId">
             <div class="delete-buttons">
                 <button class="delete-btn delete-btn-cancel" onclick="cancelDelete()">Cancel</button>
-                <button class="delete-btn delete-btn-confirm" id="deleteConfirmBtn" disabled onclick="confirmDelete()">Confirm</button>
+                <button class="delete-btn delete-btn-confirm" id="deleteConfirmBtn" disabled
+                    onclick="confirmDelete()">Confirm</button>
             </div>
         </div>
     </div>
 
     <!-- Game Category Modal -->
     <div class="modal-backdrop" id="gameCategoryModal">
-      <div class="modal">
-        <div class="modal-header">
-          <div class="modal-title">Add game to this tournament</div>
-          <button class="modal-close" type="button" onclick="closeGameCategoryModal()">×</button>
-        </div>
-        <div class="modal-body">
-          <div class="field">
-            <label for="gc_gameSelect">Game</label>
-            <select id="gc_gameSelect" onchange="gc_handleGameChange(this.value)">
-              <option value="">Select game</option>
-              <option value="chess">Chess</option>
-              <option value="badminton">Badminton</option>
-              <option value="carrom">Carrom</option>
-              <option value="lawnTennis">Lawn Tennis</option>
-              <option value="tableTennis">Table Tennis</option>
-              <option value="pool">Pool</option>
-              <option value="ludo">Ludo</option>
-              <option value="football">Football</option>
-              <option value="cricket">Cricket</option>
-              <option value="basketball">Basketball</option>
-              <option value="futsal">Futsal</option>
-              <option value="handball">Handball</option>
-              <option value="volleyball">Volleyball</option>
-              <option value="custom">Custom...</option>
-            </select>
-            <small>Select from default list or add a custom game.</small>
-          </div>
-
-          <div class="field" id="gc_customGameField" style="display:none;">
-            <label for="gc_customGame">Custom game name</label>
-            <input id="gc_customGame" type="text" placeholder="e.g. PUBG Mobile Squad" />
-          </div>
-
-          <div class="field">
-            <label>Available for</label>
-            <div class="pill-group" id="gc_personGroup">
-              <label class="pill-check active" onclick="gc_togglePill(this)">
-                <input type="checkbox" checked />
-                <span class="dot"></span>
-                Men
-              </label>
-              <label class="pill-check active" onclick="gc_togglePill(this)">
-                <input type="checkbox" checked />
-                <span class="dot"></span>
-                Women
-              </label>
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Add game to this tournament</div>
+                <button class="modal-close" type="button" onclick="closeGameCategoryModal()">×</button>
             </div>
-          </div>
+            <div class="modal-body">
+                <div class="field">
+                    <label for="gc_gameSelect">Game</label>
+                    <select id="gc_gameSelect" onchange="gc_handleGameChange(this.value)">
+                        <option value="">Select game</option>
+                        <option value="chess">Chess</option>
+                        <option value="badminton">Badminton</option>
+                        <option value="carrom">Carrom</option>
+                        <option value="lawnTennis">Lawn Tennis</option>
+                        <option value="tableTennis">Table Tennis</option>
+                        <option value="pool">Pool</option>
+                        <option value="ludo">Ludo</option>
+                        <option value="football">Football</option>
+                        <option value="cricket">Cricket</option>
+                        <option value="basketball">Basketball</option>
+                        <option value="futsal">Futsal</option>
+                        <option value="handball">Handball</option>
+                        <option value="volleyball">Volleyball</option>
+                        <option value="custom">Custom...</option>
+                    </select>
+                    <small>Select from default list or add a custom game.</small>
+                </div>
 
-          <div class="field">
-            <label>Tournament format</label>
-            <div class="pill-group">
-              <label class="pill-check" id="gc_fmtSolo" onclick="gc_toggleFormatPill(this)">
-                <input type="checkbox" id="gc_formatSolo" />
-                <span class="dot"></span>
-                Solo
-              </label>
-              <label class="pill-check" id="gc_fmtDuo" onclick="gc_toggleFormatPill(this)">
-                <input type="checkbox" id="gc_formatDuo" />
-                <span class="dot"></span>
-                Duo
-              </label>
-              <label class="pill-check" id="gc_fmtMixDuo" onclick="gc_toggleFormatPill(this)">
-                <input type="checkbox" id="gc_formatMixDuo" />
-                <span class="dot"></span>
-                Duo (Mixed)
-              </label>
-              <label class="pill-check" id="gc_fmtSquad" onclick="gc_toggleFormatPill(this)">
-                <input type="checkbox" id="gc_formatSquad" />
-                <span class="dot"></span>
-                Squad / Team (NVN)
-              </label>
+                <div class="field" id="gc_customGameField" style="display:none;">
+                    <label for="gc_customGame">Custom game name</label>
+                    <input id="gc_customGame" type="text" placeholder="e.g. PUBG Mobile Squad" />
+                </div>
+
+                <div class="field">
+                    <label>Available for</label>
+                    <div class="pill-group" id="gc_personGroup">
+                        <label class="pill-check active" onclick="gc_togglePill(this)">
+                            <input type="checkbox" checked />
+                            <span class="dot"></span>
+                            Men
+                        </label>
+                        <label class="pill-check active" onclick="gc_togglePill(this)">
+                            <input type="checkbox" checked />
+                            <span class="dot"></span>
+                            Women
+                        </label>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>Tournament format</label>
+                    <div class="pill-group">
+                        <label class="pill-check" id="gc_fmtSolo" onclick="gc_toggleFormatPill(this)">
+                            <input type="checkbox" id="gc_formatSolo" />
+                            <span class="dot"></span>
+                            Solo
+                        </label>
+                        <label class="pill-check" id="gc_fmtDuo" onclick="gc_toggleFormatPill(this)">
+                            <input type="checkbox" id="gc_formatDuo" />
+                            <span class="dot"></span>
+                            Duo
+                        </label>
+                        <label class="pill-check" id="gc_fmtMixDuo" onclick="gc_toggleFormatPill(this)">
+                            <input type="checkbox" id="gc_formatMixDuo" />
+                            <span class="dot"></span>
+                            Duo (Mixed)
+                        </label>
+                        <label class="pill-check" id="gc_fmtSquad" onclick="gc_toggleFormatPill(this)">
+                            <input type="checkbox" id="gc_formatSquad" />
+                            <span class="dot"></span>
+                            Squad / Team (NVN)
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex-row" id="gc_customTeamSizeRow" style="margin-top:8px;display:none;">
+                    <div class="field">
+                        <label for="gc_teamSize">Players per team (for Squad)</label>
+                        <input id="gc_teamSize" type="text" placeholder="e.g. 6, 7, 8, 9, 10, 11" />
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="gc_entryFee">Entry fee per person (৳)</label>
+                    <input id="gc_entryFee" type="number" min="0" value="100" />
+                    <small>Default is <strong>100 taka per person</strong>.</small>
+                </div>
             </div>
-          </div>
-
-          <div class="flex-row" id="gc_customTeamSizeRow" style="margin-top:8px;display:none;">
-            <div class="field">
-              <label for="gc_teamSize">Players per team (for Squad)</label>
-              <input id="gc_teamSize" type="text" placeholder="e.g. 6, 7, 8, 9, 10, 11" />
+            <div class="modal-footer">
+                <button class="btn secondary" type="button" onclick="closeGameCategoryModal()">Cancel</button>
+                <button class="btn primary" type="button" onclick="gc_saveGame()">Save game</button>
             </div>
-          </div>
-
-          <div class="field">
-            <label for="gc_entryFee">Entry fee per person (৳)</label>
-            <input id="gc_entryFee" type="number" min="0" value="100" />
-            <small>Default is <strong>100 taka per person</strong>.</small>
-          </div>
         </div>
-        <div class="modal-footer">
-          <button class="btn secondary" type="button" onclick="closeGameCategoryModal()">Cancel</button>
-          <button class="btn primary" type="button" onclick="gc_saveGame()">Save game</button>
-        </div>
-      </div>
     </div>
 
     <!-- Remove Game Confirmation Modal -->
     <div id="removeGameConfirmModal" class="delete-modal" style="display: none; z-index: 10001;">
         <div class="delete-modal-content">
             <div class="delete-modal-header" style="background: #f87171; color: white;">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 24px; height: 24px; margin-right: 8px;">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                    style="width: 24px; height: 24px; margin-right: 8px;">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                 </svg>
                 Confirm Remove
             </div>
@@ -392,12 +416,14 @@
             <input type="hidden" id="removeGameElementId">
             <div class="delete-buttons">
                 <button class="btn-cancel" onclick="closeRemoveGameConfirmModal()">Cancel</button>
-                <button class="btn-confirm" onclick="confirmRemoveGame()" style="background: #ef4444; color: white; padding: 10px 25px;">Confirm</button>
+                <button class="btn-confirm" onclick="confirmRemoveGame()"
+                    style="background: #ef4444; color: white; padding: 10px 25px;">Confirm</button>
             </div>
         </div>
     </div>
 
     <!-- External JavaScript -->
+    <script src="js/tunnel-config.js"></script>
     <script src="api-config.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
@@ -406,4 +432,5 @@
     <script src="js/admin/tournaments.js"></script>
     <script src="js/admin/main.js"></script>
 </body>
+
 </html>

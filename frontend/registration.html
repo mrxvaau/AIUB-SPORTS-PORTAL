@@ -801,8 +801,10 @@
         </div>
     </div>
 
+    <script src="js/tunnel-config.js"></script>
+    <script src="api-config.js"></script>
     <script>
-        const API_URL = 'http://localhost:3000/api';
+        const API_URL = typeof API_CONFIG !== 'undefined' ? API_CONFIG.API_BASE_URL : 'http://localhost:3000/api';
         const gameDataMap = new Map();
 
         // Beautiful toast notification function
