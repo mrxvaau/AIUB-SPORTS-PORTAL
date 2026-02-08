@@ -1863,7 +1863,7 @@
 
                 // NEW: Handle duplicate team membership error
                 if (result.alreadyOnTeam) {
-                    show Toast(result.message || 'This user is already on a team for this game. Please choose a new member.', 'error', 'Already on Team');
+                    showToast(result.message || 'This user is already on a team for this game. Please choose a new member.', 'error', 'Already on Team');
                     return result;
                 }
 
