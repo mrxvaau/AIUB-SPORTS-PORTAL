@@ -345,8 +345,111 @@ const cancelGameRegistration = async (req, res) => {
     }
 };
 
+/**
+ * Get registration overview - tournaments and games with registration counts
+ * Used for admin dashboard
+ */
+const getRegistrationOverview = async (req, res) => {
+    try {
+        // Query 1: Get tournaments with registration counts
+        const { data: tournaments, error: tournamentsError } = await supabase
+            .from('tournaments')
+            .select(`
+                id,
+                title,
+                registration_deadline,
+                status,
+                created_at,
+                tournament_games(
+                    id,
+                    game_registrations(id)
+                )
+            `)
+            .order('created_at', { ascending: false });
+
+        if (tournamentsError) {
+            console.error('Tournaments query error:', tournamentsError);
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to fetch tournaments: ' + tournamentsError.message
+            });
+        }
+
+        // Process tournaments to count registrations
+        const tournamentsWithCounts = tournaments.map(tournament => {
+            let totalRegistrations = 0;
+            if (tournament.tournament_games && Array.isArray(tournament.tournament_games)) {
+                tournament.tournament_games.forEach(game => {
+                    if (game.game_registrations && Array.isArray(game.game_registrations)) {
+                        totalRegistrations += game.game_registrations.length;
+                    }
+                });
+            }
+
+            return {
+                id: tournament.id,
+                name: tournament.title,
+                registration_deadline: tournament.registration_deadline,
+                status: tournament.status,
+                created_at: tournament.created_at,
+                total_registrations: totalRegistrations
+            };
+        });
+
+        // Query 2: Get games with registration counts
+        const { data: games, error: gamesError } = await supabase
+            .from('tournament_games')
+            .select(`
+                id,
+                game_name,
+                category,
+                game_type,
+                tournaments(id, title),
+                game_registrations(id)
+            `)
+            .order('id', { ascending: false });
+
+        if (gamesError) {
+            console.error('Games query error:', gamesError);
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to fetch games: ' + gamesError.message
+            });
+        }
+
+        // Process games to count registrations
+        const gamesWithCounts = games.map(game => {
+            const registrationCount = game.game_registrations ? game.game_registrations.length : 0;
+
+            return {
+                id: game.id,
+                game_name: game.game_name,
+                category: game.category,
+                game_type: game.game_type,
+                tournament_id: game.tournaments?.id || null,
+                tournament_name: game.tournaments?.title || 'Unknown Tournament',
+                registration_count: registrationCount
+            };
+        });
+
+        res.json({
+            success: true,
+            tournaments: tournamentsWithCounts,
+            games: gamesWithCounts
+        });
+
+    } catch (error) {
+        console.error('❌ Registration overview error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch registration data: ' + error.message
+        });
+    }
+};
+
 module.exports = {
     registerForGame,
     getUserRegistrations,
-    cancelGameRegistration
+    cancelGameRegistration,
+    getRegistrationOverview
 };

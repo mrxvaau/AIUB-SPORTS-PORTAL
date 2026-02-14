@@ -74,10 +74,10 @@
 - ✅ Updated PROJECT_MEMORY.md with all changes
 
 **Next Session Should**:
+- Test Port Forwarding system (Admin Dashboard > System Config)
 - Test team mutual exclusivity manually (multiple teams, same user)
 - Consider adding automated tests for team logic
 - Continue with planned features or bug fixes
-- Update "Recent Updates Log" as you work
 
 ---
 

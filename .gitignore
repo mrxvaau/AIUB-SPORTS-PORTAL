@@ -24,3 +24,5 @@ Thumbs.db
 *.dmp
 *.dat
 /snapshots
+
+PROJECT_MEMORY.md

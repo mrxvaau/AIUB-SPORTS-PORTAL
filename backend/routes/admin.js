@@ -1826,3 +1826,7 @@ router.post('/tunnel/stop', requireAdmin, tunnelController.stopTunnels);
 router.get('/tunnel/status', requireAdmin, tunnelController.getTunnelStatus);
 
 module.exports = router;
+
+// Registration overview
+const registrationController = require('../controllers/registrationController');
+router.get('/registrations/overview', requireAdmin, registrationController.getRegistrationOverview);

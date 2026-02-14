@@ -886,6 +886,149 @@
             font-size: 12px;
             color: #4b5563;
         }
+
+        /* Registration Management Styles */
+        .reg-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .reg-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .reg-card:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .reg-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .reg-card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+
+        .reg-card-subtitle {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+
+        .reg-count {
+            font-size: 28px;
+            font-weight: 700;
+            color: #3b82f6;
+            margin: 12px 0;
+        }
+
+        .reg-meta {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .reg-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .reg-badge-active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .reg-badge-upcoming {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .reg-badge-completed {
+            background: #f3f4f6;
+            color: #4b5563;
+        }
+
+        .reg-manage-btn {
+            width: 100%;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .reg-manage-btn:hover {
+            background: #2563eb;
+        }
+
+        .reg-section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1f2937;
+            margin: 30px 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .reg-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+        }
+
+        .reg-empty-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .reg-loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading-spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 </head>
 
@@ -999,7 +1142,7 @@
                     </div>
                 </button>
                 <button class="sidebar-btn" style="width: 100%; justify-content: flex-start;"
-                    onclick="showPlaceholder('Registration Management')">
+                    onclick="navigateToRegistrations()">
                     <div class="sidebar-btn-content" style="padding-left: 10px;">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1177,14 +1320,16 @@
                 </div>
             </div>
 
-            <!-- Registration Management Placeholder -->
+            <!-- Registration Management Section -->
             <div id="registration-management-placeholder" class="content-section">
                 <div class="player-card">
                     <div class="card-header">
                         <h2>Registration Management</h2>
                     </div>
-                    <div class="warning-box">
-                        <p>This panel is under development. Will be fixed soon.</p>
+                    <div id="regManagementContent" style="padding: 20px;">
+
+
+                        <p style="text-align: center; color: #6b7280;">Loading registration data...</p>
                     </div>
                 </div>
             </div>
@@ -3539,6 +3684,139 @@
             }
             updateGamesList();
         }
+
+        // ==========================================
+        // REGISTRATION MANAGEMENT
+        // ==========================================
+        async function loadRegistrationManagement() {
+            const contentDiv = document.getElementById('regManagementContent');
+            if (!contentDiv) return;
+
+            try {
+                // Show loading state
+                contentDiv.innerHTML = `
+                    <div class="reg-loading">
+                        <div class="loading-spinner"></div>
+                        <p style="color: #6b7280;">Loading registration data...</p>
+                    </div>
+                `;
+
+                const userEmail = localStorage.getItem('userEmail');
+                const response = await fetch(`${API_URL}/admin/registrations/overview`, {
+                    headers: {
+                        'x-user-email': userEmail || ''
+                    }
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.message || 'Failed to load registrations');
+                }
+
+                // Render content
+                let html = '';
+
+                // Tournaments Section
+                html += '<div class="reg-section-title">🏆 Tournaments with Registrations</div>';
+
+                if (data.tournaments && data.tournaments.length > 0) {
+                    html += '<div class="reg-grid">';
+                    data.tournaments.forEach(tournament => {
+                        const statusClass = tournament.status === 'ACTIVE' ? 'active' :
+                            tournament.status === 'UPCOMING' ? 'upcoming' : 'completed';
+                        html += `
+                            <div class="reg-card">
+                                <div class="reg-card-title">${tournament.name || 'Unnamed Tournament'}</div>
+                                <div class="reg-card-subtitle">
+                                    Deadline: ${new Date(tournament.registration_deadline).toLocaleDateString()}
+                                </div>
+                                <div class="reg-count">🎮 ${tournament.total_registrations}</div>
+                                <div class="reg-meta">
+                                    <span class="reg-badge reg-badge-${statusClass}">${tournament.status || 'Unknown'}</span>
+                                </div>
+                                <button class="reg-manage-btn" onclick="manageTournament(${tournament.id})">
+                                    Manage Registrations
+                                </button>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                } else {
+                    html += `
+                        <div class="reg-empty">
+                            <div class="reg-empty-icon">📋</div>
+                            <p>No tournaments found</p>
+                        </div>
+                    `;
+                }
+
+                // Games Section
+                html += '<div class="reg-section-title">🎯 Games with Registrations</div>';
+
+                if (data.games && data.games.length > 0) {
+                    html += '<div class="reg-grid">';
+                    data.games.forEach(game => {
+                        const fillPercentage = game.max_participants > 0
+                            ? Math.round((game.registration_count / game.max_participants) * 100)
+                            : 0;
+                        html += `
+                            <div class="reg-card">
+                                <div class="reg-card-title">${game.game_name || 'Unnamed Game'}</div>
+                                <div class="reg-card-subtitle">
+                                    🏆 ${game.tournament_name}
+                                </div>
+                                <div class="reg-count">
+                                    ${game.registration_count}/${game.max_participants || '∞'}
+                                </div>
+                                <div class="reg-meta">
+                                    <span class="reg-badge reg-badge-active">${game.category || 'N/A'}</span>
+                                    <span class="reg-badge reg-badge-upcoming">${game.game_type || 'N/A'}</span>
+                                </div>
+                                <button class="reg-manage-btn" onclick="manageGame(${game.id}, '${game.game_name}')">
+                                    Manage Registrations
+                                </button>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                } else {
+                    html += `
+                        <div class="reg-empty">
+                            <div class="reg-empty-icon">🎮</div>
+                            <p>No games found</p>
+                        </div>
+                    `;
+                }
+
+                contentDiv.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error loading registration management:', error);
+                contentDiv.innerHTML = `
+                    <div style="text-align: center; padding: 40px;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+                        <p style="color: #ef4444; font-weight: 600; margin-bottom: 8px;">Failed to Load Registration Data</p>
+                        <p style="color: #6b7280; font-size: 14px; margin-bottom: 20px;">${error.message}</p>
+                        <button onclick="loadRegistrationManagement()" 
+                                style="background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">
+                            Retry
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function manageTournament(tournamentId) {
+            alert(`Tournament management feature coming soon!\nTournament ID: ${tournamentId}`);
+            // TODO: Navigate to detailed tournament registration management page
+        }
+
+        function manageGame(gameId, gameName) {
+            alert(`Game registration management feature coming soon!\nGame: ${gameName} (ID: ${gameId})`);
+            // TODO: Navigate to detailed game registration management page
+        }
+
     </script>
 
     <!-- Delete Confirmation Modal -->
@@ -3844,7 +4122,143 @@
                 btn.textContent = originalBtnText;
             }, 2000);
         }
+
+        // ==========================================
+        // REGISTRATION MANAGEMENT
+        // ==========================================
+        async function loadRegistrationManagement() {
+            const contentDiv = document.getElementById('regManagementContent');
+            if (!contentDiv) return;
+
+            try {
+                // Show loading state
+                contentDiv.innerHTML = `
+                    <div class="reg-loading">
+                        <div class="loading-spinner"></div>
+                        <p style="color: #6b7280;">Loading registration data...</p>
+                    </div>
+                `;
+
+                const userEmail = localStorage.getItem('userEmail');
+                const response = await fetch(`${API_URL}/admin/registrations/overview`, {
+                    headers: {
+                        'x-user-email': userEmail || ''
+                    }
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.message || 'Failed to load registrations');
+                }
+
+                // Render content
+                let html = '';
+
+                // Tournaments Section
+                html += '<div class="reg-section-title">🏆 Tournaments with Registrations</div>';
+
+                if (data.tournaments && data.tournaments.length > 0) {
+                    html += '<div class="reg-grid">';
+                    data.tournaments.forEach(tournament => {
+                        const statusClass = tournament.status === 'ACTIVE' ? 'active' :
+                            tournament.status === 'UPCOMING' ? 'upcoming' : 'completed';
+                        html += `
+                            <div class="reg-card">
+                                <div class="reg-card-title">${tournament.name || 'Unnamed Tournament'}</div>
+                                <div class="reg-card-subtitle">
+                                    Deadline: ${new Date(tournament.registration_deadline).toLocaleDateString()}
+                                </div>
+                                <div class="reg-count">🎮 ${tournament.total_registrations}</div>
+                                <div class="reg-meta">
+                                    <span class="reg-badge reg-badge-${statusClass}">${tournament.status || 'Unknown'}</span>
+                                </div>
+                                <button class="reg-manage-btn" onclick="manageTournament(${tournament.id})">
+                                    Manage Registrations
+                                </button>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                } else {
+                    html += `
+                        <div class="reg-empty">
+                            <div class="reg-empty-icon">📋</div>
+                            <p>No tournaments found</p>
+                        </div>
+                    `;
+                }
+
+                // Games Section
+                html += '<div class="reg-section-title">🎯 Games with Registrations</div>';
+
+                if (data.games && data.games.length > 0) {
+                    html += '<div class="reg-grid">';
+                    data.games.forEach(game => {
+                        const fillPercentage = game.max_participants > 0
+                            ? Math.round((game.registration_count / game.max_participants) * 100)
+                            : 0;
+                        html += `
+                            <div class="reg-card">
+                                <div class="reg-card-title">${game.game_name || 'Unnamed Game'}</div>
+                                <div class="reg-card-subtitle">
+                                    🏆 ${game.tournament_name}
+                                </div>
+                                <div class="reg-count">
+                                    ${game.registration_count}/${game.max_participants || '∞'}
+                                </div>
+                                <div class="reg-meta">
+                                    <span class="reg-badge reg-badge-active">${game.category || 'N/A'}</span>
+                                    <span class="reg-badge reg-badge-upcoming">${game.game_type || 'N/A'}</span>
+                                </div>
+                                <button class="reg-manage-btn" onclick="manageGame(${game.id}, '${game.game_name}')">
+                                    Manage Registrations
+                                </button>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                } else {
+                    html += `
+                        <div class="reg-empty">
+                            <div class="reg-empty-icon">🎮</div>
+                            <p>No games found</p>
+                        </div>
+                    `;
+                }
+
+                contentDiv.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error loading registration management:', error);
+                contentDiv.innerHTML = `
+                    <div style="text-align: center; padding: 40px;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+                        <p style="color: #ef4444; font-weight: 600; margin-bottom: 8px;">Failed to Load Registration Data</p>
+                        <p style="color: #6b7280; font-size: 14px; margin-bottom: 20px;">${error.message}</p>
+                        <button onclick="loadRegistrationManagement()" 
+                                style="background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">
+                            Retry
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function manageTournament(tournamentId) {
+            alert(`Tournament management feature coming soon!\nTournament ID: ${tournamentId}`);
+            // TODO: Navigate to detailed tournament registration management page
+        }
+
+        function manageGame(gameId, gameName) {
+            alert(`Game registration management feature coming soon!\nGame: ${gameName} (ID: ${gameId})`);
+            // TODO: Navigate to detailed game registration management page
+        }
+
     </script>
+
+    <!-- Registration Management with URL Routing -->
+    <script src="js/registration-management.js"></script>
 </body>
 
 </html>
