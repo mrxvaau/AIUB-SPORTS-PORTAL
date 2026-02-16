@@ -1760,6 +1760,9 @@
                 document.getElementById('tournament-data-management-placeholder').classList.add('active');
             } else if (name === 'Registration Management') {
                 document.getElementById('registration-management-placeholder').classList.add('active');
+                if (typeof loadRegistrationManagementNested === 'function') {
+                    loadRegistrationManagementNested();
+                }
             } else if (name === 'Database Maintenance') {
                 document.getElementById('database-maintenance-placeholder').classList.add('active');
             } else if (name === 'Content Management') {

@@ -1829,4 +1829,18 @@ module.exports = router;
 
 // Registration overview
 const registrationController = require('../controllers/registrationController');
+const teamController = require('../controllers/teamController');
+
 router.get('/registrations/overview', requireAdmin, registrationController.getRegistrationOverview);
+
+// Get registrations for a specific game (with optional search)
+router.get('/games/:gameId/registrations', requireAdmin, registrationController.getGameRegistrations);
+
+// Update payment status for a registration
+router.put('/registrations/:registrationId/payment', requireAdmin, registrationController.updatePaymentStatus);
+
+// Update team member status (admin override)
+router.put('/team-members/:memberId/status', requireAdmin, teamController.updateTeamMemberStatus);
+
+// Remove team member (admin override)
+router.delete('/team-members/:memberId', requireAdmin, teamController.adminRemoveTeamMember);

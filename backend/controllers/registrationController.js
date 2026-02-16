@@ -447,9 +447,277 @@ const getRegistrationOverview = async (req, res) => {
     }
 };
 
+/**
+ * Get all registrations for a specific game (Admin only)
+ * Handles both solo and team games
+ */
+const getGameRegistrations = async (req, res) => {
+    try {
+        const { gameId } = req.params;
+        const { search } = req.query; // Optional search by student ID
+
+        // Get game details
+        const { data: game, error: gameError } = await supabase
+            .from('tournament_games')
+            .select('id, game_name, game_type, category, team_size, fee_per_person, tournament_id')
+            .eq('id', gameId)
+            .single();
+
+        if (gameError || !game) {
+            return res.status(404).json({
+                success: false,
+                message: 'Game not found'
+            });
+        }
+
+        const teamSize = game.team_size || 1;
+        const isTeamGame = teamSize > 1;
+
+        if (isTeamGame) {
+            // For team games: Get all teams registered for this game
+            const { data: teamRegistrations, error: teamRegError } = await supabase
+                .from('game_registrations')
+                .select(`
+                    id,
+                    payment_status,
+                    registration_date,
+                    team_id,
+                    user_id,
+                    teams(
+                        id,
+                        team_name,
+                        leader_user_id,
+                        status,
+                        created_at
+                    )
+                `)
+                .eq('game_id', gameId)
+                .not('team_id', 'is', null)
+                .order('registration_date', { ascending: false });
+
+            if (teamRegError) {
+                console.error('Error fetching team registrations:', teamRegError);
+                return res.status(500).json({
+                    success: false,
+                    message: 'Error fetching registrations'
+                });
+            }
+
+            // Get detailed info for each team
+            const registrationsWithDetails = await Promise.all(teamRegistrations.map(async (reg) => {
+                const team = reg.teams;
+
+                // Get all team members with their user details and payment info
+                const { data: members, error: membersError } = await supabase
+                    .from('team_members')
+                    .select(`
+                        id,
+                        user_id,
+                        role,
+                        status,
+                        users(id, student_id, full_name, email)
+                    `)
+                    .eq('team_id', team.id)
+                    .order('role', { ascending: false }); // LEADER first
+
+                if (membersError) {
+                    console.error('Error fetching team members:', membersError);
+                    return null;
+                }
+
+                // Get payment status for each member
+                const membersWithPayment = await Promise.all(members.map(async (member) => {
+                    // Each team member has their own game_registration entry
+                    const { data: memberReg } = await supabase
+                        .from('game_registrations')
+                        .select('payment_status')
+                        .eq('user_id', member.user_id)
+                        .eq('game_id', gameId)
+                        .single();
+
+                    return {
+                        id: member.id,
+                        user_id: member.user_id,
+                        student_id: member.users?.student_id,
+                        full_name: member.users?.full_name,
+                        email: member.users?.email,
+                        role: member.role,
+                        status: member.status,
+                        payment_status: memberReg?.payment_status || 'PENDING'
+                    };
+                }));
+
+                // Filter by search if provided (leader student ID)
+                if (search) {
+                    const leaderMember = membersWithPayment.find(m => m.role === 'LEADER');
+                    if (!leaderMember || !leaderMember.student_id.includes(search)) {
+                        return null; // Filter out this team
+                    }
+                }
+
+                return {
+                    id: reg.id,
+                    registration_date: reg.registration_date,
+                    team: {
+                        id: team.id,
+                        team_name: team.team_name,
+                        leader_user_id: team.leader_user_id,
+                        status: team.status,
+                        member_count: members.length,
+                        required_size: teamSize,
+                        created_at: team.created_at
+                    },
+                    members: membersWithPayment,
+                    payment_status: reg.payment_status // Leader's payment
+                };
+            }));
+
+            // Filter out nulls from search filtering
+            const filteredRegistrations = registrationsWithDetails.filter(r => r !== null);
+
+            res.json({
+                success: true,
+                game: {
+                    id: game.id,
+                    game_name: game.game_name,
+                    game_type: game.game_type,
+                    category: game.category,
+                    team_size: teamSize,
+                    fee_per_person: game.fee_per_person,
+                    is_team_game: true
+                },
+                registrations: filteredRegistrations
+            });
+
+        } else {
+            // For solo games: Get individual registrations
+            let query = supabase
+                .from('game_registrations')
+                .select(`
+                    id,
+                    payment_status,
+                    registration_date,
+                    users(id, student_id, full_name, email)
+                `)
+                .eq('game_id', gameId)
+                .is('team_id', null)
+                .order('registration_date', { ascending: false });
+
+            const { data: soloRegistrations, error: soloRegError } = await query;
+
+            if (soloRegError) {
+                console.error('Error fetching solo registrations:', soloRegError);
+                return res.status(500).json({
+                    success: false,
+                    message: 'Error fetching registrations'
+                });
+            }
+
+            // Format and filter by search if provided
+            let formattedRegistrations = soloRegistrations.map(reg => ({
+                id: reg.id,
+                user: {
+                    id: reg.users.id,
+                    student_id: reg.users.student_id,
+                    full_name: reg.users.full_name,
+                    email: reg.users.email
+                },
+                payment_status: reg.payment_status,
+                registration_date: reg.registration_date,
+                team: null
+            }));
+
+            // Apply search filter
+            if (search) {
+                formattedRegistrations = formattedRegistrations.filter(reg =>
+                    reg.user.student_id.includes(search)
+                );
+            }
+
+            res.json({
+                success: true,
+                game: {
+                    id: game.id,
+                    game_name: game.game_name,
+                    game_type: game.game_type,
+                    category: game.category,
+                    team_size: teamSize,
+                    fee_per_person: game.fee_per_person,
+                    is_team_game: false
+                },
+                registrations: formattedRegistrations
+            });
+        }
+
+    } catch (error) {
+        console.error('Get game registrations error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch registrations: ' + error.message
+        });
+    }
+};
+
+/**
+ * Update registration payment status (Admin only)
+ */
+const updatePaymentStatus = async (req, res) => {
+    try {
+        const { registrationId } = req.params;
+        const { payment_status } = req.body;
+
+        // Validate payment status
+        const validStatuses = ['PENDING', 'PAID', 'UNPAID'];
+        if (!validStatuses.includes(payment_status)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid payment status. Must be PENDING, PAID, or UNPAID'
+            });
+        }
+
+        // Update the registration
+        const { data, error } = await supabase
+            .from('game_registrations')
+            .update({ payment_status })
+            .eq('id', registrationId)
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Error updating payment status:', error);
+            return res.status(500).json({
+                success: false,
+                message: 'Error updating payment status'
+            });
+        }
+
+        if (!data) {
+            return res.status(404).json({
+                success: false,
+                message: 'Registration not found'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Payment status updated successfully',
+            registration: data
+        });
+
+    } catch (error) {
+        console.error('Update payment status error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update payment status: ' + error.message
+        });
+    }
+};
+
 module.exports = {
     registerForGame,
     getUserRegistrations,
     cancelGameRegistration,
-    getRegistrationOverview
+    getRegistrationOverview,
+    getGameRegistrations,
+    updatePaymentStatus
 };

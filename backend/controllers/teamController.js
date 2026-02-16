@@ -1540,6 +1540,140 @@ const validateMember = async (req, res) => {
     }
 };
 
+/**
+ * Update team member status (Admin only)
+ * Allows admin to manually confirm or reject team members
+ */
+const updateTeamMemberStatus = async (req, res) => {
+    try {
+        const { memberId } = req.params;
+        const { status } = req.body;
+
+        // Validate status
+        const validStatuses = ['PENDING', 'CONFIRMED', 'REJECTED'];
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid status. Must be PENDING, CONFIRMED, or REJECTED'
+            });
+        }
+
+        // Update the team member status
+        const { data, error } = await supabase
+            .from('team_members')
+            .update({ status })
+            .eq('id', memberId)
+            .select(`
+                id,
+                status,
+                user_id,
+                team_id,
+                users(student_id, full_name)
+            `)
+            .single();
+
+        if (error) {
+            console.error('Error updating team member status:', error);
+            return res.status(500).json({
+                success: false,
+                message: 'Error updating member status'
+            });
+        }
+
+        if (!data) {
+            return res.status(404).json({
+                success: false,
+                message: 'Team member not found'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: `Member status updated to ${status}`,
+            member: data
+        });
+
+    } catch (error) {
+        console.error('Update team member status error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update member status: ' + error.message
+        });
+    }
+};
+
+/**
+ * Remove team member (Admin only)
+ * Allows admin to remove a member from a team
+ */
+const adminRemoveTeamMember = async (req, res) => {
+    try {
+        const { memberId } = req.params;
+
+        // Get member details before deletion
+        const { data: member, error: fetchError } = await supabase
+            .from('team_members')
+            .select(`
+                id,
+                user_id,
+                team_id,
+                role,
+                users(student_id, full_name)
+            `)
+            .eq('id', memberId)
+            .single();
+
+        if (fetchError || !member) {
+            return res.status(404).json({
+                success: false,
+                message: 'Team member not found'
+            });
+        }
+
+        // Prevent removing team leader
+        if (member.role === 'LEADER') {
+            return res.status(400).json({
+                success: false,
+                message: 'Cannot remove team leader. Delete the entire team instead.'
+            });
+        }
+
+        // Delete the team member
+        const { error: deleteError } = await supabase
+            .from('team_members')
+            .delete()
+            .eq('id', memberId);
+
+        if (deleteError) {
+            console.error('Error removing team member:', deleteError);
+            return res.status(500).json({
+                success: false,
+                message: 'Error removing team member'
+            });
+        }
+
+        // Also delete any related notifications
+        await supabase
+            .from('notifications')
+            .delete()
+            .eq('user_id', member.user_id)
+            .eq('related_id', member.team_id)
+            .eq('type', 'TEAM_REQUEST');
+
+        res.json({
+            success: true,
+            message: `Member ${member.users.full_name} removed from team`
+        });
+
+    } catch (error) {
+        console.error('Admin remove team member error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to remove team member: ' + error.message
+        });
+    }
+}
+
 module.exports = {
     createTeam,
     getTeamDetails,
@@ -1551,5 +1685,7 @@ module.exports = {
     rejectTeamInvitation,
     confirmTeamRegistration,
     getPendingTeamInvitations,
-    validateMember
+    validateMember,
+    updateTeamMemberStatus,
+    adminRemoveTeamMember
 };
