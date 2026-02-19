@@ -1,9 +1,11 @@
 // Microsoft OAuth Routes
-// Version 1.1
+// Version 2.0 - With JWT Authentication
 
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
+const { supabase } = require('../config/supabase');
+const { generateTokens } = require('../middleware/auth');
 require('dotenv').config();
 
 const TENANT_ID = process.env.AZURE_TENANT_ID;
@@ -22,7 +24,7 @@ const GRAPH_ENDPOINT = 'https://graph.microsoft.com/v1.0/me';
 router.get('/login', (req, res) => {
     const state = generateRandomString(32);
     const nonce = generateRandomString(32);
-    
+
     const params = new URLSearchParams({
         client_id: CLIENT_ID,
         response_type: 'code',
@@ -35,7 +37,7 @@ router.get('/login', (req, res) => {
     });
 
     const authUrl = `${AUTHORIZE_ENDPOINT}?${params.toString()}`;
-    
+
     res.json({
         success: true,
         authUrl: authUrl,
@@ -56,7 +58,7 @@ router.post('/callback', async (req, res) => {
         }
 
         // Exchange code for token
-        const tokenResponse = await axios.post(TOKEN_ENDPOINT, 
+        const tokenResponse = await axios.post(TOKEN_ENDPOINT,
             new URLSearchParams({
                 client_id: CLIENT_ID,
                 client_secret: CLIENT_SECRET,
@@ -105,17 +107,76 @@ router.post('/callback', async (req, res) => {
         // Extract student ID
         const studentId = email.split('@')[0];
 
-        // Return user data
+        // Check if user exists or create new user
+        let user;
+        const { data: existingUser, error: fetchError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('student_id', studentId)
+            .single();
+
+        if (fetchError && fetchError.code !== 'PGRST116') {
+            console.error('Error fetching user:', fetchError);
+            throw fetchError;
+        }
+
+        if (!existingUser) {
+            // Create new user
+            const { data: newUser, error: insertError } = await supabase
+                .from('users')
+                .insert([{
+                    student_id: studentId,
+                    email: email,
+                    full_name: userProfile.displayName,
+                    is_first_login: true,
+                    profile_completed: false,
+                    last_login: new Date().toISOString()
+                }])
+                .select()
+                .single();
+
+            if (insertError) {
+                console.error('Error creating user:', insertError);
+                throw insertError;
+            }
+            user = newUser;
+        } else {
+            // Update existing user
+            const { error: updateError } = await supabase
+                .from('users')
+                .update({
+                    last_login: new Date().toISOString(),
+                    full_name: userProfile.displayName // Update name from Microsoft
+                })
+                .eq('student_id', studentId);
+
+            if (updateError) {
+                console.error('Error updating user:', updateError);
+            }
+
+            user = existingUser;
+        }
+
+        // Generate JWT tokens
+        const { accessToken: jwtAccessToken, refreshToken: jwtRefreshToken, expiresIn } = generateTokens(user);
+
+        // Return user data with JWT tokens
         res.json({
             success: true,
             user: {
+                id: user.id,
                 email: email,
                 studentId: studentId,
                 name: userProfile.displayName,
                 givenName: userProfile.givenName,
-                surname: userProfile.surname
+                surname: userProfile.surname,
+                profileCompleted: user.profile_completed,
+                isFirstLogin: user.is_first_login
             },
-            accessToken: access_token
+            accessToken: jwtAccessToken,
+            refreshToken: jwtRefreshToken,
+            expiresIn: expiresIn,
+            tokenType: 'Bearer'
         });
 
     } catch (error) {
@@ -128,7 +189,7 @@ router.post('/callback', async (req, res) => {
     }
 });
 
-// Verify token
+// Verify JWT token
 router.post('/verify', async (req, res) => {
     try {
         const { accessToken } = req.body;
@@ -140,26 +201,66 @@ router.post('/verify', async (req, res) => {
             });
         }
 
-        // Verify token with Microsoft Graph
-        const response = await axios.get(GRAPH_ENDPOINT, {
-            headers: {
-                'Authorization': `Bearer ${accessToken}`
-            }
-        });
+        // Verify JWT token
+        const { verifyToken } = require('../middleware/auth');
+        const decoded = verifyToken(accessToken);
 
-        const email = response.data.mail || response.data.userPrincipalName;
+        // Fetch user to verify still exists
+        const { data: user, error } = await supabase
+            .from('users')
+            .select('email')
+            .eq('id', decoded.userId)
+            .single();
+
+        if (error || !user) {
+            return res.status(401).json({
+                success: false,
+                valid: false,
+                message: 'User not found'
+            });
+        }
 
         res.json({
             success: true,
             valid: true,
-            email: email
+            email: user.email,
+            userId: decoded.userId,
+            studentId: decoded.studentId
         });
 
     } catch (error) {
         res.status(401).json({
             success: false,
             valid: false,
-            message: 'Invalid or expired token'
+            message: error.message || 'Invalid or expired token'
+        });
+    }
+});
+
+// Refresh access token
+router.post('/refresh', async (req, res) => {
+    try {
+        const { refreshToken } = req.body;
+
+        if (!refreshToken) {
+            return res.status(400).json({
+                success: false,
+                message: 'Refresh token is required'
+            });
+        }
+
+        const { refreshAccessToken } = require('../middleware/auth');
+        const tokens = await refreshAccessToken(refreshToken);
+
+        res.json({
+            success: true,
+            ...tokens
+        });
+
+    } catch (error) {
+        res.status(401).json({
+            success: false,
+            message: error.message || 'Invalid refresh token'
         });
     }
 });

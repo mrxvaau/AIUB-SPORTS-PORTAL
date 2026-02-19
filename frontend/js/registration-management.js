@@ -39,6 +39,7 @@ async function loadRegistrationManagementNested() {
         const userEmail = localStorage.getItem('userEmail');
         const response = await fetch(`${API_URL}/admin/registrations/overview`, {
             headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
                 'x-user-email': userEmail || ''
             }
         });
@@ -229,6 +230,7 @@ async function manageGameRegistrations(gameId, gameName) {
         delete window.closeRegistrationModal;
         delete window.filterRegistrations;
         delete window.updatePayment;
+        delete window.updateTeamMemberPayment;
         delete window.updateMemberStatus;
         delete window.removeMember;
     };
@@ -236,7 +238,10 @@ async function manageGameRegistrations(gameId, gameName) {
     // Load registration data
     try {
         const response = await fetch(`${API_URL}/admin/games/${gameId}/registrations`, {
-            headers: { 'x-user-email': userEmail || '' }
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                'x-user-email': userEmail || ''
+            }
         });
 
         const data = await response.json();
@@ -303,9 +308,17 @@ function renderRegistrations(data) {
                                 <h3 style="margin: 0; font-size: 18px;">${team.team_name}</h3>
                                 <p style="margin: 4px 0 0 0; font-size: 13px; opacity: 0.9;">Leader: ${leader?.full_name} (${leader?.student_id})</p>
                             </div>
-                            <span style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 12px;">
-                                ${team.status}
-                            </span>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                ${reg.payment_status !== 'PAID' && reg.team.status !== 'CONFIRMED' ? `
+                                    <button onclick="confirmRegistration(null, ${reg.team.id})" 
+                                            style="background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                        Confirm Registration (Cash)
+                                    </button>
+                                ` : ''}
+                                <span style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 12px;">
+                                    ${team.status}
+                                </span>
+                            </div>
                         </div>
                         
                         <!-- Progress Bar -->
@@ -368,7 +381,7 @@ function renderRegistrations(data) {
                                     </button>
                                 ` : ''}
                                 ${member.payment_status !== 'PAID' ? `
-                                    <button onclick="updatePayment(${data.game.id}, '${member.student_id}', 'PAID')" 
+                                    <button onclick="updateTeamMemberPayment(${member.id}, 'PAID')" 
                                             style="background: #3b82f6; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 11px;"
                                             title="Mark as Paid">
                                         💳
@@ -430,12 +443,12 @@ function renderRegistrations(data) {
                     <td style="padding: 12px;">
                         <div style="display: flex; gap: 6px;">
                             ${reg.payment_status !== 'PAID' ? `
-                                <button onclick="updatePayment(${data.game.id}, '${reg.user.student_id}', 'PAID')" 
+                                <button onclick="updatePayment(${reg.id}, 'PAID')" 
                                         style="background: #10b981; color: white; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 12px;">
                                     Mark as Paid
                                 </button>
                             ` : `
-                                <button onclick="updatePayment(${data.game.id}, '${reg.user.student_id}', 'PENDING')" 
+                                <button onclick="updatePayment(${reg.id}, 'PENDING')" 
                                         style="background: #f59e0b; color: white; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 12px;">
                                     Mark as Pending
                                 </button>
@@ -467,52 +480,62 @@ window.filterRegistrations = function () {
 };
 
 // Update payment status
-window.updatePayment = async function (gameId, studentId, status) {
+window.updatePayment = async function (registrationId, status) {
     const API_URL = window.API_URL || 'http://localhost:3000/api';
     const userEmail = localStorage.getItem('userEmail');
 
+    if (!registrationId) {
+        alert('Error: Missing registration ID');
+        return;
+    }
+
     try {
-        // First, get the registration ID
-        const dataResponse = await fetch(`${API_URL}/admin/games/${gameId}/registrations?search=${studentId}`, {
-            headers: { 'x-user-email': userEmail || '' }
-        });
-        const data = await dataResponse.json();
-
-        if (!data.success || !data.registrations || data.registrations.length === 0) {
-            throw new Error('Registration not found');
-        }
-
-        // Find the specific registration
-        let registrationId;
-        if (data.game.is_team_game) {
-            // For team games, find the member and their registration
-            for (const teamReg of data.registrations) {
-                const member = teamReg.members.find(m => m.student_id === studentId);
-                if (member) {
-                    // Need to get the game_registration ID for this user
-                    const regResponse = await fetch(`${API_URL}/registrations/user/${studentId}`, {
-                        headers: { 'x-user-email': userEmail || '' }
-                    });
-                    const regData = await regResponse.json();
-                    const userGameReg = regData.registrations?.find(r => r.game_id == gameId);
-                    if (userGameReg) {
-                        registrationId = userGameReg.id;
-                        break;
-                    }
-                }
-            }
-        } else {
-            registrationId = data.registrations[0].id;
-        }
-
-        if (!registrationId) {
-            throw new Error('Could not find registration ID');
-        }
-
         const response = await fetch(`${API_URL}/admin/registrations/${registrationId}/payment`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                'x-user-email': userEmail || ''
+            },
+            body: JSON.stringify({ payment_status: status })
+        });
+
+        const result = await response.json();
+
+        if (!result.success) {
+            throw new Error(result.message);
+        }
+
+        // Reload the modal
+        const gameId_reload = window.registrationData.game.id;
+        const gameName_reload = window.registrationData.game.game_name;
+        // Don't close modal to keep context, just reload content
+        // But the current implementation closes and reopens to refresh data
+        // We can optimize this later, but for now stick to pattern
+        closeRegistrationModal();
+        manageGameRegistrations(gameId_reload, gameName_reload);
+
+    } catch (error) {
+        console.error('Error updating payment:', error);
+        alert('Error updating payment status: ' + error.message);
+    }
+};
+
+// Update team member payment status (robust)
+window.updateTeamMemberPayment = async function (memberId, status) {
+    const API_URL = window.API_URL || 'http://localhost:3000/api';
+    const userEmail = localStorage.getItem('userEmail');
+
+    if (!confirm('Are you sure you want to update payment status? This will create a registration record if one does not exist.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/admin/team-members/${memberId}/payment`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
                 'x-user-email': userEmail || ''
             },
             body: JSON.stringify({ payment_status: status })
@@ -531,7 +554,7 @@ window.updatePayment = async function (gameId, studentId, status) {
         manageGameRegistrations(gameId_reload, gameName_reload);
 
     } catch (error) {
-        console.error('Error updating payment:', error);
+        console.error('Error updating team member payment:', error);
         alert('Error updating payment status: ' + error.message);
     }
 };
@@ -546,6 +569,7 @@ window.updateMemberStatus = async function (memberId, status) {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
                 'x-user-email': userEmail || ''
             },
             body: JSON.stringify({ status })
@@ -581,7 +605,10 @@ window.removeMember = async function (memberId, memberName) {
     try {
         const response = await fetch(`${API_URL}/admin/team-members/${memberId}`, {
             method: 'DELETE',
-            headers: { 'x-user-email': userEmail || '' }
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                'x-user-email': userEmail || ''
+            }
         });
 
         const result = await response.json();
@@ -601,6 +628,65 @@ window.removeMember = async function (memberId, memberName) {
         alert('Error removing member: ' + error.message);
     }
 };
+
+// Confirm Registration (Cash Override)
+window.confirmRegistration = async function (registrationId, teamId) {
+    const API_URL = window.API_URL || 'http://localhost:3000/api';
+    const userEmail = localStorage.getItem('userEmail');
+
+    let message = 'Are you sure you want to confirm this registration? This will mark it as PAID (Cash).';
+    if (teamId) {
+        message = 'Are you sure you want to confirm this TEAM? All members will be marked as PAID (Cash) and status CONFIRMED.';
+    }
+
+    if (!confirm(message)) {
+        return;
+    }
+
+    try {
+        // Construct the URL correctly. If teamId is present, we might use a different logic or pass it in body
+        // The backend expects /registrations/confirm/:registrationId
+        // If we have teamId, we can pass 'team' as ID and handle in backend or send a body
+
+        let url = `${API_URL}/admin/registrations/confirm/`;
+        let body = {};
+
+        if (teamId) {
+            url += 'team'; // Placeholder ID
+            body = { teamId: teamId };
+        } else {
+            url += registrationId;
+        }
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                'x-user-email': userEmail || ''
+            },
+            body: JSON.stringify(body)
+        });
+
+        const result = await response.json();
+
+        if (!result.success) {
+            throw new Error(result.message);
+        }
+
+        // Reload the modal
+        const gameId_reload = window.registrationData.game.id;
+        const gameName_reload = window.registrationData.game.game_name;
+        closeRegistrationModal();
+        manageGameRegistrations(gameId_reload, gameName_reload);
+
+    } catch (error) {
+        console.error('Error confirming registration:', error);
+        alert('Error: ' + error.message);
+    }
+};
+
+
 
 // Handle browser back/forward buttons
 window.addEventListener('popstate', function (event) {

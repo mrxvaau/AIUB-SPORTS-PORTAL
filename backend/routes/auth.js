@@ -80,6 +80,9 @@ router.delete('/cart/:cartItemId', userController.removeFromCart);
 // DELETE /api/auth/cart/clear/:studentId - Clear user's cart
 router.delete('/cart/clear/:studentId', userController.clearCart);
 
+// POST /api/auth/cart/checkout - Checkout cart
+router.post('/cart/checkout', userController.checkoutCart);
+
 // DELETE /api/auth/cart/game/:gameId/:studentId - Remove cart item by game ID
 router.delete('/cart/game/:gameId/:studentId', userController.removeFromCartByGameId);
 
@@ -97,8 +100,5 @@ router.get('/game-requests/:studentId', userController.getUserGameRequests);
 
 // GET /api/auth/tournament-requests/:studentId - Get user's tournament requests
 router.get('/tournament-requests/:studentId', userController.getUserTournamentRequests);
-
-// DEBUG endpoint for admin check
-router.post('/debug-admin', userController.debugAdminCheck);
 
 module.exports = router;

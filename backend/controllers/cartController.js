@@ -167,7 +167,7 @@ const getCart = async (req, res) => {
 
         res.json({
             success: true,
-            cart: formattedCartItems,
+            cartItems: formattedCartItems,
             totalAmount: totalAmount,
             itemCount: formattedCartItems.length
         });

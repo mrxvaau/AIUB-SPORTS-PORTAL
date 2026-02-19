@@ -1815,6 +1815,7 @@
             try {
                 const response = await fetch(`${API_URL}/admin/roles`, {
                     headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
                         'x-user-email': localStorage.getItem('userEmail') || ''
                     }
                 });
@@ -1847,6 +1848,7 @@
             try {
                 const response = await fetch(`${API_URL}/admin/permissions`, {
                     headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
                         'x-user-email': localStorage.getItem('userEmail') || ''
                     }
                 });
@@ -1879,6 +1881,7 @@
             try {
                 const response = await fetch(`${API_URL}/admin/moderators`, {
                     headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
                         'x-user-email': localStorage.getItem('userEmail') || ''
                     }
                 });
@@ -1955,6 +1958,7 @@
             try {
                 const response = await fetch(`${API_URL}/admin/moderators`, {
                     headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
                         'x-user-email': localStorage.getItem('userEmail') || ''
                     }
                 });
@@ -2010,6 +2014,7 @@
             try {
                 const response = await fetch(`${API_URL}/admin/audit-logs`, {
                     headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
                         'x-user-email': localStorage.getItem('userEmail') || ''
                     }
                 });
@@ -2055,6 +2060,7 @@
             try {
                 const response = await fetch(`${API_URL}/admin/tournament-requests`, {
                     headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
                         'x-user-email': localStorage.getItem('userEmail') || ''
                     }
                 });
@@ -2101,6 +2107,7 @@
             try {
                 const response = await fetch(`${API_URL}/admin/game-requests`, {
                     headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
                         'x-user-email': localStorage.getItem('userEmail') || ''
                     }
                 });
@@ -2163,6 +2170,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
                         'x-user-email': localStorage.getItem('userEmail') || ''
                     },
                     body: JSON.stringify({
@@ -2209,6 +2217,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
                         'x-user-email': localStorage.getItem('userEmail') || ''
                     },
                     body: JSON.stringify({
@@ -2255,6 +2264,7 @@
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
                         'x-user-email': userEmail || '',
                         'X-User-Email': userEmail || ''  // Also send with capital letters to handle any case sensitivity
                     }
@@ -2289,6 +2299,7 @@
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
                         'x-user-email': userEmail || '',
                         'X-User-Email': userEmail || ''  // Also send with capital letters to handle any case sensitivity
                     }
@@ -2314,6 +2325,7 @@
             try {
                 const response = await fetch(`${API_URL}/admin/tournaments`, {
                     headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
                         'x-user-email': localStorage.getItem('userEmail') || ''
                     }
                 });
@@ -2617,6 +2629,7 @@
                     const response = await fetch(`${API_URL}/admin/tournaments`, {
                         method: 'POST',
                         headers: {
+                            'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
                             'x-user-email': localStorage.getItem('userEmail') || ''
                         },
                         body: formData
@@ -2644,6 +2657,7 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
                             'x-user-email': localStorage.getItem('userEmail') || ''
                         },
                         body: JSON.stringify({ title, photoUrl, deadline: deadlineInputValue, games, description })
@@ -3124,9 +3138,10 @@
                     const response = await fetch(`${API_URL}/admin/tournaments/${tournamentId}`, {
                         method: 'PUT',
                         headers: {
+                            'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
                             'x-user-email': localStorage.getItem('userEmail') || ''
                         },
-                        body: formData  // formData already includes the authentication via headers
+                        body: formData
                     });
 
                     const result = await response.json();
@@ -3145,6 +3160,7 @@
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
                             'x-user-email': localStorage.getItem('userEmail') || ''
                         },
                         body: JSON.stringify({
@@ -3320,10 +3336,21 @@
             confirmBtn.disabled = true;
 
             try {
+                const token = localStorage.getItem('msAccessToken');
+                console.log('Deleting tournament:', tournamentId);
+                console.log('Token present:', !!token);
+
+                if (!token) {
+                    alert('Authentication token missing. Please log in again.');
+                    location.href = 'index.html'; // Redirect to login
+                    return;
+                }
+
                 const response = await fetch(`${API_URL}/admin/tournaments/${tournamentId}`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token,
                         'x-user-email': localStorage.getItem('userEmail') || ''
                     }
                 });
@@ -3707,6 +3734,7 @@
                 const userEmail = localStorage.getItem('userEmail');
                 const response = await fetch(`${API_URL}/admin/registrations/overview`, {
                     headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
                         'x-user-email': userEmail || ''
                     }
                 });

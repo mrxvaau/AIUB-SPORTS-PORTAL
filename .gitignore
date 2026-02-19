@@ -26,3 +26,6 @@ Thumbs.db
 /snapshots
 
 PROJECT_MEMORY.md
+
+# Qwen Code MCP Config (contains sensitive credentials)
+.qwen/mcp.json

@@ -227,7 +227,9 @@ const getUserRegistrations = async (req, res) => {
             gameId: reg.game_id,
             teamId: reg.team_id,
             paymentStatus: reg.payment_status,
+            payment_status: reg.payment_status, // Frontend compatibility
             registrationDate: reg.registration_date,
+            created_at: reg.registration_date, // Frontend sort compatibility
             game: {
                 id: reg.tournament_games.id,
                 name: reg.tournament_games.game_name,
@@ -236,6 +238,7 @@ const getUserRegistrations = async (req, res) => {
                 category: reg.tournament_games.category,
                 feePerPerson: reg.tournament_games.fee_per_person,
                 tournamentId: reg.tournament_games.tournament_id,
+                tournamentTitle: reg.tournament_games.tournaments.title, // Frontend compatibility
                 tournament: {
                     id: reg.tournament_games.tournaments.id,
                     title: reg.tournament_games.tournaments.title,
@@ -308,7 +311,7 @@ const cancelGameRegistration = async (req, res) => {
         // Check if user has registered for this game
         const { data: existingRegistration, error: checkError } = await supabase
             .from('game_registrations')
-            .select('id')
+            .select('id, payment_status')
             .eq('user_id', userId)
             .eq('game_id', gameId)
             .single();
@@ -317,6 +320,14 @@ const cancelGameRegistration = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: 'No registration found for this game'
+            });
+        }
+
+        // Check if payment is already confirmed
+        if (existingRegistration.payment_status === 'PAID') {
+            return res.status(400).json({
+                success: false,
+                message: 'Registration is confirmed and cannot be canceled. Please contact admin.'
             });
         }
 
@@ -503,8 +514,23 @@ const getGameRegistrations = async (req, res) => {
                 });
             }
 
-            // Get detailed info for each team
-            const registrationsWithDetails = await Promise.all(teamRegistrations.map(async (reg) => {
+            // Deduplicate teams - use a Map to store unique teams by ID
+            const uniqueTeamsMap = new Map();
+
+            // First pass: Organize members by team
+            for (const reg of teamRegistrations) {
+                const teamId = reg.team_id;
+
+                if (!uniqueTeamsMap.has(teamId)) {
+                    uniqueTeamsMap.set(teamId, {
+                        registration: reg, // Store the first registration found for this team
+                        members: []
+                    });
+                }
+            }
+
+            // Process each unique team
+            const registrationsWithDetails = await Promise.all(Array.from(uniqueTeamsMap.values()).map(async ({ registration: reg }) => {
                 const team = reg.teams;
 
                 // Get all team members with their user details and payment info
@@ -528,12 +554,12 @@ const getGameRegistrations = async (req, res) => {
                 // Get payment status for each member
                 const membersWithPayment = await Promise.all(members.map(async (member) => {
                     // Each team member has their own game_registration entry
-                    const { data: memberReg } = await supabase
+                    const { data: memberReg, error: regError } = await supabase
                         .from('game_registrations')
-                        .select('payment_status')
+                        .select('id, payment_status, payment_method, transaction_id')
                         .eq('user_id', member.user_id)
                         .eq('game_id', gameId)
-                        .single();
+                        .maybeSingle();
 
                     return {
                         id: member.id,
@@ -543,7 +569,10 @@ const getGameRegistrations = async (req, res) => {
                         email: member.users?.email,
                         role: member.role,
                         status: member.status,
-                        payment_status: memberReg?.payment_status || 'PENDING'
+                        payment_status: memberReg?.payment_status || 'PENDING',
+                        payment_method: memberReg?.payment_method || null,
+                        transaction_id: memberReg?.transaction_id || null,
+                        game_registration_id: memberReg?.id
                     };
                 }));
 
@@ -554,6 +583,10 @@ const getGameRegistrations = async (req, res) => {
                         return null; // Filter out this team
                     }
                 }
+
+                // Determine overall team payment status (e.g., if leader is PAID)
+                const leaderReg = membersWithPayment.find(m => m.role === 'LEADER');
+                const teamPaymentStatus = leaderReg ? leaderReg.payment_status : 'PENDING';
 
                 return {
                     id: reg.id,
@@ -568,7 +601,7 @@ const getGameRegistrations = async (req, res) => {
                         created_at: team.created_at
                     },
                     members: membersWithPayment,
-                    payment_status: reg.payment_status // Leader's payment
+                    payment_status: teamPaymentStatus // Use derived status
                 };
             }));
 
@@ -713,11 +746,357 @@ const updatePaymentStatus = async (req, res) => {
     }
 };
 
+/**
+ * Update team member payment status (create registration if missing)
+ */
+const updateTeamMemberPayment = async (req, res) => {
+    try {
+        const { memberId } = req.params;
+        const { payment_status } = req.body;
+
+        // Validate payment status
+        const validStatuses = ['PENDING', 'PAID', 'UNPAID'];
+        if (!validStatuses.includes(payment_status)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid payment status. Must be PENDING, PAID, or UNPAID'
+            });
+        }
+
+        // 1. Get team member details (user_id and team -> game_id)
+        const { data: member, error: memberError } = await supabase
+            .from('team_members')
+            .select(`
+                id,
+                user_id,
+                team_id,
+                teams (
+                    id,
+                    tournament_game_id
+                )
+            `)
+            .eq('id', memberId)
+            .single();
+
+        if (memberError || !member) {
+            return res.status(404).json({
+                success: false,
+                message: 'Team member not found'
+            });
+        }
+
+        const userId = member.user_id;
+        const teamId = member.team_id;
+        const gameId = member.teams.tournament_game_id;
+
+        // 2. Check if game registration exists
+        const { data: existingReg, error: regError } = await supabase
+            .from('game_registrations')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('game_id', gameId)
+            .maybeSingle();
+
+        let result;
+
+        if (existingReg) {
+            // Update existing
+            const { data, error } = await supabase
+                .from('game_registrations')
+                .update({ payment_status })
+                .eq('id', existingReg.id)
+                .select()
+                .single();
+
+            if (error) throw error;
+            result = data;
+        } else {
+            // Create new registration
+            console.log(`Creating missing game registration for user ${userId}, game ${gameId}, team ${teamId}`);
+            const { data, error } = await supabase
+                .from('game_registrations')
+                .insert([{
+                    user_id: userId,
+                    game_id: gameId,
+                    team_id: teamId,
+                    payment_status: payment_status,
+                    registration_date: new Date().toISOString()
+                }])
+                .select()
+                .single();
+
+            if (error) throw error;
+            result = data;
+        }
+
+        res.json({
+            success: true,
+            message: 'Payment status updated successfully',
+            registration: result
+        });
+
+    } catch (error) {
+        console.error('Update team member payment error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update payment status: ' + error.message
+        });
+    }
+};
+
+/**
+ * Admin Confirm Registration (Cash Override)
+ * Sets status to CONFIRMED, payment to PAID (CASH)
+ */
+const confirmRegistration = async (req, res) => {
+    try {
+        const { registrationId } = req.params;
+        const { teamId } = req.body; // Optional: If provided, confirm entire team
+
+        // If teamId provided, confirm ALL team members
+        if (teamId) {
+            console.log(`Confirming team ${teamId} via Admin Override`);
+
+            // 1. Get all members
+            const { data: members, error: membersError } = await supabase
+                .from('team_members')
+                .select('user_id, teams(tournament_game_id)')
+                .eq('team_id', teamId);
+
+            if (membersError) throw membersError;
+
+            const gameId = members[0]?.teams?.tournament_game_id;
+
+            // 2. Update/Create registrations for ALL members
+            for (const member of members) {
+                // Check existing
+                const { data: existReg } = await supabase
+                    .from('game_registrations')
+                    .select('id')
+                    .eq('user_id', member.user_id)
+                    .eq('game_id', gameId)
+                    .maybeSingle();
+
+                if (existReg) {
+                    await supabase.from('game_registrations')
+                        .update({
+                            payment_status: 'PAID',
+                            payment_method: 'CASH',
+                            transaction_id: `ADMIN-${Date.now()}`
+                        })
+                        .eq('id', existReg.id);
+                } else {
+                    await supabase.from('game_registrations')
+                        .insert([{
+                            user_id: member.user_id,
+                            game_id: gameId,
+                            team_id: teamId,
+                            payment_status: 'PAID',
+                            payment_method: 'CASH',
+                            transaction_id: `ADMIN-${Date.now()}`,
+                            registration_date: new Date().toISOString()
+                        }]);
+                }
+            }
+
+            // 3. Update team status to CONFIRMED
+            await supabase.from('teams')
+                .update({ status: 'CONFIRMED' })
+                .eq('id', teamId);
+
+            // 4. Update all members status to CONFIRMED
+            await supabase.from('team_members')
+                .update({ status: 'CONFIRMED' })
+                .eq('team_id', teamId);
+
+        } else {
+            // Confirm Single Registration
+            await supabase.from('game_registrations')
+                .update({
+                    payment_status: 'PAID',
+                    payment_method: 'CASH',
+                    transaction_id: `ADMIN-${Date.now()}`
+                })
+                .eq('id', registrationId);
+        }
+
+        res.json({
+            success: true,
+            message: 'Registration confirmed successfully'
+        });
+
+    } catch (error) {
+        console.error('Confirm registration error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * Checkout Cart (Client Side)
+ */
+/**
+ * Checkout Cart (Client Side)
+ */
+const checkoutCart = async (req, res) => {
+    try {
+        const { paymentMethod, transactionId, studentId } = req.body;
+
+        // Robust user ID lookup
+        let userId = null;
+
+        if (req.user && req.user.id) {
+            userId = req.user.id;
+        } else if (studentId) {
+            // Lookup user by student ID
+            const { data: user, error: userError } = await supabase
+                .from('users')
+                .select('id')
+                .eq('student_id', studentId)
+                .single();
+
+            if (userError || !user) {
+                return res.status(404).json({ success: false, message: 'User not found' });
+            }
+            userId = user.id;
+        } else {
+            return res.status(401).json({ success: false, message: 'User not authenticated. Please provide studentId.' });
+        }
+
+        if (!paymentMethod || !transactionId) {
+            return res.status(400).json({ success: false, message: 'Payment method and transaction ID are required' });
+        }
+
+        // Fetch cart items from database
+        const { data: cartItems, error: cartError } = await supabase
+            .from('cart')
+            .select(`
+                id,
+                item_type,
+                item_id,
+                tournament_game_id,
+                tournament_games (
+                    id,
+                    game_name,
+                    game_type,
+                    fee_per_person
+                )
+            `)
+            .eq('user_id', userId);
+
+        if (cartError) throw cartError;
+
+        if (!cartItems || cartItems.length === 0) {
+            return res.status(400).json({ success: false, message: 'Cart is empty' });
+        }
+
+        console.log(`Processing checkout for user ${userId}, ${cartItems.length} items, Method: ${paymentMethod}`);
+
+        // 1. Calculate Total Amount
+        let totalAmount = 0;
+        cartItems.forEach(item => {
+            const fee = item.tournament_games?.fee_per_person || 0;
+            totalAmount += fee;
+        });
+
+        // 2. Create Payment Record (bKash)
+        const paymentRecord = {
+            user_id: userId,
+            order_id: `CART-${Date.now()}`,
+            bkash_transaction_id: transactionId,
+            bkash_payment_id: `BKASH-PAY-${Math.floor(Math.random() * 1000000)}`,
+            amount: totalAmount,
+            currency: 'BDT',
+            payment_status: 'SUCCESS',
+            payment_method: paymentMethod,
+            merchant_number: '01700000000',
+            invoice_no: `INV-${Date.now()}`,
+            payment_time: new Date().toISOString()
+        };
+
+        const { error: paymentError } = await supabase
+            .from('payments')
+            .insert([paymentRecord]);
+
+        if (paymentError) {
+            console.error('Payment record creation failed:', paymentError);
+        }
+
+        const results = [];
+
+        for (const item of cartItems) {
+            const gameId = item.tournament_game_id;
+            let teamId = null;
+            if (item.item_type === 'TEAM_REGISTRATION') {
+                teamId = item.item_id;
+            }
+
+            // Check existing
+            const { data: existReg } = await supabase
+                .from('game_registrations')
+                .select('id')
+                .eq('user_id', userId)
+                .eq('game_id', gameId)
+                .maybeSingle();
+
+            if (existReg) {
+                // Update
+                const { data } = await supabase.from('game_registrations')
+                    .update({
+                        payment_status: 'PAID',
+                        payment_method: paymentMethod,
+                        transaction_id: transactionId,
+                        team_id: teamId
+                    })
+                    .eq('id', existReg.id)
+                    .select().single();
+                results.push(data);
+            } else {
+                // Insert
+                const { data } = await supabase.from('game_registrations')
+                    .insert([{
+                        user_id: userId,
+                        game_id: gameId,
+                        team_id: teamId,
+                        payment_status: 'PAID',
+                        payment_method: paymentMethod,
+                        transaction_id: transactionId,
+                        registration_date: new Date().toISOString()
+                    }])
+                    .select().single();
+                results.push(data);
+            }
+        }
+
+        // Clear Cart
+        const { error: clearError } = await supabase
+            .from('cart')
+            .delete()
+            .eq('user_id', userId);
+
+        if (clearError) {
+            console.error('Error clearing cart after checkout:', clearError);
+        }
+
+        res.json({
+            success: true,
+            message: 'Checkout successful',
+            results
+        });
+
+    } catch (error) {
+        console.error('Checkout error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 module.exports = {
     registerForGame,
     getUserRegistrations,
     cancelGameRegistration,
     getRegistrationOverview,
     getGameRegistrations,
-    updatePaymentStatus
+    updatePaymentStatus,
+    updateTeamMemberPayment,
+    confirmRegistration,
+    checkoutCart
 };

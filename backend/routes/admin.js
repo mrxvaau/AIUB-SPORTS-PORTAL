@@ -3,8 +3,57 @@ const router = express.Router();
 const { supabase } = require('../config/supabase');
 const multer = require('multer');
 const path = require('path');
+const registrationController = require('../controllers/registrationController');
+const teamController = require('../controllers/teamController');
 
 const fs = require('fs');
+
+// TEMP: Migration Route
+router.post('/run-migration', async (req, res) => {
+    try {
+        const { Client } = require('pg');
+        const connectionString = process.env.DATABASE_URL;
+
+        if (!connectionString) {
+            return res.status(500).json({ error: 'DATABASE_URL not found' });
+        }
+
+        const client = new Client({
+            connectionString: connectionString,
+            ssl: { rejectUnauthorized: false }
+        });
+
+        await client.connect();
+
+        const sql = `
+        CREATE TABLE IF NOT EXISTS payments (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            user_id UUID REFERENCES users(id),
+            order_id TEXT,
+            bkash_transaction_id TEXT UNIQUE,
+            bkash_payment_id TEXT,
+            amount DECIMAL(10, 2) NOT NULL,
+            currency TEXT DEFAULT 'BDT',
+            payment_status TEXT CHECK (payment_status IN ('SUCCESS', 'FAILED', 'CANCELLED', 'PENDING')),
+            payment_method TEXT DEFAULT 'BKASH',
+            merchant_number TEXT,
+            invoice_no TEXT,
+            payment_time TIMESTAMP WITH TIME ZONE,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+        );
+        CREATE INDEX IF NOT EXISTS idx_payments_user_id ON payments(user_id);
+        CREATE INDEX IF NOT EXISTS idx_payments_bkash_trx ON payments(bkash_transaction_id);
+        `;
+
+        await client.query(sql);
+        await client.end();
+
+        res.json({ success: true, message: 'Migration executed successfully' });
+    } catch (error) {
+        console.error('Migration failed:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
 
 // Configure multer for file uploads - temporary storage
 const storage = multer.diskStorage({
@@ -74,373 +123,82 @@ function handleMulterError(err, req, res, next) {
     next();
 }
 
-// DEBUG: List all teams (for troubleshooting)
-router.get('/debug/teams', async (req, res) => {
-    try {
-        const { data: teams, error } = await supabase
-            .from('teams')
-            .select(`
-                id,
-                team_name,
-                leader_user_id,
-                tournament_game_id,
-                created_at,
-                team_members(id, user_id, role, status)
-            `)
-            .order('created_at', { ascending: false })
-            .limit(20);
+// Import JWT-based admin authentication middleware
+const { requireAdmin } = require('../middleware/auth');
 
-        if (error) {
-            return res.status(500).json({ success: false, error: error.message });
-        }
-
-        res.json({ success: true, count: teams.length, teams });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-});
-
-// DEBUG: List all users (for troubleshooting)
-router.get('/debug/users', async (req, res) => {
-    try {
-        const { data: users, error } = await supabase
-            .from('users')
-            .select('id, student_id, full_name, email, gender, created_at')
-            .order('created_at', { ascending: false })
-            .limit(30);
-
-        if (error) {
-            return res.status(500).json({ success: false, error: error.message });
-        }
-
-        res.json({ success: true, count: users.length, users });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-});
-
-// DEBUG: List all team_members (for troubleshooting)
-router.get('/debug/team-members', async (req, res) => {
-    try {
-        const { data: members, error } = await supabase
-            .from('team_members')
-            .select(`
-                id, 
-                team_id, 
-                user_id, 
-                role, 
-                status, 
-                created_at,
-                users(student_id, full_name),
-                teams(id, team_name, tournament_game_id)
-            `)
-            .order('created_at', { ascending: false })
-            .limit(50);
-
-        if (error) {
-            return res.status(500).json({ success: false, error: error.message });
-        }
-
-        res.json({ success: true, count: members.length, members });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-});
-
-// DEBUG: Get members for a specific team
-router.get('/debug/team/:teamId/members', async (req, res) => {
-    try {
-        const { teamId } = req.params;
-
-        const { data: members, error } = await supabase
-            .from('team_members')
-            .select(`
-                id, 
-                team_id, 
-                user_id, 
-                role, 
-                status,
-                users(student_id, full_name)
-            `)
-            .eq('team_id', teamId);
-
-        if (error) {
-            return res.status(500).json({ success: false, error: error.message });
-        }
-
-        res.json({ success: true, teamId: parseInt(teamId), count: members.length, members });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-});
-
-// DEBUG: Confirm a pending team member (via GET for easy browser access)
-router.get('/debug/confirm-member/:memberId', async (req, res) => {
-    try {
-        const { memberId } = req.params;
-
-        const { data: member, error } = await supabase
-            .from('team_members')
-            .update({ status: 'CONFIRMED' })
-            .eq('id', memberId)
-            .select(`
-                id, team_id, status,
-                users(student_id, full_name)
-            `)
-            .single();
-
-        if (error) {
-            return res.status(500).json({ success: false, error: error.message });
-        }
-
-        res.json({
-            success: true,
-            message: `Member ${member.users?.full_name} (${member.users?.student_id}) confirmed!`,
-            member
-        });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-});
-
-// Middleware to check if user is admin - SIMPLE VERSION
-async function requireAdmin(req, res, next) {
-    try {
-        // Try to get user email from multiple sources
-        // Check for various possible header names (headers are case-insensitive in HTTP/2 but may vary)
-        let userEmail = req.body.email || req.query.email ||
-            req.headers['x-user-email'] ||
-            req.headers['X-User-Email'] ||
-            req.headers['X-USER-EMAIL'] ||
-            req.headers['x-useremail'] ||  // Alternative without hyphen
-            req.headers['X-UserEmail'];     // Alternative without hyphen
-
-        // If not found in headers, try to get from session or other sources
-        if (!userEmail) {
-            // Check if we can get user info from the authentication token
-            // For now, we'll check if there's a user in the session or request
-            // This might come from a previous auth middleware
-            if (req.session && req.session.userEmail) {
-                userEmail = req.session.userEmail;
-            } else if (req.user && req.user.email) {
-                userEmail = req.user.email;
-            }
-        }
-
-        // If still no email found, try to get from the authorization header or other sources
-        if (!userEmail) {
-            // If we have a logged-in user from a previous auth middleware, use their email
-            // This assumes that the user has already been authenticated by another middleware
-            userEmail = req.authenticatedUserEmail || req.currentUserEmail || req.session?.userEmail;
-        }
-
-        console.log('Admin check - userEmail:', userEmail); // Debug logging
-
-        if (!userEmail) {
-            console.log('Admin check - No email provided');
-            return res.status(401).json({
-                success: false,
-                message: 'Authentication required'
-            });
-        }
-
-        // Simple check: Does the email exist in the admins table with roles?
-        const { data: adminData, error: adminError } = await supabase
-            .from('admins')
-            .select('id, admin_id, email, full_name, status')
-            .eq('email', userEmail)
-            .single();
-
-        if (adminData && adminData.status === 'ACTIVE') {
-            // Check if this admin has roles
-            const { data: roleData, error: roleError } = await supabase
-                .from('admin_role_map')
-                .select(`
-                    admin_roles(role_name)
-                `)
-                .eq('admin_id', adminData.id);
-
-            if (roleData && roleData.length > 0) {
-                // Admin exists and has roles
-                const roles = roleData.map(role => role.admin_roles.role_name);
-
-                // Add user info and roles to request for use in handlers
-                req.user = {
-                    ...adminData,
-                    roles: roles
-                };
-
-                console.log('Admin check - Access granted for roles:', roles);
-                next();
-                return;
-            }
-        }
-
-        // If we reach here, user is not an admin
-        console.log('Admin check - User has no admin roles');
-        return res.status(403).json({
-            success: false,
-            message: 'Admin access required'
-        });
-    } catch (error) {
-        console.error('Admin check error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Authentication error'
-        });
-    }
-}
-
-// Check if user is admin - SIMPLE VERSION
+// Check if user is admin - JWT VERSION
+// This endpoint is used by frontend to check admin status after login
 router.post('/check-admin', async (req, res) => {
     try {
         const { email } = req.body;
 
-        console.log('=== ADMIN CHECK START ===');
-        console.log('Checking email:', email);
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email is required'
+            });
+        }
 
-        // Extract student ID from email (e.g., "24-56434-1" from "24-56434-1@student.aiub.edu")
+        // Extract student ID from email
         const studentId = email.split('@')[0];
-        console.log('Extracted student ID:', studentId);
 
-        // DEBUG: First, let's see ALL admins in the table
-        const { data: allAdmins, error: allError } = await supabase
-            .from('admins')
-            .select('id, admin_id, email, full_name, status');
-
-        console.log('=== ALL ADMINS IN DATABASE ===');
-        console.log(JSON.stringify(allAdmins, null, 2));
-        console.log('==============================');
-
-        // Try multiple matching strategies:
-        // 1. Match by exact email
-        // 2. Match by admin_id (student ID)
-        // 3. Match by email case-insensitive
-
-        let adminData = null;
-        let matchMethod = '';
-
-        // Strategy 1: Exact email match
-        const { data: exactMatch, error: exactError } = await supabase
-            .from('admins')
-            .select('id, admin_id, email, full_name, status')
-            .eq('email', email)
+        // Check if user exists in users table and has admin roles
+        const { data: user, error: userError } = await supabase
+            .from('users')
+            .select('id, student_id, email, full_name')
+            .eq('student_id', studentId)
             .single();
 
-        if (exactMatch) {
-            adminData = exactMatch;
-            matchMethod = 'exact email';
-            console.log('Found admin by exact email match');
-        }
+        let roles = [];
+        let isAdmin = false;
 
-        // Strategy 2: Match by admin_id (student ID)
-        if (!adminData) {
-            const { data: idMatch, error: idError } = await supabase
-                .from('admins')
-                .select('id, admin_id, email, full_name, status')
-                .eq('admin_id', studentId)
-                .single();
-
-            if (idMatch) {
-                adminData = idMatch;
-                matchMethod = 'admin_id';
-                console.log('Found admin by admin_id match');
-            }
-        }
-
-        // Strategy 3: Match by email containing student ID
-        if (!adminData) {
-            const { data: partialMatch, error: partialError } = await supabase
-                .from('admins')
-                .select('id, admin_id, email, full_name, status')
-                .ilike('email', `%${studentId}%`)
-                .single();
-
-            if (partialMatch) {
-                adminData = partialMatch;
-                matchMethod = 'partial email';
-                console.log('Found admin by partial email match');
-            }
-        }
-
-        console.log('Admin data found:', adminData);
-        console.log('Match method:', matchMethod);
-
-        // Check if admin exists (status can be ACTIVE or null - treat null as active for backwards compatibility)
-        if (adminData && (adminData.status === 'ACTIVE' || adminData.status === null || adminData.status === undefined)) {
-            // Check if this admin has roles
-            const { data: roleData, error: roleError } = await supabase
+        if (user) {
+            // Check roles by user ID
+            const { data: userRoleData } = await supabase
                 .from('admin_role_map')
-                .select(`
-                    role_id,
-                    admin_roles(id, role_name)
-                `)
-                .eq('admin_id', adminData.id);
+                .select('admin_roles(role_name)')
+                .eq('admin_id', user.id);
 
-            console.log('Role query result:', roleData);
-            console.log('Role query error:', roleError);
-
-            if (roleData && roleData.length > 0) {
-                // Admin exists and has roles
-                const roles = roleData.map(role => role.admin_roles?.role_name).filter(Boolean);
-
-                console.log('Roles found:', roles);
-
-                res.json({
-                    success: true,
-                    isAdmin: true,
-                    role: roles[0] || 'ADMIN',
-                    roles: roles,
-                    admin: adminData
-                });
-                console.log('=== ADMIN CHECK END - ADMIN FOUND ===');
-                return;
-            } else {
-                console.log('Admin found but no roles assigned in admin_role_map');
+            if (userRoleData && userRoleData.length > 0) {
+                roles = userRoleData.map(r => r.admin_roles.role_name);
+                isAdmin = true;
             }
-        } else if (adminData) {
-            console.log('Admin found but status is not ACTIVE:', adminData.status);
-        } else {
-            console.log('Admin not found in admins table by any matching strategy');
         }
 
-        // If we reach here, user is not an admin
+        // Also check admins table by email
+        if (!isAdmin) {
+            const { data: adminRecord } = await supabase
+                .from('admins')
+                .select('id, email, full_name, status')
+                .eq('email', email)
+                .single();
+
+            if (adminRecord && (adminRecord.status === 'ACTIVE' || !adminRecord.status)) {
+                const { data: adminRoleData } = await supabase
+                    .from('admin_role_map')
+                    .select('admin_roles(role_name)')
+                    .eq('admin_id', adminRecord.id);
+
+                if (adminRoleData && adminRoleData.length > 0) {
+                    roles = adminRoleData.map(r => r.admin_roles.role_name);
+                    isAdmin = true;
+                }
+            }
+        }
+
         res.json({
             success: true,
-            isAdmin: false,
-            role: 'NOT_ADMIN',
-            roles: [],
-            admin: null
+            isAdmin: isAdmin,
+            roles: roles,
+            role: roles[0] || 'ADMIN',
+            admin: user || null
         });
-
-        console.log('=== ADMIN CHECK END - NOT AN ADMIN ===');
     } catch (error) {
         console.error('Check admin error:', error);
-        res.status(500).json({ success: false, message: error.message });
-    }
-});
-
-
-// DEBUG: List all admins (remove in production)
-router.get('/debug-admins', async (req, res) => {
-    try {
-        const { data: admins, error } = await supabase
-            .from('admins')
-            .select('*');
-
-        const { data: roleMaps, error: roleError } = await supabase
-            .from('admin_role_map')
-            .select('*, admin_roles(role_name)');
-
-        res.json({
-            success: true,
-            admins: admins,
-            role_mappings: roleMaps,
-            error: error?.message,
-            roleError: roleError?.message
+        res.status(500).json({
+            success: false,
+            message: error.message
         });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
     }
 });
 
@@ -1259,7 +1017,41 @@ router.delete('/tournaments/:id', requireAdmin, async (req, res) => {
             });
         }
 
-        // Delete associated games first (due to foreign key constraint)
+        // Get game IDs first to delete registrations
+        const { data: games, error: gamesError } = await supabase
+            .from('tournament_games')
+            .select('id')
+            .eq('tournament_id', tournamentId);
+
+        if (gamesError) {
+            console.error('Error fetching games for deletion:', gamesError);
+            return res.status(500).json({
+                success: false,
+                message: 'Error fetching games',
+                error: gamesError.message
+            });
+        }
+
+        const gameIds = games.map(g => g.id);
+
+        if (gameIds.length > 0) {
+            // Delete registrations for these games
+            const { error: deleteRegistrationsError } = await supabase
+                .from('game_registrations')
+                .delete()
+                .in('game_id', gameIds);
+
+            if (deleteRegistrationsError) {
+                console.error('Error deleting game registrations:', deleteRegistrationsError);
+                return res.status(500).json({
+                    success: false,
+                    message: 'Error deleting game registrations',
+                    error: deleteRegistrationsError.message
+                });
+            }
+        }
+
+        // Delete associated games
         const { error: deleteGamesError } = await supabase
             .from('tournament_games')
             .delete()
@@ -1825,11 +1617,14 @@ router.post('/tunnel/stop', requireAdmin, tunnelController.stopTunnels);
 // Get tunnel status
 router.get('/tunnel/status', requireAdmin, tunnelController.getTunnelStatus);
 
+
+// Update team member payment status (robust)
+router.put('/team-members/:memberId/payment', requireAdmin, registrationController.updateTeamMemberPayment);
+
 module.exports = router;
 
+
 // Registration overview
-const registrationController = require('../controllers/registrationController');
-const teamController = require('../controllers/teamController');
 
 router.get('/registrations/overview', requireAdmin, registrationController.getRegistrationOverview);
 
@@ -1841,6 +1636,9 @@ router.put('/registrations/:registrationId/payment', requireAdmin, registrationC
 
 // Update team member status (admin override)
 router.put('/team-members/:memberId/status', requireAdmin, teamController.updateTeamMemberStatus);
+
+// Confirm registration (Cash Payment Override)
+router.post('/registrations/confirm/:registrationId', requireAdmin, registrationController.confirmRegistration);
 
 // Remove team member (admin override)
 router.delete('/team-members/:memberId', requireAdmin, teamController.adminRemoveTeamMember);

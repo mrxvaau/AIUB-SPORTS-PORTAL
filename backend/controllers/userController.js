@@ -32,6 +32,7 @@ exports.getTournamentGames = tournamentController.getTournamentGames;
 exports.registerForGame = registrationController.registerForGame;
 exports.getUserRegistrations = registrationController.getUserRegistrations;
 exports.cancelGameRegistration = registrationController.cancelGameRegistration;
+exports.checkoutCart = registrationController.checkoutCart;
 
 // Team functions (from teamController)
 exports.createTeam = teamController.createTeam;

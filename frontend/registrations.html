@@ -314,8 +314,195 @@
         </div>
     </div>
 
+    <div id="registrationModal" class="modal">
+        <div class="modal-content large-modal">
+            <span class="close-modal" onclick="closeRegistrationModal()">&times;</span>
+            <h2 id="modalGameTitle">Game Registrations</h2>
+
+            <div class="search-bar">
+                <input type="text" id="regSearch" placeholder="Search by Student ID..." onkeyup="filterRegistrations()">
+            </div>
+
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Name</th>
+                            <th>Status</th>
+                            <th>Payment</th>
+                            <th>Team</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="registrationsTableBody">
+                        <!-- Data will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 1000px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            position: relative;
+            animation: slideIn 0.3s;
+        }
+
+        .close-modal {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .close-modal:hover,
+        .close-modal:focus {
+            color: #000;
+            text-decoration: none;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0
+            }
+
+            to {
+                opacity: 1
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Table Styles */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .data-table th,
+        .data-table td {
+            text-align: left;
+            padding: 12px 15px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .data-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+            position: sticky;
+            top: 0;
+        }
+
+        .data-table tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: background 0.2s;
+            margin-right: 5px;
+        }
+
+        .confirm-btn {
+            background-color: #10b981;
+            color: white;
+        }
+
+        .confirm-btn:hover {
+            background-color: #059669;
+        }
+
+        .confirm-btn:disabled {
+            background-color: #a7f3d0;
+            cursor: not-allowed;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-paid {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-pending {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-unpaid {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .search-bar {
+            margin-bottom: 15px;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+    </style>
+
     <script>
         const API_URL = 'http://localhost:3000/api';
+        let currentRegistrations = [];
 
         async function loadRegistrations() {
             const contentDiv = document.getElementById('content');
@@ -465,9 +652,141 @@
             }
         }
 
-        function manageGame(gameId, gameName) {
-            alert(`Game registration management feature coming soon!\nGame: ${gameName} (ID: ${gameId})`);
-            // TODO: Navigate to detailed game registration management page
+        async function manageGame(gameId, gameName) {
+            document.getElementById('modalGameTitle').textContent = `Manage Registrations: ${gameName}`;
+            document.getElementById('registrationModal').style.display = 'block';
+            document.getElementById('registrationsTableBody').innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading...</td></tr>';
+
+            try {
+                const userEmail = localStorage.getItem('userEmail');
+                const response = await fetch(`${API_URL}/admin/registrations/game/${gameId}`, {
+                    headers: { 'x-user-email': userEmail }
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    currentRegistrations = data.registrations;
+                    renderRegistrationsTable(currentRegistrations);
+                } else {
+                    document.getElementById('registrationsTableBody').innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">${data.message}</td></tr>`;
+                }
+            } catch (error) {
+                console.error('Error fetching game registrations:', error);
+                document.getElementById('registrationsTableBody').innerHTML = '<tr><td colspan="6" style="text-align:center; color:red;">Failed to load data</td></tr>';
+            }
+        }
+
+        function renderRegistrationsTable(registrations) {
+            const tbody = document.getElementById('registrationsTableBody');
+            if (registrations.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No registrations found</td></tr>';
+                return;
+            }
+
+            let html = '';
+            registrations.forEach(reg => {
+                const paymentStatusClass = reg.payment_status === 'PAID' ? 'status-paid' : (reg.payment_status === 'UNPAID' ? 'status-unpaid' : 'status-pending');
+                const isPaid = reg.payment_status === 'PAID';
+
+                // Determine display name and logic for Team vs Solo
+                const displayName = reg.full_name || 'N/A';
+                const teamName = reg.team_name ? `<span style="font-weight:bold; color:#2563eb;">${reg.team_name}</span>` : 'Solo';
+                // For actions: If it's a team registration (has team_id), the action might confirm the whole team
+                const confirmAction = reg.team_id
+                    ? `confirmRegistration('${reg.game_registration_id}', ${reg.team_id})`
+                    : `confirmRegistration('${reg.game_registration_id}', null)`;
+
+                html += `
+                    <tr>
+                        <td>${reg.student_id || 'N/A'}</td>
+                        <td>${displayName}</td>
+                        <td><span class="status-badge ${paymentStatusClass}">${reg.payment_status}</span></td>
+                        <td>
+                            ${reg.payment_method ? reg.payment_method : '-'}
+                            ${reg.transaction_id ? `<br><small style="color:#666;">${reg.transaction_id}</small>` : ''}
+                        </td>
+                        <td>${teamName}</td>
+                        <td>
+                            ${!isPaid ? `<button class="action-btn confirm-btn" onclick="${confirmAction}">Confirm Payment (Cash)</button>` : '<span style="color:green;">✓ Verified</span>'}
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        async function confirmRegistration(registrationId, teamId) {
+            if (!confirm('Are you sure you want to confirm this registration with CASH payment? This cannot be undone easily.')) {
+                return;
+            }
+
+            try {
+                const userEmail = localStorage.getItem('userEmail');
+                const body = teamId ? { teamId } : {};
+
+                const response = await fetch(`${API_URL}/admin/registrations/${registrationId}/confirm`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-user-email': userEmail
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('Registration confirmed successfully!');
+                    // Refresh the modal
+                    const currentTitle = document.getElementById('modalGameTitle').textContent;
+                    // Extract game name if needed, or just reload the current registrations if we stored the gameId
+                    // A better way is to pass gameId to confirmRegistration or store it globally.
+                    // For now, let's just close and user has to reopen or we can try to find the gameId.
+                    // Actually, let's just update the local row or reload.
+                    // Reloading is safer to see definitive state.
+                    // We can check `currentRegistrations` to find the gameId.
+                    if (currentRegistrations.length > 0) {
+                        // Find the gameId from the first registration of current list (assuming all are same game)
+                        // Wait, currentRegistrations items don't have game_id explicitly in the root object of the view model I built?
+                        // Let's check getGameRegistrations response structure.
+                        // It returns an array of objects.
+                        // I can find it from the DOM or just close modal.
+                        // Let's close modal for simplicity or reload page.
+                        location.reload();
+                    }
+                } else {
+                    alert(`Error: ${data.message}`);
+                }
+            } catch (error) {
+                console.error('Error confirming registration:', error);
+                alert('Connection error. Please try again.');
+            }
+        }
+
+        function filterRegistrations() {
+            const filter = document.getElementById('regSearch').value.toUpperCase();
+            if (!filter) {
+                renderRegistrationsTable(currentRegistrations);
+                return;
+            }
+            const filtered = currentRegistrations.filter(reg =>
+                (reg.student_id && reg.student_id.toUpperCase().includes(filter)) ||
+                (reg.full_name && reg.full_name.toUpperCase().includes(filter)) ||
+                (reg.team_name && reg.team_name.toUpperCase().includes(filter))
+            );
+            renderRegistrationsTable(filtered);
+        }
+
+        function closeRegistrationModal() {
+            document.getElementById('registrationModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function (event) {
+            const modal = document.getElementById('registrationModal');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
         }
 
         // Load data on page load

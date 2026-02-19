@@ -662,6 +662,49 @@
                 transform: translateX(50px);
             }
         }
+
+        /* Schedule Card Styles */
+        .schedule-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+
+        .schedule-header {
+            background: #1d4ed8;
+            color: white;
+            padding: 12px 16px;
+        }
+
+        .schedule-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .schedule-body {
+            padding: 16px;
+        }
+
+        .schedule-row {
+            display: flex;
+            gap: 16px;
+            padding: 8px 0;
+        }
+
+        .schedule-day {
+            width: 96px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .schedule-info {
+            flex: 1;
+            font-size: 14px;
+            color: #6b7280;
+        }
     </style>
 </head>
 
@@ -691,6 +734,30 @@
             <p>Check back later for upcoming events!</p>
         </div>
         <div id="tournamentsContainer"></div>
+
+        <!-- Game Schedule -->
+        <div class="schedule-card">
+            <div class="schedule-header">
+                <h2>Game Schedule</h2>
+            </div>
+            <div class="schedule-body">
+                <div id="scheduleContent">
+                    <div class="schedule-row">
+                        <span class="schedule-day">Today</span>
+                        <span class="schedule-info">No Games Available</span>
+                    </div>
+                    <div class="schedule-row" style="border-top: 1px solid #e5e7eb; padding-top: 12px;">
+                        <span class="schedule-day">Tomorrow</span>
+                        <div class="schedule-info">
+                            <div style="margin-bottom: 8px;">
+                                <a href="#" style="color: #3b82f6; text-decoration: none;">No Games Available</a>
+                                <p style="font-size: 12px; color: #6b7280;">TBA</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Confirmation Modal -->
@@ -1189,25 +1256,51 @@
                                     statusDiv.style.backgroundColor = '#d1fae5';
                                     statusDiv.style.color = '#065f46';
                                     statusText.textContent = 'PAID';
+
+                                    // Update main button to show confirmed state
+                                    button.innerHTML = 'Registration Confirmed';
+                                    button.className = 'register-btn'; // Remove 'cancel' class
+                                    button.disabled = true;
+                                    button.style.background = '#10b981';
+                                    button.style.cursor = 'default';
+                                    button.title = 'Your registration is confirmed. Contact admin for any changes.';
+
+                                    // Hide Edit Team button for confirmed registrations
+                                    const editTeamBtn = gameCard.querySelector('.edit-team-btn');
+                                    if (editTeamBtn) {
+                                        editTeamBtn.style.display = 'none';
+                                    }
                                 } else if (paymentStatus === 'PENDING') {
                                     statusDiv.style.backgroundColor = '#fef3c7';
                                     statusDiv.style.color = '#d97706';
                                     statusText.textContent = 'PENDING';
+
+                                    // Show Edit Team button for team games with PENDING status
+                                    const editTeamBtn = gameCard.querySelector('.edit-team-btn');
+                                    const teamSize = parseInt(gameCard.dataset.teamSize) || 1;
+
+                                    if (editTeamBtn) {
+                                        if (teamSize > 1) {
+                                            editTeamBtn.style.display = 'block';
+                                        } else {
+                                            editTeamBtn.style.display = 'none';
+                                        }
+                                    }
                                 } else {
                                     statusDiv.style.backgroundColor = '#fecaca';
                                     statusDiv.style.color = '#b91c1c';
                                     statusText.textContent = 'UNPAID';
-                                }
 
-                                // Show Edit Team button for team games with PENDING status
-                                const editTeamBtn = gameCard.querySelector('.edit-team-btn');
-                                const teamSize = parseInt(gameCard.dataset.teamSize) || 1;
+                                    // Show Edit Team button for team games
+                                    const editTeamBtn = gameCard.querySelector('.edit-team-btn');
+                                    const teamSize = parseInt(gameCard.dataset.teamSize) || 1;
 
-                                if (editTeamBtn) {
-                                    if (teamSize > 1 && paymentStatus === 'PENDING') {
-                                        editTeamBtn.style.display = 'block';
-                                    } else {
-                                        editTeamBtn.style.display = 'none';
+                                    if (editTeamBtn) {
+                                        if (teamSize > 1) {
+                                            editTeamBtn.style.display = 'block';
+                                        } else {
+                                            editTeamBtn.style.display = 'none';
+                                        }
                                     }
                                 }
                             }

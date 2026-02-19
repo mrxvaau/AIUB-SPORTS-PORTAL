@@ -77,8 +77,8 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            cursor: not-allowed;
-            opacity: 0.6;
+            cursor: pointer;
+            opacity: 1;
         }
 
         .header-right {
@@ -98,6 +98,10 @@
             padding: 8px;
             border-radius: 4px;
             transition: background 0.2s;
+            display: flex;
+            /* Ensure centering */
+            align-items: center;
+            justify-content: center;
         }
 
         .icon-btn:hover {
@@ -155,7 +159,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            cursor: not-allowed;
+            cursor: pointer;
             transition: background 0.2s;
         }
 
@@ -1015,6 +1019,274 @@
             background: #dc2626;
         }
     </style>
+    <style>
+        /* Team Registration Modal Styles */
+        .team-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            /* Higher than other modals */
+            justify-content: center;
+            align-items: center;
+        }
+
+        .team-modal-content {
+            background: white;
+            margin: 0 auto;
+            padding: 25px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            position: relative;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .team-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #f3f4f6;
+            padding-bottom: 15px;
+        }
+
+        .team-modal-header div span {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1f2937;
+            display: block;
+        }
+
+        .team-modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #9ca3af;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+
+        .team-modal-close:hover {
+            color: #4b5563;
+        }
+
+        .team-modal-body {
+            overflow-y: auto;
+            flex: 1;
+            padding-right: 5px;
+        }
+
+        .team-form-group {
+            margin-bottom: 20px;
+        }
+
+        .team-form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .team-form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .team-form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .team-members-container h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 15px;
+        }
+
+        .team-modal-buttons {
+            margin-top: 25px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding-top: 20px;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        .btn-cancel {
+            padding: 10px 20px;
+            background: white;
+            border: 1px solid #d1d5db;
+            color: #374151;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-cancel:hover {
+            background: #f9fafb;
+        }
+
+        .btn-confirm {
+            padding: 10px 24px;
+            background: #3b82f6;
+            border: none;
+            color: white;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+        }
+
+        .btn-confirm:hover {
+            background: #2563eb;
+        }
+
+        .btn-confirm:disabled {
+            background: #93c5fd;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Enhanced Registration UI */
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+            padding: 10px;
+        }
+
+        .tournament-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: default;
+        }
+
+        .tournament-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .tournament-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%) !important;
+            padding: 20px !important;
+            color: white;
+        }
+
+        .tournament-title {
+            font-size: 20px !important;
+            font-weight: 700 !important;
+            margin-bottom: 5px !important;
+        }
+
+        .tournament-deadline {
+            font-size: 13px !important;
+            color: #dbeafe !important;
+            opacity: 0.9;
+        }
+
+        .tournament-body {
+            padding: 20px !important;
+        }
+
+        .tournament-description {
+            color: #4b5563 !important;
+            margin-bottom: 20px !important;
+            line-height: 1.6 !important;
+            font-size: 15px !important;
+        }
+
+        .view-games-btn {
+            width: 100%;
+            padding: 12px !important;
+            background: #f3f4f6 !important;
+            color: #1f2937 !important;
+            border: 1px solid #d1d5db !important;
+            border-radius: 8px !important;
+            font-weight: 600 !important;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .view-games-btn:hover {
+            background: #e5e7eb !important;
+            border-color: #9ca3af !important;
+        }
+
+        .game-list {
+            background: #f9fafb;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #e5e7eb !important;
+            margin-top: 15px;
+        }
+
+        .game-item {
+            padding: 15px !important;
+            border-bottom: 1px solid #e5e7eb !important;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+
+        .game-item:last-child {
+            border-bottom: none !important;
+        }
+
+        .game-item:hover {
+            background: white;
+        }
+
+        .game-name {
+            font-size: 16px !important;
+            font-weight: 600 !important;
+            color: #111827 !important;
+        }
+
+        .game-meta {
+            font-size: 13px !important;
+            color: #6b7280 !important;
+            margin-top: 2px !important;
+        }
+
+        .register-btn-sm {
+            padding: 6px 16px !important;
+            background: #10b981 !important;
+            color: white !important;
+            border-radius: 6px !important;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            border: none !important;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .register-btn-sm:hover {
+            background: #059669 !important;
+        }
+    </style>
 </head>
 
 <body>
@@ -1029,7 +1301,7 @@
                 </div>
             </div>
             <div class="nav-links">
-                <a href="#" class="nav-link">
+                <a href="registration.html" class="nav-link">
                     <span>⚡ Registration</span>
                 </a>
             </div>
@@ -1042,7 +1314,7 @@
                         d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
             </div>
-            <div class="icon-btn" onclick="openNotificationsModal()">
+            <div class="icon-btn" onclick="showSection('notificationSection')">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -1103,7 +1375,7 @@
     <div class="main-container">
         <!-- Sidebar -->
         <div class="sidebar">
-            <button class="sidebar-btn">
+            <button class="sidebar-btn" onclick="showSection('homeSection')">
                 <div class="sidebar-btn-content">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1116,7 +1388,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
-            <button class="sidebar-btn">
+            <button class="sidebar-btn" onclick="window.location.href='registration.html'">
                 <div class="sidebar-btn-content">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1129,7 +1401,33 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
-            <button class="sidebar-btn">
+            <button class="sidebar-btn" onclick="showSection('notificationSection')">
+                <div class="sidebar-btn-content">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                    <span>Notifications</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"
+                    height="16">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            <button class="sidebar-btn" onclick="showSection('paymentSection')" style="cursor: pointer;">
+                <div class="sidebar-btn-content">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                    <span>Payment</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"
+                    height="16">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </button>
+            <button class="sidebar-btn" onclick="showSection('featuredSection')">
                 <div class="sidebar-btn-content">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1142,7 +1440,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
-            <button class="sidebar-btn">
+            <button class="sidebar-btn" onclick="showSection('messageSection')">
                 <div class="sidebar-btn-content">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1155,7 +1453,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
-            <button class="sidebar-btn">
+            <button class="sidebar-btn" onclick="showSection('reportSection')">
                 <div class="sidebar-btn-content">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1172,110 +1470,222 @@
 
         <!-- Content -->
         <div class="content">
-            <!-- Announcement -->
-            <div class="announcement">
-                <p>Dear Students & Faculty members, Welcome to the new AIUB Sports Portal. This platform is designed to
-                    make your sports activities easier to access, manage, and enjoy. Stay updated, stay connected, and
-                    be a part of AIUB's growing sports community.</p>
-            </div>
-
-            <!-- Alert Box -->
-            <div id="alertBox" class="hidden"></div>
-
-            <!-- Player Info Card -->
-            <div class="player-card">
-                <div class="card-header">
-                    <span></span>
-                    <div id="editButtons">
-                        <button class="edit-btn" onclick="enableEdit()">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                            Edit Profile
-                        </button>
-                    </div>
-                    <div id="saveButtons" class="hidden">
-                        <button class="save-btn" onclick="saveProfile()">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M5 13l4 4L19 7" />
-                            </svg>
-                            Save
-                        </button>
-                        <button class="cancel-btn" onclick="cancelEdit()">Cancel</button>
-                    </div>
+            <!-- Home Section -->
+            <div id="homeSection" class="content-section">
+                <!-- Announcement -->
+                <div class="announcement">
+                    <p>Dear Students & Faculty members, Welcome to the new AIUB Sports Portal. This platform is designed
+                        to
+                        make your sports activities easier to access, manage, and enjoy. Stay updated, stay connected,
+                        and
+                        be a part of AIUB's growing sports community.</p>
                 </div>
 
-                <div class="player-info-grid">
-                    <!-- Left Column -->
-                    <div class="info-field">
-                        <label class="info-label">Player Name <span id="nameBadge"
-                                class="editable-badge">EDITABLE</span></label>
-                        <input type="text" id="fullName" class="info-input" disabled>
-                        <div id="nameWarning" class="hidden" style="margin-top: 4px; font-size: 12px; color: #dc2626;">
+                <!-- Alert Box -->
+                <div id="alertBox" class="hidden"></div>
+
+                <!-- Player Info Card -->
+                <div class="player-card">
+                    <div class="card-header">
+                        <span></span>
+                        <div id="editButtons">
+                            <button class="edit-btn" onclick="enableEdit()">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                Edit Profile
+                            </button>
+                        </div>
+                        <div id="saveButtons" class="hidden">
+                            <button class="save-btn" onclick="saveProfile()">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M5 13l4 4L19 7" />
+                                </svg>
+                                Save
+                            </button>
+                            <button class="cancel-btn" onclick="cancelEdit()">Cancel</button>
                         </div>
                     </div>
 
-                    <div class="info-field">
-                        <label class="info-label">Program <span class="locked-badge">LOCKED</span></label>
-                        <input type="text" id="programLevel" class="info-input" disabled>
-                    </div>
+                    <div class="player-info-grid">
+                        <!-- Left Column -->
+                        <div class="info-field">
+                            <label class="info-label">Player Name <span id="nameBadge"
+                                    class="editable-badge">EDITABLE</span></label>
+                            <input type="text" id="fullName" class="info-input" disabled>
+                            <div id="nameWarning" class="hidden"
+                                style="margin-top: 4px; font-size: 12px; color: #dc2626;">
+                            </div>
+                        </div>
 
-                    <div class="info-field">
-                        <label class="info-label">Player ID <span class="locked-badge">LOCKED</span></label>
-                        <input type="text" id="studentId" class="info-input" disabled>
-                    </div>
+                        <div class="info-field">
+                            <label class="info-label">Program <span class="locked-badge">LOCKED</span></label>
+                            <input type="text" id="programLevel" class="info-input" disabled>
+                        </div>
 
-                    <div class="info-field">
-                        <label class="info-label">Department <span class="locked-badge">LOCKED</span></label>
-                        <input type="text" id="department" class="info-input" disabled>
-                    </div>
+                        <div class="info-field">
+                            <label class="info-label">Player ID <span class="locked-badge">LOCKED</span></label>
+                            <input type="text" id="studentId" class="info-input" disabled>
+                        </div>
 
-                    <div class="info-field">
-                        <label class="info-label">Player Email <span class="locked-badge">LOCKED</span></label>
-                        <input type="text" id="email" class="info-input" disabled>
-                    </div>
+                        <div class="info-field">
+                            <label class="info-label">Department <span class="locked-badge">LOCKED</span></label>
+                            <input type="text" id="department" class="info-input" disabled>
+                        </div>
 
-                    <div class="info-field">
-                        <label class="info-label">Number <span class="editable-badge">EDITABLE</span></label>
-                        <input type="text" id="phoneNumber" class="info-input" disabled>
-                    </div>
+                        <div class="info-field">
+                            <label class="info-label">Player Email <span class="locked-badge">LOCKED</span></label>
+                            <input type="text" id="email" class="info-input" disabled>
+                        </div>
 
-                    <div class="info-field">
-                        <label class="info-label">Gender <span class="locked-badge">LOCKED</span></label>
-                        <input type="text" id="gender" class="info-input" disabled>
-                    </div>
+                        <div class="info-field">
+                            <label class="info-label">Number <span class="editable-badge">EDITABLE</span></label>
+                            <input type="text" id="phoneNumber" class="info-input" disabled>
+                        </div>
 
-                    <div class="info-field">
-                        <label class="info-label">Blood Group <span class="editable-badge">EDITABLE</span></label>
-                        <select id="bloodGroup" class="info-input" disabled>
-                            <option value="">Select Blood Group</option>
-                            <option value="A+">A+</option>
-                            <option value="A-">A-</option>
-                            <option value="B+">B+</option>
-                            <option value="B-">B-</option>
-                            <option value="AB+">AB+</option>
-                            <option value="AB-">AB-</option>
-                            <option value="O+">O+</option>
-                            <option value="O-">O-</option>
-                        </select>
+                        <div class="info-field">
+                            <label class="info-label">Gender <span class="locked-badge">LOCKED</span></label>
+                            <input type="text" id="gender" class="info-input" disabled>
+                        </div>
+
+                        <div class="info-field">
+                            <label class="info-label">Blood Group <span class="editable-badge">EDITABLE</span></label>
+                            <select id="bloodGroup" class="info-input" disabled>
+                                <option value="">Select Blood Group</option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Registration Message -->
+                <div id="registrationMessage" class="warning-box">
+                    <p>Loading available tournaments...</p>
+                </div>
+
+                <!-- Action Button -->
+                <div class="action-button">
+                    <button id="registerBtn" class="disabled-btn" onclick="goToRegistration()" disabled>Registration is
+                        closed</button>
+                </div>
+
+                <!-- Game Schedule -->
+                <div class="schedule-card" style="margin-top: 20px;">
+                    <div class="schedule-header">
+                        <h2>Game Schedule</h2>
+                    </div>
+                    <div class="schedule-body">
+                        <div id="scheduleContentHome">
+                            <div class="schedule-row">
+                                <span class="schedule-day">Today</span>
+                                <span class="schedule-info">No Games Available</span>
+                            </div>
+                            <div class="schedule-row" style="border-top: 1px solid #e5e7eb; padding-top: 12px;">
+                                <span class="schedule-day">Tomorrow</span>
+                                <div class="schedule-info">
+                                    <div style="margin-bottom: 8px;">
+                                        <a href="#" style="color: #3b82f6; text-decoration: none;">No Games
+                                            Available</a>
+                                        <p style="font-size: 12px; color: #6b7280;">TBA</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Warning -->
-            <!-- Registration Message -->
-            <div id="registrationMessage" class="warning-box">
-                <p>Loading available tournaments...</p>
+            <!-- Registration Section -->
+            <div id="registrationSection" class="content-section" style="display:none;">
+                <h2 style="margin-bottom: 20px; font-size: 24px; color: #1e3a8a;">Tournament Registration</h2>
+
+
+                <div id="registrationContent">
+                    <!-- Dynamic Content -->
+                </div>
+
+                <!-- Game Schedule (Moved) -->
+                <div class="schedule-card" style="margin-top: 20px; margin-bottom: 20px;">
+                    <div class="schedule-header">
+                        <h2>Game Schedule</h2>
+                    </div>
+                    <div class="schedule-body">
+                        <div id="scheduleContent">
+                            <div class="schedule-row">
+                                <span class="schedule-day">Today</span>
+                                <span class="schedule-info">No Games Available</span>
+                            </div>
+                            <div class="schedule-row" style="border-top: 1px solid #e5e7eb; padding-top: 12px;">
+                                <span class="schedule-day">Tomorrow</span>
+                                <div class="schedule-info">
+                                    <div style="margin-bottom: 8px;">
+                                        <a href="#" style="color: #3b82f6; text-decoration: none;">No Games
+                                            Available</a>
+                                        <p style="font-size: 12px; color: #6b7280;">TBA</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Action Button -->
-            <div class="action-button">
-                <button id="registerBtn" class="disabled-btn" onclick="goToRegistration()" disabled>Registration is
-                    closed</button>
+            <!-- Payment Section -->
+            <div id="paymentSection" class="content-section" style="display:none;">
+                <h2 style="margin-bottom: 20px; font-size: 24px; color: #1e3a8a;">Payment History</h2>
+                <div id="paymentContent">
+                    <!-- Dynamic Content -->
+                </div>
+            </div>
+
+            <!-- Notification Section -->
+            <div id="notificationSection" class="content-section" style="display:none;">
+                <h2 style="margin-bottom: 20px; font-size: 24px; color: #1e3a8a;">Notifications</h2>
+                <div id="notificationContent" class="notification-list">
+                    <!-- Dynamic Content -->
+                </div>
+            </div>
+
+            <!-- Placeholders -->
+            <div id="featuredSection" class="content-section" style="display:none; text-align: center; padding: 50px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="none" viewBox="0 0 24 24"
+                    stroke="#d1d5db">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                </svg>
+                <h3 style="margin-top: 20px; color: #6b7280;">Featured Content</h3>
+                <p style="color: #9ca3af;">Coming Soon...</p>
+            </div>
+
+            <div id="messageSection" class="content-section" style="display:none; text-align: center; padding: 50px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="none" viewBox="0 0 24 24"
+                    stroke="#d1d5db">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+                </svg>
+                <h3 style="margin-top: 20px; color: #6b7280;">Messages</h3>
+                <p style="color: #9ca3af;">Under Development</p>
+            </div>
+
+            <div id="reportSection" class="content-section" style="display:none; text-align: center; padding: 50px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="none" viewBox="0 0 24 24"
+                    stroke="#d1d5db">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 style="margin-top: 20px; color: #6b7280;">Bug Report</h3>
+                <p style="color: #9ca3af;">Under Construction</p>
             </div>
 
             <!-- Tournament Registration Modal -->
@@ -1291,29 +1701,7 @@
                 </div>
             </div>
 
-            <!-- Game Schedule -->
-            <div class="schedule-card">
-                <div class="schedule-header">
-                    <h2>Game Schedule</h2>
-                </div>
-                <div class="schedule-body">
-                    <div id="scheduleContent">
-                        <div class="schedule-row">
-                            <span class="schedule-day">Today</span>
-                            <span class="schedule-info">No Games Available</span>
-                        </div>
-                        <div class="schedule-row" style="border-top: 1px solid #e5e7eb; padding-top: 12px;">
-                            <span class="schedule-day">Tomorrow</span>
-                            <div class="schedule-info">
-                                <div style="margin-bottom: 8px;">
-                                    <a href="#" style="color: #3b82f6; text-decoration: none;">No Games Available</a>
-                                    <p style="font-size: 12px; color: #6b7280;">TBA</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
         </div>
     </div>
 
@@ -1939,56 +2327,83 @@
 
         // Open cart modal
         async function openCartModal() {
+            const cartModal = document.getElementById('cartModal');
+            const cartItemsList = document.getElementById('cartItemsList');
+
+            // Show modal immediately with loading state
+            cartModal.style.display = 'flex';
+            cartItemsList.innerHTML = '<div style="text-align:center; padding:20px;"><div class="spinner" style="border-top-color:#333; width:24px; height:24px;"></div><p style="margin-top:10px;">Loading cart...</p></div>';
+
             try {
                 const studentId = localStorage.getItem('studentId');
+
+                if (!studentId) {
+                    cartItemsList.innerHTML = '<p style="color:red; text-align:center;">Error: User not identified. Please login again.</p>';
+                    return;
+                }
+
+                console.log('Fetching cart for:', studentId);
                 const response = await fetch(`${API_URL}/auth/cart/${studentId}`);
+
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status} ${response.statusText}`);
+                }
+
                 const data = await response.json();
 
                 if (data.success) {
-                    const cartItemsList = document.getElementById('cartItemsList');
+                    // Robustly handle different response formats
+                    const items = data.cartItems || data.cart || [];
+                    console.log('Cart items received:', items);
 
-                    if (data.cartItems.length === 0) {
-                        cartItemsList.innerHTML = '<p>Your cart is empty.</p>';
+                    if (items.length === 0) {
+                        cartItemsList.innerHTML = '<p style="text-align:center; padding:20px;">Your cart is empty.</p>';
                     } else {
                         let html = '';
                         let totalAmount = 0;
 
-                        data.cartItems.forEach(item => {
-                            const itemTotal = item.itemTotal || (item.game.feePerPerson * (item.multiplier || 1));
+                        items.forEach(item => {
+                            // Handle different data structures safely
+                            const gameName = item.game ? item.game.name : (item.tournament_games ? item.tournament_games.game_name : 'Unknown Game');
+                            const fee = item.game ? item.game.feePerPerson : (item.tournament_games ? item.tournament_games.fee_per_person : 0);
+                            const category = item.game ? item.game.category : (item.tournament_games ? item.tournament_games.category : 'N/A');
+                            const type = item.game ? item.game.type : (item.tournament_games ? item.tournament_games.game_type : 'N/A');
+                            const tournamentTitle = item.game ? item.game.tournamentTitle : 'Tournament';
+                            // Note: Backend might return nested tournament_games if using direct query
+
+                            const itemTotal = item.itemTotal || (fee * (item.multiplier || 1));
                             totalAmount += itemTotal;
 
                             html += `
                                 <div class="cart-item">
                                     <div class="cart-item-header">
-                                        <div class="cart-item-title">${item.game.name}</div>
+                                        <div class="cart-item-title">${gameName}</div>
                                         <div class="cart-item-price">৳${itemTotal}</div>
                                     </div>
                                     <div class="cart-item-details">
-                                        Tournament: ${item.game.tournamentTitle}<br>
-                                        Category: ${item.game.category}<br>
-                                        Type: ${item.game.type}
+                                        Category: ${category}<br>
+                                        Type: ${type}
                                     </div>
-                                    <button class="remove-from-cart-btn" onclick="removeFromCart(${item.id})">Remove</button>
+                                    <button class="remove-from-cart-btn" onclick="removeFromCart('${item.id}')">Remove</button>
                                 </div>
                             `;
                         });
 
                         html += `<div class="cart-total">Total: ৳${totalAmount}</div>`;
-                        html += `<button class="pay-now-btn">Pay Now</button>`;
+                        html += `<button class="pay-now-btn" onclick="openBkashModal(${totalAmount})">Pay Now</button>`;
 
                         cartItemsList.innerHTML = html;
 
-                        // Update cart count
-                        document.getElementById('cartItemCount').textContent = data.cartItems.length;
+                        // Update cart count if element exists
+                        const countEl = document.getElementById('cartItemCount');
+                        if (countEl) countEl.textContent = items.length;
                     }
                 } else {
-                    document.getElementById('cartItemsList').innerHTML = '<p>Error loading cart.</p>';
+                    cartItemsList.innerHTML = `<p style="color:red; text-align:center;">${data.message || 'Failed to load cart.'}</p>`;
                 }
-
-                document.getElementById('cartModal').style.display = 'flex';
             } catch (error) {
                 console.error('Error loading cart:', error);
-                document.getElementById('cartItemsList').innerHTML = '<p>Error loading cart.</p>';
+                cartItemsList.innerHTML = `<p style="color:red; text-align:center;">Error loading cart: ${error.message}</p>`;
             }
         }
 
@@ -2051,7 +2466,1007 @@
                 }, 3000);
             }
         });
+        // Navigation Logic
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.style.display = 'none';
+            });
+
+            // Show selected section
+            const selectedSection = document.getElementById(sectionId);
+            if (selectedSection) {
+                selectedSection.style.display = 'block';
+            }
+
+            // Load content if needed
+            if (sectionId === 'registrationSection') {
+                loadRegistrationView();
+            } else if (sectionId === 'paymentSection') {
+                loadPaymentView();
+            }
+        }
+
+        // Registration View Logic
+        async function loadRegistrationView() {
+            const container = document.getElementById('registrationContent');
+            container.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="spinner"></div><p>Loading tournaments...</p></div>';
+
+            try {
+                const studentId = localStorage.getItem('studentId');
+                // Use dashboard endpoint or auth endpoint
+                const response = await fetch(`${API_URL}/dashboard/tournaments/${studentId}`);
+                const data = await response.json();
+
+                if (data.success && data.tournaments && data.tournaments.length > 0) {
+                    let html = '<div class="games-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">';
+                    data.tournaments.forEach(tournament => {
+                        html += `
+                            <div class="tournament-card">
+                                <div class="tournament-image">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                                    </svg>
+                                </div>
+                                <div class="tournament-header" style="background:none; color:#333; padding: 15px 15px 0 15px;">
+                                    <h3 class="tournament-title" style="font-size:18px;">${tournament.title}</h3>
+                                    <p class="tournament-deadline">Deadline: ${new Date(tournament.deadline).toLocaleDateString()}</p>
+                                </div>
+                                <div class="tournament-body">
+                                    <p class="tournament-description">${tournament.description || 'Join now!'}</p>
+                                    <button class="register-game-btn" onclick="loadTournamentGamesForPanel(${tournament.id})" style="width:100%; padding: 10px; font-size:14px;">View Games</button>
+                                    <div id="panel-games-${tournament.id}" class="game-list" style="display: none; margin-top: 15px; border-top: 1px solid #eee; padding-top:10px;"></div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = '<p style="text-align: center; color: #666;">No tournaments available at the moment.</p>';
+                }
+            } catch (error) {
+                console.error('Error loading registration view:', error);
+
+                // Fallback to simpler fetch if dashboard endpoint fails or doesn't exist
+                try {
+                    const response = await fetch(`${API_URL}/auth/tournaments`);
+                    const data = await response.json();
+                    if (data.success && data.tournaments) {
+                        // Render same as above... (simplified for brevity in fallback)
+                        let html = '<div class="games-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">';
+                        data.tournaments.forEach(t => {
+                            html += `<div class="tournament-card">
+                                        <div class="tournament-header" style="padding:15px;"><h3 class="tournament-title">${t.title}</h3></div>
+                                        <div class="tournament-body"><button class="register-game-btn" onclick="loadTournamentGamesForPanel(${t.id})" style="width:100%;">View Games</button>
+                                        <div id="panel-games-${t.id}" style="display:none; margin-top:10px;"></div></div>
+                                      </div>`;
+                        });
+                        html += '</div>';
+                        container.innerHTML = html;
+                    }
+                } catch (e) {
+                    container.innerHTML = '<p style="text-align: center; color: red;">Error loading tournaments.</p>';
+                }
+            }
+        }
+
+        async function loadTournamentGamesForPanel(tournamentId) {
+            const gamesContainer = document.getElementById(`panel-games-${tournamentId}`);
+            if (gamesContainer.style.display === 'block') {
+                gamesContainer.style.display = 'none';
+                return;
+            }
+
+            gamesContainer.style.display = 'block';
+            gamesContainer.innerHTML = '<p>Loading games...</p>';
+
+            try {
+                const response = await fetch(`${API_URL}/auth/tournaments/${tournamentId}/games`);
+                const data = await response.json();
+
+                if (data.success && data.games && data.games.length > 0) {
+                    let html = '';
+                    data.games.forEach(game => {
+                        html += `
+                            <div class="game-item" style="padding: 10px; border-bottom: 1px solid #f0f0f0;">
+                                <div class="game-info">
+                                    <div class="game-name" style="font-weight:600;">${game.game_name}</div>
+                                    <div class="game-category-type" style="font-size: 12px; color: #666;">${game.category} • ${game.game_type} • ৳${game.fee_per_person}</div>
+                                </div>
+                                <button class="register-game-btn" onclick="registerForGamePanel(${game.id}, '${game.game_name}', '${game.game_type}')" style="padding: 5px 10px;">Register</button>
+                            </div>
+                        `;
+                    });
+                    gamesContainer.innerHTML = html;
+                } else {
+                    gamesContainer.innerHTML = '<p>No games found.</p>';
+                }
+            } catch (error) {
+                console.error('Error loading games:', error);
+                gamesContainer.innerHTML = '<p>Error loading games.</p>';
+            }
+        }
+
+        function registerForGamePanel(gameId, gameName, gameType) {
+            // Check if team modal exists, if not alert
+            if (!document.getElementById('teamModal')) {
+                alert('Team registration module is loading... please refresh or wait.');
+                // In next step we will add the modal. For now, this is a placeholder.
+                return;
+            }
+            // Logic to open team modal (will implement in next step)
+            openTeamModal(gameId, gameName, gameType);
+        }
+
+        // Payment View Logic
+        async function loadPaymentView() {
+            const container = document.getElementById('paymentContent');
+            container.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="spinner"></div><p>Loading payment history...</p></div>';
+
+            try {
+                const studentId = localStorage.getItem('studentId');
+                const response = await fetch(`${API_URL}/dashboard/registrations/${studentId}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    if (data.registrations.length === 0) {
+                        container.innerHTML = '<p style="text-align: center; padding: 20px;">No registrations found.</p>';
+                        return;
+                    }
+
+                    let html = `
+                        <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                            <thead style="background: #f3f4f6; border-bottom: 2px solid #e5e7eb;">
+                                <tr>
+                                    <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Game</th>
+                                    <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Tournament</th>
+                                    <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Status</th>
+                                    <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Amount</th>
+                                    <th style="padding: 12px; text-align: right; font-weight: 600; color: #374151;">
+                                        Action 
+                                        <button onclick="payAllPending()" id="payAllBtn" style="display:none; margin-left:10px; padding: 4px 8px; background: #be123c; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">Pay All</button>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+
+                    data.registrations.forEach(reg => {
+                        const statusColor = (reg.payment_status === 'PAID' || reg.paymentStatus === 'PAID') ? '#10b981' :
+                            ((reg.payment_status === 'PENDING' || reg.paymentStatus === 'PENDING') ? '#f59e0b' : '#ef4444');
+                        const statusText = reg.payment_status || reg.paymentStatus || 'UNPAID';
+                        const fee = reg.game ? reg.game.feePerPerson : (reg.tournament_games?.fee_per_person || 0);
+                        const gameName = reg.game ? reg.game.name : (reg.tournament_games?.game_name || 'N/A');
+                        const tourneyName = reg.game ? (reg.game.tournamentTitle || (reg.game.tournament ? reg.game.tournament.title : 'N/A')) : (reg.tournament_games?.tournaments?.title || 'N/A');
+
+                        html += `
+                            <tr style="border-bottom: 1px solid #f3f4f6;">
+                                <td style="padding: 12px;">${gameName}</td>
+                                <td style="padding: 12px;">${tourneyName}</td>
+                                <td style="padding: 12px;">
+                                    <span style="padding: 4px 8px; border-radius: 4px; background: ${statusColor}20; color: ${statusColor}; font-size: 12px; font-weight: 600;">
+                                        ${statusText}
+                                    </span>
+                                </td>
+                                <td style="padding: 12px;">৳${fee}</td>
+                                <td style="padding: 12px; text-align: right;">
+                                    ${(statusText === 'PENDING' || statusText === 'UNPAID') ?
+                                `<button onclick="openBkashModalForSingleItem(${fee}, '${gameName}', ${reg.gameId || reg.game_id || 'null'}, ${reg.teamId || reg.team_id || 'null'})" style="padding: 6px 12px; background: #e2136e; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Pay Now</button>`
+                                : '<span style="color: #6b7280; font-size: 12px;">Paid</span>'}
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                    html += '</tbody></table></div>';
+                    html += '</tbody></table></div>';
+                    container.innerHTML = html;
+
+                    // Show Pay All button if there are pending items
+                    const pendingCount = data.registrations.filter(r => (r.payment_status === 'PENDING' || r.paymentStatus === 'PENDING' || r.payment_status === 'UNPAID' || r.paymentStatus === 'UNPAID')).length;
+                    if (pendingCount > 0) {
+                        const payAllBtn = document.getElementById('payAllBtn');
+                        if (payAllBtn) {
+                            payAllBtn.style.display = 'inline-block';
+                            payAllBtn.innerText = `Pay All (${pendingCount})`;
+                        }
+                    }
+                } else {
+                    container.innerHTML = '<p>Failed to load registrations.</p>';
+                }
+            } catch (error) {
+                console.error('Error loading payment history:', error);
+                container.innerHTML = '<p>Error loading payment history.</p>';
+            }
+        }
+
+        async function openBkashModalForSingleItem(amount, itemName, gameId, teamId) {
+            // First, add to cart if not already there
+            const studentId = localStorage.getItem('studentId');
+            if (!studentId) { alert('Please login first'); return; }
+
+            try {
+                // Add to cart
+                const response = await fetch(`${API_URL}/auth/cart/add`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        studentId: studentId,
+                        item_type: teamId ? 'TEAM_REGISTRATION' : 'GAME_REGISTRATION',
+                        item_id: teamId || 'TEMP', // For existing registration, itemId might not be needed if we use gameId/teamId lookups logic in cart add... wait, cart/add expects specific structure
+                        // Actually, cart/add logic:
+                        // existing logic: if registration exists, it adds it.
+                        // We need the registration ID usually.
+                        // But wait, the previous step exposes gameId and teamId.
+                        // Let's use robust add logic.
+                        tournament_game_id: gameId
+                        // The backend cart/add logic handles "if already registered, add registration id"
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    // Item added, proceed to checkout
+                    // We must refresh the checkout process to include this item.
+                    // openBkashModal assumes we pay for everything in cart.
+                    // This is correct behavior for now.
+
+                    // Fetch TRUE total from cart to avoid discrepancies
+                    const cartRes = await fetch(`${API_URL}/auth/cart/${studentId}`);
+                    const cartData = await cartRes.json();
+                    let trueTotal = amount;
+
+                    if (cartData.success && (cartData.cart || cartData.cartItems)) {
+                        const items = cartData.cart || cartData.cartItems;
+                        trueTotal = items.reduce((sum, item) => {
+                            const fee = item.game ? item.game.feePerPerson : (item.tournament_games ? item.tournament_games.fee_per_person : 0);
+                            // Handle multiplier if exists
+                            return sum + (item.itemTotal || fee);
+                        }, 0);
+                    }
+
+                    openBkashModal(trueTotal);
+                } else {
+                    // Check if already in cart
+                    if (data.message && data.message.includes('already')) {
+                        // Even if already in cart, we should fetch total
+                        const cartRes = await fetch(`${API_URL}/auth/cart/${studentId}`);
+                        const cartData = await cartRes.json();
+                        let trueTotal = amount;
+                        if (cartData.success && (cartData.cart || cartData.cartItems)) {
+                            const items = cartData.cart || cartData.cartItems;
+                            trueTotal = items.reduce((sum, item) => {
+                                const fee = item.game ? item.game.feePerPerson : (item.tournament_games ? item.tournament_games.fee_per_person : 0);
+                                return sum + (item.itemTotal || fee);
+                            }, 0);
+                        }
+                        openBkashModal(trueTotal);
+                    } else {
+                        alert('Failed to prepare payment: ' + data.message);
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Error processing payment request.');
+            }
+        }
+
+        // Open bKash Payment Modal
+        function openBkashModal(amount) {
+            closeCartModal(); // Close cart modal first
+            document.getElementById('bkashAmount').textContent = amount;
+            document.getElementById('bkashModal').style.display = 'flex';
+        }
+
+        function closeBkashModal() {
+            document.getElementById('bkashModal').style.display = 'none';
+        }
+
+        async function processCheckout() {
+            const bkashNumber = document.getElementById('bkashNumber').value;
+            const bkashPin = document.getElementById('bkashPin').value;
+            const amount = document.getElementById('bkashAmount').textContent;
+
+            if (!bkashNumber || !bkashPin) {
+                alert('Please enter your bKash number and PIN.');
+                return;
+            }
+
+            // Simulate loading
+            const payBtn = document.querySelector('#bkashModal .save-btn');
+            const originalText = payBtn.innerText;
+            payBtn.innerText = 'Processing...';
+            payBtn.disabled = true;
+
+            try {
+                const transactionId = 'TRX-' + Date.now() + Math.floor(Math.random() * 1000);
+                const studentId = localStorage.getItem('studentId');
+
+                const response = await fetch(`${API_URL}/auth/cart/checkout`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-user-email': localStorage.getItem('userEmail') // Optional for logging
+                    },
+                    body: JSON.stringify({
+                        paymentMethod: 'BKASH', // or CASH based on context, but here it's bKash
+                        transactionId: transactionId,
+                        bkashNumber: bkashNumber, // Backend doesn't store this, but good to send for "verification"
+                        studentId: studentId // Added studentId for robust identification
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert(`Payment Successful!\nTransaction ID: ${transactionId}`);
+                    closeBkashModal();
+                    // Reload registration status
+                    loadUserRegistrationStatus();
+                    loadAvailableTournaments(); // Refresh to update buttons if needed
+                    // Refresh payment view if valid
+                    if (document.getElementById('paymentSection').style.display === 'block') {
+                        loadPaymentView();
+                    }
+                } else {
+                    alert('Payment Failed: ' + data.message);
+                }
+
+            } catch (error) {
+                console.error('Payment error:', error);
+                alert('Payment error. Please try again.');
+            } finally {
+                payBtn.innerText = originalText;
+                payBtn.disabled = false;
+            }
+        }
+
+        async function payAllPending() {
+            const studentId = localStorage.getItem('studentId');
+            if (!studentId) { alert('Please login first'); return; }
+
+            // 1. Get all pending registrations from the current view (or fetch again)
+            // Ideally we fetch again to be sure
+            try {
+                const response = await fetch(`${API_URL}/dashboard/registrations/${studentId}`);
+                const data = await response.json();
+
+                if (!data.success) {
+                    alert('Failed to fetch pending items.');
+                    return;
+                }
+
+                const pendingItems = data.registrations.filter(r =>
+                    r.payment_status === 'PENDING' || r.paymentStatus === 'PENDING' ||
+                    r.payment_status === 'UNPAID' || r.paymentStatus === 'UNPAID' ||
+                    !r.payment_status // Treat null/undefined as unpaid
+                );
+
+                if (pendingItems.length === 0) {
+                    alert('No pending items to pay.');
+                    return;
+                }
+
+                if (!confirm(`Are you sure you want to add ${pendingItems.length} items to your cart and pay all?`)) {
+                    return;
+                }
+
+                // 2. Add each to cart safely
+                let addedCount = 0;
+                for (const item of pendingItems) {
+                    // We need gameId and/or teamId
+                    const gameId = item.gameId || item.game_id;
+                    const teamId = item.teamId || item.team_id;
+
+                    await fetch(`${API_URL}/auth/cart/add`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            studentId: studentId,
+                            item_type: teamId ? 'TEAM_REGISTRATION' : 'GAME_REGISTRATION',
+                            item_id: teamId || 'TEMP',
+                            tournament_game_id: gameId
+                        })
+                    });
+                    addedCount++;
+                }
+
+                // 3. Open Payment Modal with TRUE total
+                const cartRes = await fetch(`${API_URL}/auth/cart/${studentId}`);
+                const cartData = await cartRes.json();
+                let trueTotal = 0;
+
+                if (cartData.success && (cartData.cart || cartData.cartItems)) {
+                    const items = cartData.cart || cartData.cartItems;
+                    trueTotal = items.reduce((sum, item) => {
+                        const fee = item.game ? item.game.feePerPerson : (item.tournament_games ? item.tournament_games.fee_per_person : 0);
+                        return sum + (item.itemTotal || fee);
+                    }, 0);
+                }
+
+                openBkashModal(trueTotal);
+
+            } catch (e) {
+                console.error(e);
+                alert('Error processing Pay All request.');
+            }
+        }
+
+        // ==========================================
+        // Enhanced Registration & Team Logic
+        // ==========================================
+
+        // Global Data Maps
+        const gameDataMap = new Map();
+        let currentTeamSize = 2;
+        let currentTeamId = null;
+        let isEditMode = false;
+        let currentGameId = null;
+        let currentGameName = null;
+        let currentCategory = null;
+        let replaceModalData = {
+            teamId: null,
+            memberId: null,
+            currentMemberName: null,
+            currentMemberStudentId: null
+        };
+
+        // Updated Navigation Logic
+        function showSection(sectionId) {
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            const selectedSection = document.getElementById(sectionId);
+            if (selectedSection) {
+                selectedSection.style.display = 'block';
+            }
+            if (sectionId === 'registrationSection') loadRegistrationView();
+            else if (sectionId === 'paymentSection') loadPaymentView();
+            else if (sectionId === 'notificationSection') loadNotificationsView();
+
+            // Close sidebar on mobile if needed (optional)
+        }
+
+        // Updated Registration View
+        async function loadRegistrationView() {
+            const container = document.getElementById('registrationContent');
+            container.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="spinner"></div><p>Loading tournaments...</p></div>';
+
+            try {
+                const studentId = localStorage.getItem('studentId');
+                const response = await fetch(`${API_URL}/dashboard/tournaments/${studentId}`);
+                const data = await response.json();
+
+                if (data.success && data.tournaments && data.tournaments.length > 0) {
+                    let html = '<div class="games-grid">';
+                    data.tournaments.forEach(tournament => {
+                        html += `
+                        <div class="tournament-card">
+                            <div class="tournament-header">
+                                <h3 class="tournament-title">${tournament.title}</h3>
+                                <p class="tournament-deadline">Deadline: ${new Date(tournament.deadline).toLocaleDateString()}</p>
+                            </div>
+                            <div class="tournament-body">
+                                <p class="tournament-description">${tournament.description || 'Join now and compete with the best!'}</p>
+                                <button class="view-games-btn" onclick="loadTournamentGamesForPanel(${tournament.id})">
+                                    View Games
+                                </button>
+                                <div id="panel-games-${tournament.id}" class="game-list" style="display: none;"></div>
+                            </div>
+                        </div>
+                    `;
+                    });
+                    html += '</div>';
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = '<div style="text-align: center; padding: 40px; color: #6b7280;"><p>No tournaments available at the moment.</p></div>';
+                }
+            } catch (error) {
+                console.error('Error loading registration view:', error);
+                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #ef4444;"><p>Error loading tournaments. Please try again later.</p></div>';
+            }
+        }
+
+        async function loadTournamentGamesForPanel(tournamentId) {
+            const gamesContainer = document.getElementById(`panel-games-${tournamentId}`);
+            if (gamesContainer.style.display === 'block') {
+                gamesContainer.style.display = 'none';
+                return;
+            }
+
+            gamesContainer.style.display = 'block';
+            gamesContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #6b7280; font-size: 14px;">Loading games...</div>';
+
+            try {
+                const response = await fetch(`${API_URL}/auth/tournaments/${tournamentId}/games`);
+                const data = await response.json();
+
+                if (data.success && data.games && data.games.length > 0) {
+                    let html = '';
+                    data.games.forEach(game => {
+                        gameDataMap.set(game.id, game); // Populate map
+                        html += `
+                        <div class="game-item">
+                            <div class="game-info">
+                                <div class="game-name">${game.game_name}</div>
+                                <div class="game-meta">${game.category} • ${game.game_type} • <span style="color: #10b981; font-weight: 600;">৳${game.fee_per_person}</span></div>
+                            </div>
+                            <button class="register-btn-sm" onclick="registerForGamePanel(${game.id}, '${game.game_name}', '${game.category}')">
+                                Register
+                            </button>
+                        </div>
+                    `;
+                    });
+                    gamesContainer.innerHTML = html;
+                } else {
+                    gamesContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #6b7280; font-size: 14px;">No games found for this tournament.</div>';
+                }
+            } catch (error) {
+                console.error('Error loading games:', error);
+                gamesContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #ef4444; font-size: 14px;">Error loading games.</div>';
+            }
+        }
+
+        async function registerForGamePanel(gameId, gameName, category) {
+            const studentId = localStorage.getItem('studentId');
+            if (!studentId) { alert('Please log in first!'); return; }
+
+            const gameData = gameDataMap.get(gameId);
+            if (!gameData) { alert('Game data not found. Please refresh.'); return; }
+
+            const teamSize = gameData.team_size || 1;
+
+            if (teamSize > 1) {
+                openTeamModal(gameId, gameName, category, teamSize);
+                return;
+            }
+
+            if (!confirm(`Register for ${gameName} (${category})?\nFee: ৳${gameData.fee_per_person || 0}`)) return;
+
+            try {
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ studentId: studentId, gameId: gameId })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    await fetch(`${API_URL}/auth/cart/add`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            studentId: studentId,
+                            item_type: 'GAME_REGISTRATION',
+                            item_id: result.registration.id,
+                            tournament_game_id: gameId
+                        })
+                    });
+                    alert(`Successfully registered for ${gameName}! Added to cart.`);
+                    loadAvailableTournaments();
+                    openCartModal();
+                } else {
+                    alert('Registration Failed: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                alert('Error registering for game.');
+            }
+        }
+
+        // Team Logic Functions
+        function openTeamModal(gameId, gameName, category, teamSize = 2) {
+            isEditMode = false;
+            currentTeamId = null;
+            document.getElementById('teamName').disabled = false;
+            currentGameId = gameId;
+            currentGameName = gameName;
+            currentCategory = category;
+            currentTeamSize = teamSize;
+
+            document.getElementById('modalGameName').textContent = gameName;
+            document.getElementById('teamName').value = '';
+
+            const gameData = gameDataMap.get(gameId);
+            const feePerPerson = gameData?.fee_per_person || 0;
+            const totalFee = feePerPerson * teamSize;
+
+            const modalSubtitle = document.querySelector('.team-modal-subtitle');
+            if (modalSubtitle) {
+                modalSubtitle.textContent = `${category} Category | Team Size: ${teamSize} | Fee: ৳${feePerPerson} × ${teamSize} = ৳${totalFee}`;
+            }
+
+            const teamMembersList = document.getElementById('teamMembersList');
+            let slotsHtml = `
+            <div class="team-member-slot leader" style="display:flex; gap:10px; padding:10px; background:#dbeafe; border-radius:6px; margin-bottom:10px; border:1px solid #3b82f6;">
+                <div class="member-role" style="font-weight:600; color:#3b82f6;">👑 Leader</div>
+                <div class="member-info" style="flex:1;">
+                    <div class="member-id">${localStorage.getItem('studentId')}</div>
+                    <div class="member-name">${localStorage.getItem('userName') || 'You'}</div>
+                </div>
+                <div class="member-status confirmed" style="color:#065f46; font-size:12px; font-weight:600;">✅ Confirmed</div>
+            </div>
+        `;
+
+            for (let i = 1; i < teamSize; i++) {
+                slotsHtml += `
+                <div class="team-member-slot" style="display:flex; gap:10px; padding:10px; border:1px solid #e5e7eb; border-radius:6px; margin-bottom:10px;">
+                    <div class="member-role" style="font-weight:600; color:#3b82f6;">👤 Member ${i + 1}</div>
+                    <div class="member-info" style="flex:1;">
+                        <input type="text" class="team-form-input member-id-input" 
+                               placeholder="Enter student ID (XX-XXXXX-X)" 
+                               style="width:100%; padding:8px; border:1px solid #d1d5db; border-radius:4px;"
+                               data-slot="${i}">
+                    </div>
+                    <div class="member-status pending" style="color:#d97706; font-size:12px;">⏳ Pending</div>
+                </div>
+            `;
+            }
+
+            teamMembersList.innerHTML = slotsHtml;
+            document.getElementById('teamModal').style.display = 'flex';
+        }
+
+        function closeTeamModal() {
+            document.getElementById('teamModal').style.display = 'none';
+        }
+
+        async function createTeam() {
+            const teamName = document.getElementById('teamName').value.trim();
+            const studentId = localStorage.getItem('studentId');
+
+            if (!teamName) {
+                alert('Team name is required');
+                return;
+            }
+
+            const memberInputs = document.querySelectorAll('#teamMembersList .member-info input');
+            const memberIds = [studentId];
+            for (const input of memberInputs) {
+                const mid = input.value.trim();
+                if (mid) memberIds.push(mid);
+            }
+
+            if (memberIds.length < currentTeamSize) {
+                if (!confirm(`You have only filled ${memberIds.length} out of ${currentTeamSize} slots. Continue? (You can add members later)`)) return;
+            }
+
+            const createBtn = document.querySelector('#teamModal .btn-confirm');
+            const originalText = createBtn.textContent;
+            createBtn.textContent = 'Creating...';
+            createBtn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_URL}/auth/create-team`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ studentId, gameId: currentGameId, teamName })
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    createBtn.textContent = 'Adding members...';
+                    for (let i = 1; i < memberIds.length; i++) {
+                        await addTeamMember(result.team.id, memberIds[i]);
+                    }
+
+                    alert('Team created and added to cart!');
+                    await fetch(`${API_URL}/auth/cart/add`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            studentId: studentId,
+                            item_type: 'TEAM_REGISTRATION',
+                            item_id: result.team.id,
+                            tournament_game_id: currentGameId
+                        })
+                    });
+
+                    closeTeamModal();
+                    openCartModal();
+                } else {
+                    alert('Failed: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Team creation failed.');
+            } finally {
+                createBtn.textContent = originalText;
+                createBtn.disabled = false;
+            }
+        }
+
+        async function addTeamMember(teamId, memberStudentId) {
+            const leaderStudentId = localStorage.getItem('studentId');
+            try {
+                await fetch(`${API_URL}/auth/team/${teamId}/add-member`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ leaderStudentId, memberStudentId })
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        function closeReplaceMemberModal() {
+            document.getElementById('replaceMemberModal').style.display = 'none';
+            replaceModalData = { teamId: null, memberId: null, currentMemberName: null, currentMemberStudentId: null };
+        }
+
+        // Replace function shim
+        function replaceMember(teamId, memberId, memberName, memberStudentId) {
+            // Just stub for now as we don't have updateTeam functionality fully ported in this view yet
+            alert('Replace functionality is available in Registration Details view.');
+        }
+
+        // Payment View Logic (Redefined here to ensure it uses any updated globals if needed)
+        async function loadPaymentView() {
+            const container = document.getElementById('paymentContent');
+            container.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="spinner"></div><p>Loading payment history...</p></div>';
+
+            try {
+                const studentId = localStorage.getItem('studentId');
+                const response = await fetch(`${API_URL}/dashboard/registrations/${studentId}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    if (data.registrations.length === 0) {
+                        container.innerHTML = '<p style="text-align: center; padding: 20px;">No registrations found.</p>';
+                        return;
+                    }
+                    // Sort by newest
+                    data.registrations.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+
+                    let html = `
+                    <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                        <thead style="background: #f3f4f6; border-bottom: 2px solid #e5e7eb;">
+                            <tr>
+                                <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Game</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Tournament</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Status</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Amount</th>
+                                <th style="padding: 12px; text-align: right; font-weight: 600; color: #374151;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                    data.registrations.forEach(reg => {
+                        const statusColor = (reg.payment_status === 'PAID' || reg.payment_status === 'CONFIRMED') ? '#10b981' : (reg.payment_status === 'PENDING' ? '#f59e0b' : '#ef4444');
+                        const statusText = reg.payment_status || 'UNPAID';
+                        const fee = reg.team_id && reg.teams ? (reg.teams.game?.feePerPerson || 0) : (reg.game ? reg.game.feePerPerson : (reg.tournament_games?.fee_per_person || 0));
+                        const gameName = reg.game ? reg.game.name : (reg.tournament_games?.game_name || 'N/A');
+                        const tourneyName = reg.game ? reg.game.tournamentTitle : (reg.tournament_games?.tournaments?.title || 'N/A');
+
+                        let amountDisplay = '৳' + fee;
+
+                        html += `
+                        <tr style="border-bottom: 1px solid #f3f4f6;">
+                            <td style="padding: 12px;">${gameName}</td>
+                            <td style="padding: 12px;">${tourneyName}</td>
+                            <td style="padding: 12px;">
+                                <span style="padding: 4px 8px; border-radius: 4px; background: ${statusColor}20; color: ${statusColor}; font-size: 12px; font-weight: 600;">
+                                    ${statusText}
+                                </span>
+                            </td>
+                            <td style="padding: 12px;">${amountDisplay}</td>
+                            <td style="padding: 12px; text-align: right;">
+                                ${(statusText === 'PENDING' || statusText === 'UNPAID') ?
+                                `<button onclick="openBkashModal(${fee || 0})" style="padding: 6px 12px; background: #e2136e; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Pay Now</button>`
+                                : '<span style="color: #6b7280; font-size: 12px;">Paid</span>'}
+                            </td>
+                        </tr>
+                    `;
+                    });
+
+                    html += '</tbody></table></div>';
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = '<p>Failed to load registrations.</p>';
+                }
+            } catch (error) {
+                console.error('Error loading payment history:', error);
+                container.innerHTML = '<p>Error loading payment history.</p>';
+            }
+        }
     </script>
+
+    <!-- bKash Modal -->
+    <div id="bkashModal" class="modal">
+        <div class="modal-content" style="max-width: 400px; background: #e2136e; color: white;"> <!-- bKash Pink -->
+            <div style="text-align: center; margin-bottom: 20px;">
+                <img src="https://logos-download.com/wp-content/uploads/2022/01/BKash_Logo_icon.png" alt="bKash"
+                    style="height: 60px; background: white; padding: 5px; border-radius: 8px;">
+                <h2 style="margin-top: 10px; font-size: 20px;">Merchant Payment</h2>
+            </div>
+
+            <div style="background: white; padding: 20px; border-radius: 8px; color: #333;">
+                <div
+                    style="display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                    <span style="color: #666;">Merchant:</span>
+                    <span style="font-weight: 600;">AIUB Sports Portal</span>
+                </div>
+                <div
+                    style="display: flex; justify-content: space-between; margin-bottom: 20px; font-weight: 700; font-size: 18px;">
+                    <span>Total Amount:</span>
+                    <span>৳<span id="bkashAmount">0</span></span>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; font-size: 12px; color: #666; margin-bottom: 4px;">Your bKash Account
+                        Number</label>
+                    <input type="text" id="bkashNumber" placeholder="01XXXXXXXXX"
+                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 12px; color: #666; margin-bottom: 4px;">PIN</label>
+                    <input type="password" id="bkashPin" placeholder="XXXX"
+                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="closeBkashModal()"
+                        style="flex: 1; padding: 10px; background: #eee; border: none; border-radius: 4px; cursor: pointer; color: #333; font-weight: 600;">Cancel</button>
+                    <button class="save-btn" onclick="processCheckout()"
+                        style="flex: 1; padding: 10px; background: #e2136e; border: none; border-radius: 4px; cursor: pointer; color: white; font-weight: 600;">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Team Registration Modal -->
+    <div id="teamModal" class="team-modal">
+        <div class="team-modal-content">
+            <div class="team-modal-header">
+                <div>
+                    <span>Create Team for <span id="modalGameName"></span></span>
+                    <div class="team-modal-subtitle"
+                        style="font-size: 14px; font-weight: 400; color: #666; margin-top: 5px;"></div>
+                </div>
+                <button class="team-modal-close" onclick="closeTeamModal()">&times;</button>
+            </div>
+            <div class="team-modal-body">
+                <div class="team-form-group">
+                    <label class="team-form-label">Team Name</label>
+                    <input type="text" id="teamName" class="team-form-input" placeholder="Enter team name" required>
+                    <span id="teamNameError" style="display: none; color: #dc2626; font-size: 13px; margin-top: 5px;">⚠️
+                        Team name is required</span>
+                </div>
+
+                <div class="team-members-container">
+                    <h3>Team Members</h3>
+                    <div id="teamMembersList"></div>
+                    <p class="team-required-msg"
+                        style="margin-top: 15px; padding: 12px; background: #fef3c7; border-radius: 6px; color: #92400e; font-size: 14px;">
+                    </p>
+                </div>
+            </div>
+            <div class="team-modal-buttons">
+                <button class="btn-cancel" onclick="closeTeamModal()">Cancel</button>
+                <button class="btn-confirm" onclick="createTeam()">Create Team & Register</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Replace Member Modal -->
+    <div id="replaceMemberModal" class="modal-backdrop" style="display: none;">
+        <div class="modal" style="max-width: 450px;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;">
+                <div class="modal-title">🔄 Replace Team Member</div>
+                <button class="modal-close" type="button" onclick="closeReplaceMemberModal()"
+                    style="color: white;">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <div id="currentMemberInfo"
+                    style="background: #fef3c7; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
+                    <p style="margin: 0; font-size: 14px; color: #92400e;">
+                        <strong>Replacing:</strong> <span id="currentMemberName">Loading...</span>
+                    </p>
+                </div>
+
+                <div class="field" style="margin-bottom: 15px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">New Member's
+                        Student ID:</label>
+                    <input type="text" id="newMemberStudentId" placeholder="e.g., 23-54919-3"
+                        style="width: 100%; padding: 12px; border: 2px solid #d1d5db; border-radius: 8px; font-size: 15px; transition: border-color 0.2s;"
+                        onfocus="this.style.borderColor='#f59e0b'" onblur="this.style.borderColor='#d1d5db'">
+                    <p id="newMemberInfo"
+                        style="margin-top: 10px; padding: 10px; background: #ecfdf5; border-radius: 6px; color: #065f46; display: none;">
+                        <!-- Will show new member name when found -->
+                    </p>
+                    <p id="newMemberError"
+                        style="margin-top: 10px; padding: 10px; background: #fef2f2; border-radius: 6px; color: #dc2626; display: none;">
+                        <!-- Will show error message -->
+                    </p>
+                </div>
+
+                <script>
+                    // Load Notifications View (Section)
+                    async function loadNotificationsView() {
+                        const container = document.getElementById('notificationContent');
+                        container.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="spinner"></div><p>Loading notifications...</p></div>';
+
+                        try {
+                            const studentId = localStorage.getItem('studentId');
+                            const response = await fetch(`${API_URL}/auth/notifications/${studentId}`);
+                            const data = await response.json();
+
+                            if (data.success) {
+                                if (data.notifications.length === 0) {
+                                    container.innerHTML = '<div style="text-align: center; padding: 40px; color: #6b7280;"><p>No notifications found.</p></div>';
+                                    return;
+                                }
+
+                                // Sort by newest
+                                data.notifications.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+
+                                let html = '';
+                                data.notifications.forEach(notification => {
+                                    const date = new Date(notification.created_at).toLocaleString();
+                                    const isUnread = notification.status === 'UNREAD';
+
+                                    html += `
+                            <div class="notification-item ${isUnread ? 'unread' : ''}" data-id="${notification.id}">
+                                <div class="notification-title">${notification.title}</div>
+                                <div class="notification-message">${notification.message}</div>
+                                <div class="notification-date">${date}</div>
+                                <div class="notification-actions">
+                                    ${notification.type === 'TEAM_REQUEST' ?
+                                            `<button class="notification-btn accept-btn" onclick="acceptTeamInvitation(${notification.id})">Accept</button>
+                                        <button class="notification-btn decline-btn" onclick="declineTeamInvitation(${notification.id})">Decline</button>` : ''}
+                                    ${isUnread ? `<button class="notification-btn mark-read-btn" onclick="markNotificationAsReadForSection(${notification.id})">Mark as Read</button>` : ''}
+                                </div>
+                            </div>
+                        `;
+                                });
+
+                                container.innerHTML = html;
+
+                                // Update header count
+                                const unreadCount = data.notifications.filter(n => n.status === 'UNREAD').length;
+                                document.getElementById('notificationCount').textContent = unreadCount;
+
+                            } else {
+                                container.innerHTML = '<p style="text-align: center; color: #ef4444;">Failed to load notifications.</p>';
+                            }
+                        } catch (error) {
+                            console.error('Error loading notifications:', error);
+                            container.innerHTML = '<p style="text-align: center; color: #ef4444;">Error loading notifications.</p>';
+                        }
+                    }
+
+                    // Mark as read for section view (no modal)
+                    async function markNotificationAsReadForSection(notificationId) {
+                        await markNotificationAsRead(notificationId);
+                        // Reload view to update UI
+                        loadNotificationsView();
+                    }
+                </script>
+
+                <div id="replaceConfirmation"
+                    style="background: #fff7ed; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b; display: none;">
+                    <p style="margin: 0; font-size: 14px; color: #9a3412;">
+                        ⚠️ <strong>Are you sure?</strong><br>
+                        <span id="confirmationText">This will remove the current member and invite the new
+                            member.</span>
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer"
+                style="display: flex; gap: 10px; justify-content: flex-end; padding: 15px 20px; background: #f9fafb; border-top: 1px solid #e5e7eb;">
+                <button class="btn secondary" type="button" onclick="closeReplaceMemberModal()"
+                    style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                    Cancel
+                </button>
+                <button class="btn primary" type="button" id="confirmReplaceBtn" onclick="confirmReplaceMember()"
+                    style="padding: 10px 20px; background: #f59e0b; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                    🔄 Replace Member
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>
