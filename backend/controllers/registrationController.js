@@ -897,6 +897,27 @@ const confirmRegistration = async (req, res) => {
                             registration_date: new Date().toISOString()
                         }]);
                 }
+
+                // Log to payments table (Audit Trail)
+                const paymentRecord = {
+                    user_id: member.user_id, // BIGINT now (after schema fix)
+                    order_id: `ADMIN-CONFIRM-${teamId}-${member.user_id}-${Date.now()}`,
+                    bkash_transaction_id: `CASH-${Date.now()}-${member.user_id}`, // Pseudo-transaction ID
+                    amount: 0, // Admin override usually implies cash collected externally or waived; tracking as 0 or need fee lookup?
+                    // Ideally we'd fetch the fee, but for now 0 or a placeholder is safer than failing.
+                    // Let's leave amount as 0 to indicate manual entry, or we'd need to query the game fee.
+                    currency: 'BDT',
+                    payment_status: 'SUCCESS', // Consistent with payments table schema
+                    payment_method: 'CASH',
+                    payment_time: new Date().toISOString()
+                };
+
+                // We try catch this log insertion so it doesn't block the actual confirmation if schema is still wonky
+                try {
+                    await supabase.from('payments').insert([paymentRecord]);
+                } catch (logJoinError) {
+                    console.error('Failed to log admin payment to payments table:', logJoinError);
+                }
             }
 
             // 3. Update team status to CONFIRMED
@@ -911,6 +932,13 @@ const confirmRegistration = async (req, res) => {
 
         } else {
             // Confirm Single Registration
+            // First get the user_id from the registration to log it
+            const { data: currentReg } = await supabase
+                .from('game_registrations')
+                .select('user_id, game_id')
+                .eq('id', registrationId)
+                .single();
+
             await supabase.from('game_registrations')
                 .update({
                     payment_status: 'PAID',
@@ -918,6 +946,26 @@ const confirmRegistration = async (req, res) => {
                     transaction_id: `ADMIN-${Date.now()}`
                 })
                 .eq('id', registrationId);
+
+            if (currentReg) {
+                // Log to payments table (Audit Trail)
+                const paymentRecord = {
+                    user_id: currentReg.user_id,
+                    order_id: `ADMIN-CONFIRM-REG-${registrationId}-${Date.now()}`,
+                    bkash_transaction_id: `CASH-${Date.now()}-${currentReg.user_id}`,
+                    amount: 0,
+                    currency: 'BDT',
+                    payment_status: 'SUCCESS',
+                    payment_method: 'CASH',
+                    payment_time: new Date().toISOString()
+                };
+
+                try {
+                    await supabase.from('payments').insert([paymentRecord]);
+                } catch (logError) {
+                    console.error('Failed to log admin payment to payments table:', logError);
+                }
+            }
         }
 
         res.json({

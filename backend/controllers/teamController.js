@@ -648,7 +648,8 @@ const addTeamMember = async (req, res) => {
 // Accept team invitation
 const acceptTeamInvitation = async (req, res) => {
     try {
-        const { studentId, notificationId } = req.body;
+        const { studentId } = req.body;
+        const notificationId = parseInt(req.body.notificationId, 10);
 
         // Get user ID from student ID
         const { data: user, error: userError } = await supabase
@@ -669,7 +670,7 @@ const acceptTeamInvitation = async (req, res) => {
         // Get the notification
         const { data: notification, error: notificationError } = await supabase
             .from('notifications')
-            .select('id, related_id, status')
+            .select('id, related_id, status, action_taken')
             .eq('id', notificationId)
             .eq('user_id', userId)
             .eq('type', 'TEAM_REQUEST')
@@ -682,7 +683,8 @@ const acceptTeamInvitation = async (req, res) => {
             });
         }
 
-        if (notification.status === 'READ') {
+        // Only block if it's read AND has an action recorded
+        if (notification.status === 'READ' && notification.action_taken) {
             return res.status(400).json({
                 success: false,
                 message: 'Invitation already processed'
@@ -786,11 +788,21 @@ const acceptTeamInvitation = async (req, res) => {
             // Don't fail the whole operation if cleanup fails
         }
 
-        // Mark the notification as read
-        await supabase
+        // Mark the notification as read and record action
+        const { error: notifUpdateError } = await supabase
             .from('notifications')
-            .update({ status: 'READ' })
+            .update({
+                status: 'READ',
+                action_taken: 'ACCEPTED'
+            })
             .eq('id', notificationId);
+
+        if (notifUpdateError) {
+            console.error('❌ CRITICAL: Failed to set action_taken on notification:', notifUpdateError);
+            // Still return success since team member was confirmed, but log the error
+        } else {
+            console.log(`✅ Notification ${notificationId} marked READ with action_taken=ACCEPTED`);
+        }
 
         res.json({
             success: true,
@@ -1347,6 +1359,16 @@ const replaceMember = async (req, res) => {
                 status: 'PENDING'
             }
         });
+
+        // Mark the notification as read and record action
+        await supabase
+            .from('notifications')
+            .update({
+                status: 'READ',
+                action_taken: 'ACCEPTED'
+            })
+            .eq('id', notificationId);
+
     } catch (error) {
         console.error('Replace team member error:', error);
         res.status(500).json({ success: false, message: error.message });
@@ -1356,7 +1378,8 @@ const replaceMember = async (req, res) => {
 // Reject team invitation (for invited members)
 const rejectTeamInvitation = async (req, res) => {
     try {
-        const { studentId, notificationId } = req.body;
+        const { studentId } = req.body;
+        const notificationId = parseInt(req.body.notificationId, 10);
 
         // Get user ID from student ID
         const { data: user, error: userError } = await supabase
@@ -1377,7 +1400,7 @@ const rejectTeamInvitation = async (req, res) => {
         // Get the notification
         const { data: notification, error: notificationError } = await supabase
             .from('notifications')
-            .select('id, related_id, status')
+            .select('id, related_id, status, action_taken')
             .eq('id', notificationId)
             .eq('user_id', userId)
             .eq('type', 'TEAM_REQUEST')
@@ -1390,7 +1413,7 @@ const rejectTeamInvitation = async (req, res) => {
             });
         }
 
-        if (notification.status === 'READ') {
+        if (notification.status === 'READ' && notification.action_taken) {
             return res.status(400).json({
                 success: false,
                 message: 'Invitation already processed'
@@ -1415,11 +1438,20 @@ const rejectTeamInvitation = async (req, res) => {
             });
         }
 
-        // Mark the notification as read
-        await supabase
+        // Mark the notification as read and record action
+        const { error: notifUpdateError } = await supabase
             .from('notifications')
-            .update({ status: 'READ' })
+            .update({
+                status: 'READ',
+                action_taken: 'DECLINED'
+            })
             .eq('id', notificationId);
+
+        if (notifUpdateError) {
+            console.error('❌ CRITICAL: Failed to set action_taken on notification:', notifUpdateError);
+        } else {
+            console.log(`✅ Notification ${notificationId} marked READ with action_taken=DECLINED`);
+        }
 
         res.json({
             success: true,

@@ -76,7 +76,7 @@ function verifyToken(token) {
  */
 function extractTokenFromHeader(authHeader) {
     if (!authHeader) return null;
-    
+
     const parts = authHeader.split(' ');
     if (parts.length === 2 && parts[0] === 'Bearer') {
         return parts[1];
@@ -144,8 +144,8 @@ async function requireAuth(req, res, next) {
         console.error('Authentication error:', error.message);
         return res.status(401).json({
             success: false,
-            message: error.message === 'Token expired' 
-                ? 'Session expired. Please log in again.' 
+            message: error.message === 'Token expired'
+                ? 'Session expired. Please log in again.'
                 : 'Authentication failed'
         });
     }
@@ -175,7 +175,7 @@ async function requireAdmin(req, res, next) {
             }
 
             const decoded = verifyToken(token);
-            
+
             // Fetch user data
             const { data: user, error } = await supabase
                 .from('users')
@@ -250,6 +250,12 @@ async function requireAdmin(req, res, next) {
         next();
     } catch (error) {
         console.error('Admin check error:', error);
+        if (error.message === 'Token expired' || error.message === 'Invalid token') {
+            return res.status(401).json({
+                success: false,
+                message: error.message
+            });
+        }
         return res.status(500).json({
             success: false,
             message: 'Authentication error'
@@ -334,13 +340,13 @@ module.exports = {
     requireAuth,
     requireAdmin,
     optionalAuth,
-    
+
     // Token functions
     generateTokens,
     verifyToken,
     refreshAccessToken,
     extractTokenFromHeader,
-    
+
     // Constants
     JWT_SECRET,
     TOKEN_EXPIRATION,

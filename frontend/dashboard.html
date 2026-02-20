@@ -4,6 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>AIUB Sports Portal - Dashboard</title>
     <link rel="icon" type="image/svg+xml" href="images/logo.svg">
     <style>
@@ -2203,8 +2206,11 @@
         async function openNotificationsModal() {
             try {
                 const studentId = localStorage.getItem('studentId');
-                const response = await fetch(`${API_URL}/auth/notifications/${studentId}`);
+                // Cache-busting timestamp ensures fresh data even if browser caches the page
+                const cacheBuster = Date.now();
+                const response = await fetch(`${API_URL}/auth/notifications/${studentId}?t=${cacheBuster}`);
                 const data = await response.json();
+                console.log('[Notifications] Raw API response:', JSON.stringify(data.notifications?.map(n => ({ id: n.id, type: n.type, status: n.status, action_taken: n.action_taken }))));
 
                 if (data.success) {
                     const notificationList = document.getElementById('notificationList');
@@ -2217,17 +2223,38 @@
                             const date = new Date(notification.created_at).toLocaleString();
                             const isUnread = notification.status === 'UNREAD';
 
+                            // Check if this is a team request that has been processed
+                            let actionHtml = '';
+                            if (notification.type === 'TEAM_REQUEST') {
+                                // Always check action_taken first - if it's set, the invite is done
+                                if (notification.action_taken === 'ACCEPTED') {
+                                    actionHtml = `<div class="notification-actions"><span style="font-size:12px; color:#10b981; font-weight:600;">✓ Invitation Accepted</span></div>`;
+                                } else if (notification.action_taken === 'DECLINED') {
+                                    actionHtml = `<div class="notification-actions"><span style="font-size:12px; color:#ef4444; font-weight:600;">✕ Invitation Declined</span></div>`;
+                                } else if (isUnread && !notification.action_taken) {
+                                    // ONLY show buttons if UNREAD and no action has been taken yet
+                                    actionHtml = `
+                                        <div class="notification-actions">
+                                            <button class="notification-btn accept-btn" onclick="acceptTeamInvitation(${notification.id})">Accept</button>
+                                            <button class="notification-btn decline-btn" onclick="declineTeamInvitation(${notification.id})">Decline</button>
+                                        </div>`;
+                                } else {
+                                    // READ notification with no action (e.g. marked read manually)
+                                    actionHtml = `<div class="notification-actions"><span style="font-size:12px; color:#6b7280;">Processed</span></div>`;
+                                }
+                            } else if (isUnread) {
+                                actionHtml = `
+                                    <div class="notification-actions">
+                                        <button class="notification-btn mark-read-btn" onclick="markNotificationAsRead(${notification.id})">Mark as Read</button>
+                                    </div>`;
+                            }
+
                             html += `
                                 <div class="notification-item ${isUnread ? 'unread' : ''}" data-id="${notification.id}">
                                     <div class="notification-title">${notification.title}</div>
                                     <div class="notification-message">${notification.message}</div>
                                     <div class="notification-date">${date}</div>
-                                    <div class="notification-actions">
-                                        ${notification.type === 'TEAM_REQUEST' ?
-                                    `<button class="notification-btn accept-btn" onclick="acceptTeamInvitation(${notification.id})">Accept</button>
-                                            <button class="notification-btn decline-btn" onclick="declineTeamInvitation(${notification.id})">Decline</button>` : ''}
-                                        ${isUnread ? `<button class="notification-btn mark-read-btn" onclick="markNotificationAsRead(${notification.id})">Mark as Read</button>` : ''}
-                                    </div>
+                                    ${actionHtml}
                                 </div>
                             `;
                         });
@@ -2287,6 +2314,10 @@
         async function acceptTeamInvitation(notificationId) {
             try {
                 const studentId = localStorage.getItem('studentId');
+                const btnContainer = document.querySelector(`[data-id="${notificationId}"] .notification-actions`);
+
+                // Show loading state
+                if (btnContainer) btnContainer.innerHTML = '<span style="font-size:12px; color:#6b7280;">Processing...</span>';
 
                 const response = await fetch(`${API_URL}/auth/accept-invitation`, {
                     method: 'POST',
@@ -2302,17 +2333,37 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    // NEW: Show different message based on removal count
-                    const message = data.removedTeamsCount && data.removedTeamsCount > 0
-                        ? `✅ Team invitation accepted! You were removed from ${data.removedTeamsCount} other pending team(s).`
-                        : '✅ Team invitation accepted successfully!';
+                    // Update UI to show 'Accepted'
+                    if (btnContainer) {
+                        btnContainer.innerHTML = '<span style="font-size:12px; color:#10b981; font-weight:600;">✓ Invitation Accepted</span>';
+                    }
 
-                    alert(message);
-                    closeNotificationsModal();
-                    // Reload notifications
-                    openNotificationsModal();
+                    // Remove unread styling
+                    const notificationElement = document.querySelector(`[data-id="${notificationId}"]`);
+                    if (notificationElement) notificationElement.classList.remove('unread');
+
+                    // Update count
+                    const countEl = document.getElementById('notificationCount');
+                    const currentCount = parseInt(countEl.textContent);
+                    countEl.textContent = Math.max(0, currentCount - 1);
                 } else {
-                    alert(`Error accepting invitation: ${data.message}`);
+                    // If already processed, show the correct status instead of restoring buttons
+                    if (data.message && data.message.toLowerCase().includes('already processed')) {
+                        if (btnContainer) {
+                            btnContainer.innerHTML = '<span style="font-size:12px; color:#10b981; font-weight:600;">✓ Invitation Accepted</span>';
+                        }
+                        // Refresh the notification panel to get fresh DB state
+                        openNotificationsModal();
+                    } else {
+                        alert(`Error accepting invitation: ${data.message}`);
+                        // Only restore buttons for genuine errors (not already-processed)
+                        if (btnContainer) {
+                            btnContainer.innerHTML = `
+                                <button class="notification-btn accept-btn" onclick="acceptTeamInvitation(${notificationId})">Accept</button>
+                                <button class="notification-btn decline-btn" onclick="declineTeamInvitation(${notificationId})">Decline</button>
+                             `;
+                        }
+                    }
                 }
             } catch (error) {
                 console.error('Error accepting team invitation:', error);
@@ -2320,9 +2371,65 @@
             }
         }
 
-        // Decline team invitation (just mark as read)
-        function declineTeamInvitation(notificationId) {
-            markNotificationAsRead(notificationId);
+        // Decline team invitation
+        async function declineTeamInvitation(notificationId) {
+            if (!confirm('Are you sure you want to decline this team invitation?')) return;
+
+            try {
+                const studentId = localStorage.getItem('studentId');
+                const btnContainer = document.querySelector(`[data-id="${notificationId}"] .notification-actions`);
+
+                // Show loading state
+                if (btnContainer) btnContainer.innerHTML = '<span style="font-size:12px; color:#6b7280;">Processing...</span>';
+
+                const response = await fetch(`${API_URL}/auth/reject-invitation`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        studentId: studentId,
+                        notificationId: notificationId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Update UI to show 'Declined'
+                    if (btnContainer) {
+                        btnContainer.innerHTML = '<span style="font-size:12px; color:#ef4444; font-weight:600;">✕ Invitation Declined</span>';
+                    }
+
+                    // Remove unread styling
+                    const notificationElement = document.querySelector(`[data-id="${notificationId}"]`);
+                    if (notificationElement) notificationElement.classList.remove('unread');
+
+                    // Update count
+                    const countEl = document.getElementById('notificationCount');
+                    const currentCount = parseInt(countEl.textContent);
+                    countEl.textContent = Math.max(0, currentCount - 1);
+                } else {
+                    // If already processed, show the correct status
+                    if (data.message && data.message.toLowerCase().includes('already processed')) {
+                        if (btnContainer) {
+                            btnContainer.innerHTML = '<span style="font-size:12px; color:#ef4444; font-weight:600;">✕ Invitation Declined</span>';
+                        }
+                        openNotificationsModal();
+                    } else {
+                        alert(`Error declining invitation: ${data.message}`);
+                        if (btnContainer) {
+                            btnContainer.innerHTML = `
+                                <button class="notification-btn accept-btn" onclick="acceptTeamInvitation(${notificationId})">Accept</button>
+                                <button class="notification-btn decline-btn" onclick="declineTeamInvitation(${notificationId})">Decline</button>
+                             `;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error declining team invitation:', error);
+                alert('Error declining team invitation. Please try again.');
+            }
         }
 
         // Open cart modal

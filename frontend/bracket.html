@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tournament Bracket | AIUB Sports Portal</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            color: #e0e0e0;
+        }
+
+        .page-header {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.18);
+        }
+
+        .page-title {
+            flex: 1;
+        }
+
+        .page-title h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .page-title .subtitle {
+            font-size: 13px;
+            color: #a0a0c0;
+            margin-top: 2px;
+        }
+
+        .game-selector {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .game-selector option {
+            background: #1e1b4b;
+            color: #fff;
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 32px;
+        }
+
+        /* Bracket Container */
+        .bracket-container {
+            display: flex;
+            gap: 0;
+            overflow-x: auto;
+            padding: 20px;
+            min-height: 400px;
+        }
+
+        .bracket-container::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .bracket-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 4px;
+        }
+
+        .bracket-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+        }
+
+        .bracket-round {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-width: 280px;
+            position: relative;
+        }
+
+        .round-header {
+            text-align: center;
+            padding: 10px;
+            margin-bottom: 16px;
+        }
+
+        .round-header h3 {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #a0a0c0;
+        }
+
+        .round-matches {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            flex: 1;
+            gap: 12px;
+        }
+
+        /* Match Node */
+        .match-node {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 0;
+            margin: 6px 16px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .match-node:hover {
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .match-node.status-played {
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .match-node.status-overlap {
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .match-node.status-hold {
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .match-participant-row {
+            display: flex;
+            align-items: center;
+            padding: 10px 14px;
+            gap: 10px;
+            position: relative;
+        }
+
+        .match-participant-row+.match-participant-row {
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .match-participant-row.winner {
+            background: rgba(16, 185, 129, 0.08);
+        }
+
+        .match-participant-row.winner::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: #10b981;
+        }
+
+        .participant-name {
+            flex: 1;
+            font-size: 13px;
+            font-weight: 500;
+            color: #e0e0f0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .participant-name.bye {
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        .participant-score {
+            font-size: 14px;
+            font-weight: 700;
+            color: #a5b4fc;
+            min-width: 30px;
+            text-align: right;
+        }
+
+        .match-meta {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 14px;
+            background: rgba(0, 0, 0, 0.15);
+            font-size: 11px;
+            color: #6b7280;
+        }
+
+        .match-meta .match-time {
+            color: #8b8bb0;
+        }
+
+        .match-meta .match-venue {
+            color: #6b7280;
+        }
+
+        /* Result Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 200;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: #1e1b4b;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            width: 420px;
+            max-width: 90vw;
+            padding: 28px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 20px;
+        }
+
+        .modal-field {
+            margin-bottom: 16px;
+        }
+
+        .modal-field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: #a0a0c0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .modal-field input,
+        .modal-field select {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: #fff;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .modal-field input:focus,
+        .modal-field select:focus {
+            outline: none;
+            border-color: rgba(99, 102, 241, 0.6);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 24px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .modal-btn.primary {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: #fff;
+        }
+
+        .modal-btn.primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+
+        .modal-btn.secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: #a0a0c0;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .modal-btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        /* Empty */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #6b7280;
+        }
+
+        .empty-state h3 {
+            font-size: 20px;
+            color: #9ca3af;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 14px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #fff;
+            z-index: 1000;
+            animation: slideIn 0.3s ease, slideOut 0.3s ease 2.7s forwards;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .toast.success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            gap: 20px;
+            padding: 16px 32px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #a0a0c0;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .legend-dot.green {
+            background: #10b981;
+        }
+
+        .legend-dot.yellow {
+            background: #f59e0b;
+        }
+
+        .legend-dot.red {
+            background: #ef4444;
+        }
+
+        .legend-dot.blue {
+            background: #6366f1;
+        }
+
+        .legend-dot.gray {
+            background: #6b7280;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="page-header">
+        <a class="back-btn" id="backLink" href="scheduling.html">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+            Back to Schedule
+        </a>
+        <div class="page-title">
+            <h1 id="bracketTitle">🏆 Tournament Bracket</h1>
+            <div class="subtitle" id="bracketSubtitle">Click a match to record results</div>
+        </div>
+        <select class="game-selector" id="gameSelector" onchange="switchGame(this.value)">
+            <option value="">Select Game...</option>
+        </select>
+    </div>
+
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-dot green"></div> Played
+        </div>
+        <div class="legend-item">
+            <div class="legend-dot blue"></div> Scheduled
+        </div>
+        <div class="legend-item">
+            <div class="legend-dot yellow"></div> On Hold
+        </div>
+        <div class="legend-item">
+            <div class="legend-dot red"></div> Conflict
+        </div>
+        <div class="legend-item">
+            <div class="legend-dot gray"></div> BYE / Eliminated
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="bracket-container" id="bracketContainer">
+            <div class="empty-state">
+                <h3>Select a Game</h3>
+                <p>Choose a game from the dropdown above to view its bracket.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal">
+            <h2>🏆 Record Match Result</h2>
+            <div id="matchParticipants" style="margin-bottom: 16px; font-size: 14px; color: #a0a0c0;"></div>
+
+            <div class="modal-field">
+                <label>Winner</label>
+                <select id="winnerSelect">
+                    <option value="">Select winner...</option>
+                </select>
+            </div>
+
+            <div class="modal-field">
+                <label>Score (Participant A)</label>
+                <input type="text" id="scoreA" placeholder="e.g. 3, 21-15">
+            </div>
+
+            <div class="modal-field">
+                <label>Score (Participant B)</label>
+                <input type="text" id="scoreB" placeholder="e.g. 1, 18-21">
+            </div>
+
+            <div class="modal-field">
+                <label>Status</label>
+                <select id="statusSelect">
+                    <option value="PLAYED">Played</option>
+                    <option value="NO_SHOW_SINGLE">No-Show (one side)</option>
+                    <option value="NO_SHOW_BOTH">No-Show (both sides)</option>
+                    <option value="HOLD_BY_ADMIN">Put on Hold</option>
+                </select>
+            </div>
+
+            <div class="modal-field">
+                <label>Admin Notes (optional)</label>
+                <input type="text" id="adminNotes" placeholder="Any notes...">
+            </div>
+
+            <div class="modal-actions">
+                <button class="modal-btn secondary" onclick="closeModal()">Cancel</button>
+                <button class="modal-btn primary" onclick="submitResult()">Save Result</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let tournamentId = null;
+        let currentGameId = null;
+        let currentMatchId = null;
+        let bracketData = null;
+        let gamesListCache = [];
+
+        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? `http://localhost:3000/api/admin`
+            : `/api/admin`;
+
+        function getAuthHeaders() {
+            const token = localStorage.getItem('msAccessToken');
+            const userEmail = localStorage.getItem('userEmail');
+            return {
+                'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+                ...(userEmail ? { 'x-user-email': userEmail } : {})
+            };
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            tournamentId = params.get('tournamentId');
+            currentGameId = params.get('gameId');
+
+            if (!tournamentId) {
+                showToast('No tournament ID.', 'error');
+                return;
+            }
+
+            document.getElementById('backLink').href = `scheduling.html?tournamentId=${tournamentId}`;
+            loadGamesList();
+        });
+
+        async function loadGamesList() {
+            try {
+                const res = await fetch(`${API_BASE}/scheduling/configs/${tournamentId}`, {
+                    headers: getAuthHeaders()
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.message);
+
+                gamesListCache = data.games || [];
+                const selector = document.getElementById('gameSelector');
+
+                gamesListCache.forEach(g => {
+                    const opt = document.createElement('option');
+                    opt.value = g.id;
+                    opt.textContent = `${g.game_name} (${g.category})`;
+                    if (String(g.id) === String(currentGameId)) opt.selected = true;
+                    selector.appendChild(opt);
+                });
+
+                if (currentGameId) {
+                    loadBracket(currentGameId);
+                }
+            } catch (err) {
+                showToast('Failed to load games: ' + err.message, 'error');
+            }
+        }
+
+        function switchGame(gameId) {
+            if (!gameId) return;
+            currentGameId = gameId;
+            loadBracket(gameId);
+        }
+
+        async function loadBracket(gameId) {
+            try {
+                const res = await fetch(`${API_BASE}/scheduling/bracket/${tournamentId}/${gameId}`, {
+                    headers: getAuthHeaders()
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.message);
+
+                bracketData = data;
+
+                if (data.game) {
+                    document.getElementById('bracketTitle').textContent = `🏆 ${data.game.game_name} — Bracket`;
+                    document.getElementById('bracketSubtitle').textContent = `${data.game.category} | ${data.game.game_type} | ${data.totalMatches} matches`;
+                }
+
+                renderBracket(data.rounds);
+            } catch (err) {
+                showToast('Failed to load bracket: ' + err.message, 'error');
+            }
+        }
+
+        function renderBracket(rounds) {
+            const container = document.getElementById('bracketContainer');
+
+            if (!rounds || rounds.length === 0) {
+                container.innerHTML = `<div class="empty-state"><h3>No Matches Yet</h3><p>Run the scheduling algorithm first.</p></div>`;
+                return;
+            }
+
+            container.innerHTML = rounds.map(round => `
+                <div class="bracket-round">
+                    <div class="round-header">
+                        <h3>${round.label}</h3>
+                    </div>
+                    <div class="round-matches">
+                        ${round.matches.map(m => renderMatchNode(m)).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderMatchNode(m) {
+            const statusClass = m.status === 'SCHEDULED_OVERLAP' ? 'status-overlap'
+                : m.status === 'HOLD_BY_ADMIN' ? 'status-hold'
+                    : m.status === 'PLAYED' ? 'status-played'
+                        : '';
+
+            const isAWinner = m.winner_label === m.participant_a_label && m.winner_label;
+            const isBWinner = m.winner_label === m.participant_b_label && m.winner_label;
+            const isBye = m.participant_b_label === 'BYE';
+
+            const time = m.scheduled_start
+                ? new Date(m.scheduled_start).toLocaleString('en-US', {
+                    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                })
+                : '—';
+
+            return `
+                <div class="match-node ${statusClass}" onclick="openResultModal(${m.id})" data-match-id="${m.id}">
+                    <div class="match-participant-row ${isAWinner ? 'winner' : ''}">
+                        <span class="participant-name">${m.participant_a_label || 'TBD'}</span>
+                        <span class="participant-score">${m.score_a || ''}</span>
+                    </div>
+                    <div class="match-participant-row ${isBWinner ? 'winner' : ''} ${isBye ? 'bye-row' : ''}">
+                        <span class="participant-name ${isBye ? 'bye' : ''}">${m.participant_b_label || 'TBD'}</span>
+                        <span class="participant-score">${m.score_b || ''}</span>
+                    </div>
+                    <div class="match-meta">
+                        <span class="match-time">🕐 ${time}</span>
+                        <span class="match-venue">📍 ${m.venue_name || '—'}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ============================================================
+        // RESULT MODAL
+        // ============================================================
+        function openResultModal(matchId) {
+            currentMatchId = matchId;
+
+            // Find the match data
+            let match = null;
+            if (bracketData && bracketData.rounds) {
+                for (const round of bracketData.rounds) {
+                    match = round.matches.find(m => m.id === matchId);
+                    if (match) break;
+                }
+            }
+
+            if (!match) return;
+
+            // Populate modal
+            document.getElementById('matchParticipants').textContent =
+                `${match.participant_a_label || 'TBD'} vs ${match.participant_b_label || 'TBD'}`;
+
+            const winnerSelect = document.getElementById('winnerSelect');
+            winnerSelect.innerHTML = '<option value="">Select winner...</option>';
+
+            if (match.participant_a_label && match.participant_a_label !== 'BYE') {
+                const optA = document.createElement('option');
+                optA.value = JSON.stringify({
+                    label: match.participant_a_label,
+                    user_id: match.participant_a_user_id,
+                    team_id: match.participant_a_team_id
+                });
+                optA.textContent = match.participant_a_label;
+                winnerSelect.appendChild(optA);
+            }
+
+            if (match.participant_b_label && match.participant_b_label !== 'BYE') {
+                const optB = document.createElement('option');
+                optB.value = JSON.stringify({
+                    label: match.participant_b_label,
+                    user_id: match.participant_b_user_id,
+                    team_id: match.participant_b_team_id
+                });
+                optB.textContent = match.participant_b_label;
+                winnerSelect.appendChild(optB);
+            }
+
+            document.getElementById('scoreA').value = match.score_a || '';
+            document.getElementById('scoreB').value = match.score_b || '';
+            document.getElementById('statusSelect').value = match.status === 'PLAYED' ? 'PLAYED' : 'PLAYED';
+            document.getElementById('adminNotes').value = match.admin_notes || '';
+
+            document.getElementById('resultModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('resultModal').classList.remove('active');
+            currentMatchId = null;
+        }
+
+        async function submitResult() {
+            if (!currentMatchId) return;
+
+            const winnerRaw = document.getElementById('winnerSelect').value;
+            const winner = winnerRaw ? JSON.parse(winnerRaw) : null;
+
+            const body = {
+                status: document.getElementById('statusSelect').value,
+                score_a: document.getElementById('scoreA').value || null,
+                score_b: document.getElementById('scoreB').value || null,
+                admin_notes: document.getElementById('adminNotes').value || null
+            };
+
+            if (winner) {
+                body.winner_label = winner.label;
+                body.winner_user_id = winner.user_id || null;
+                body.winner_team_id = winner.team_id || null;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/scheduling/match/${currentMatchId}/status`, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify(body)
+                });
+
+                const data = await res.json();
+                if (!data.success) throw new Error(data.message);
+
+                showToast('Result saved!', 'success');
+                closeModal();
+
+                // Reload bracket
+                loadBracket(currentGameId);
+            } catch (err) {
+                showToast('Failed to save result: ' + err.message, 'error');
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+    </script>
+</body>
+
+</html>

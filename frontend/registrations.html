@@ -568,10 +568,17 @@
                                     </span>
                                 </div>
 
-                                <button class="manage-btn" onclick="toggleGames(${tournament.id})">
-                                    <span id="btn-icon-${tournament.id}">▼</span>
-                                    <span id="btn-text-${tournament.id}">Show Games</span>
-                                </button>
+                                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                    <button class="manage-btn" onclick="toggleGames(${tournament.id})">
+                                        <span id="btn-icon-${tournament.id}">▼</span>
+                                        <span id="btn-text-${tournament.id}">Show Games</span>
+                                    </button>
+                                    <a href="scheduling.html?tournamentId=${tournament.id}" 
+                                       class="manage-btn" 
+                                       style="background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;border:none;text-decoration:none;display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-weight:600;font-size:13px;">
+                                        ⚡ Shuffling & Scheduling
+                                    </a>
+                                </div>
 
                                 <div class="games-container" id="games-${tournament.id}">
                                     ${renderGames(tournamentGames, tournament.id)}

@@ -23,10 +23,15 @@ function navigateToRegistrations() {
 }
 
 async function loadRegistrationManagementNested() {
+
     const contentDiv = document.getElementById('regManagementContent');
-    if (!contentDiv) return;
+    if (!contentDiv) {
+        console.error('regManagementContent element not found!');
+        return;
+    }
 
     try {
+
         // Show loading state
         contentDiv.innerHTML = `
             <div style="text-align: center; padding: 40px;">
@@ -37,6 +42,8 @@ async function loadRegistrationManagementNested() {
 
         const API_URL = window.API_URL || 'http://localhost:3000/api';
         const userEmail = localStorage.getItem('userEmail');
+
+
         const response = await fetch(`${API_URL}/admin/registrations/overview`, {
             headers: {
                 'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
@@ -44,7 +51,18 @@ async function loadRegistrationManagementNested() {
             }
         });
 
+
+
+        if (response.status === 401) {
+            console.warn('Session expired in loadRegistrationManagementNested');
+            localStorage.removeItem('msAccessToken');
+            localStorage.removeItem('userEmail');
+            window.location.href = 'index.html';
+            return;
+        }
+
         const data = await response.json();
+
 
         if (!data.success) {
             throw new Error(data.message || 'Failed to load registrations');
@@ -141,21 +159,87 @@ function renderNestedGames(games) {
         `;
     }
 
-    let html = `<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; padding: 16px; margin-top: 16px; background: #f8fafc; border-radius: 6px; border: 2px dashed #cbd5e1;">`;
-
+    // Group games by name
+    const gamesByName = {};
     games.forEach(game => {
+        const name = game.game_name || 'Unnamed Game';
+        if (!gamesByName[name]) {
+            gamesByName[name] = [];
+        }
+        gamesByName[name].push(game);
+    });
+
+    let html = `<div style="display: flex; flex-direction: column; gap: 16px; padding: 16px; margin-top: 16px; background: #f8fafc; border-radius: 6px; border: 2px dashed #cbd5e1;">`;
+
+    Object.entries(gamesByName).forEach(([gameName, gameVariants]) => {
+        // Sort variants by category (e.g., Male, Female, Mix)
+        const categoryOrder = { 'Male': 1, 'Female': 2, 'Mix': 3 };
+        gameVariants.sort((a, b) => {
+            const catA = categoryOrder[a.category] || 99;
+            const catB = categoryOrder[b.category] || 99;
+            return catA - catB;
+        });
+
         html += `
-            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 6px; padding: 14px; transition: all 0.2s;">
-                <div style="font-size: 15px; font-weight: 600; color: #1e293b; margin-bottom: 8px;">${game.game_name || 'Unnamed Game'}</div>
-                <div style="display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;">
-                    <span class="reg-badge reg-badge-active" style="font-size: 11px;">${game.category || 'N/A'}</span>
-                    <span class="reg-badge reg-badge-upcoming" style="font-size: 11px;">${game.game_type || 'N/A'}</span>
+            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <div style="padding: 12px 16px; background: #f1f5f9; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #334155; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 16px;">${gameName}</span>
+                    <span style="font-size: 12px; color: #64748b; background: #e2e8f0; padding: 2px 8px; border-radius: 12px;">${gameVariants.length} Variant${gameVariants.length !== 1 ? 's' : ''}</span>
                 </div>
-                <div style="font-size: 20px; font-weight: 700; color: #3b82f6; margin-bottom: 10px;">${game.registration_count} Registrations</div>
-                <button onclick="manageGameRegistrations(${game.id}, '${game.game_name}')" 
-                        style="width: 100%; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; transition: all 0.2s;">
-                    View Registered Users
-                </button>
+                
+                <div style="padding: 8px;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid #f1f5f9;">
+                                <th style="text-align: left; padding: 8px 12px; font-size: 12px; color: #64748b; font-weight: 600;">Category</th>
+                                <th style="text-align: left; padding: 8px 12px; font-size: 12px; color: #64748b; font-weight: 600;">Type</th>
+                                <th style="text-align: center; padding: 8px 12px; font-size: 12px; color: #64748b; font-weight: 600;">Registrations</th>
+                                <th style="text-align: right; padding: 8px 12px; font-size: 12px; color: #64748b; font-weight: 600;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        `;
+
+        gameVariants.forEach(game => {
+            const categoryColor =
+                game.category === 'Male' ? '#3b82f6' :
+                    game.category === 'Female' ? '#ec4899' :
+                        game.category === 'Mix' ? '#8b5cf6' : '#64748b';
+
+            const categoryBg =
+                game.category === 'Male' ? '#eff6ff' :
+                    game.category === 'Female' ? '#fdf2f8' :
+                        game.category === 'Mix' ? '#f5f3ff' : '#f1f5f9';
+
+            html += `
+                <tr style="border-bottom: 1px solid #f8fafc;">
+                    <td style="padding: 10px 12px;">
+                        <span style="background: ${categoryBg}; color: ${categoryColor}; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                            ${game.category || 'N/A'}
+                        </span>
+                    </td>
+                    <td style="padding: 10px 12px; font-size: 13px; color: #475569;">
+                        ${game.game_type || 'N/A'}
+                    </td>
+                    <td style="padding: 10px 12px; text-align: center;">
+                        <span style="font-weight: 700; color: #1e293b;">${game.registration_count}</span>
+                    </td>
+                    <td style="padding: 10px 12px; text-align: right;">
+                        <button onclick="manageGameRegistrations(${game.id}, '${game.game_name} - ${game.category}')" 
+                                style="background: white; border: 1px solid #cbd5e1; color: #475569; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; transition: all 0.2s; font-weight: 500;"
+                                onmouseover="this.style.borderColor='#3b82f6'; this.style.color='#3b82f6'"
+                                onmouseout="this.style.borderColor='#cbd5e1'; this.style.color='#475569'">
+                            Manage
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += `
+                        </tbody>
+                    </table>
+                </div>
             </div>
         `;
     });
@@ -243,6 +327,14 @@ async function manageGameRegistrations(gameId, gameName) {
                 'x-user-email': userEmail || ''
             }
         });
+
+        if (response.status === 401) {
+            console.warn('Session expired in manageGameRegistrations');
+            localStorage.removeItem('msAccessToken');
+            localStorage.removeItem('userEmail');
+            window.location.href = 'index.html';
+            return;
+        }
 
         const data = await response.json();
 
@@ -500,6 +592,12 @@ window.updatePayment = async function (registrationId, status) {
             body: JSON.stringify({ payment_status: status })
         });
 
+        if (response.status === 401) {
+            alert('Session expired. Please log in again.');
+            window.location.href = 'index.html';
+            return;
+        }
+
         const result = await response.json();
 
         if (!result.success) {
@@ -541,6 +639,12 @@ window.updateTeamMemberPayment = async function (memberId, status) {
             body: JSON.stringify({ payment_status: status })
         });
 
+        if (response.status === 401) {
+            alert('Session expired. Please log in again.');
+            window.location.href = 'index.html';
+            return;
+        }
+
         const result = await response.json();
 
         if (!result.success) {
@@ -574,6 +678,12 @@ window.updateMemberStatus = async function (memberId, status) {
             },
             body: JSON.stringify({ status })
         });
+
+        if (response.status === 401) {
+            alert('Session expired. Please log in again.');
+            window.location.href = 'index.html';
+            return;
+        }
 
         const result = await response.json();
 
@@ -610,6 +720,12 @@ window.removeMember = async function (memberId, memberName) {
                 'x-user-email': userEmail || ''
             }
         });
+
+        if (response.status === 401) {
+            alert('Session expired. Please log in again.');
+            window.location.href = 'index.html';
+            return;
+        }
 
         const result = await response.json();
 
@@ -667,6 +783,12 @@ window.confirmRegistration = async function (registrationId, teamId) {
             },
             body: JSON.stringify(body)
         });
+
+        if (response.status === 401) {
+            alert('Session expired. Please log in again.');
+            window.location.href = 'index.html';
+            return;
+        }
 
         const result = await response.json();
 

@@ -27,8 +27,9 @@ const getNotifications = async (req, res) => {
         // Get user notifications
         const { data: notifications, error: notifError } = await supabase
             .from('notifications')
-            .select('*')
+            .select('*, action_taken')
             .eq('user_id', userId)
+            .neq('status', 'ARCHIVED')
             .order('created_at', { ascending: false });
 
         if (notifError) {

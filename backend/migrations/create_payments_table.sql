@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS payments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES users(id),
+    user_id BIGINT REFERENCES users(id),
     order_id TEXT, -- What the payment was for (e.g. cart_id or specialized order id)
     bkash_transaction_id TEXT UNIQUE, -- Most important – unique proof
     bkash_payment_id TEXT, -- Returned by bKash checkout

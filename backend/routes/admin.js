@@ -1621,11 +1621,7 @@ router.get('/tunnel/status', requireAdmin, tunnelController.getTunnelStatus);
 // Update team member payment status (robust)
 router.put('/team-members/:memberId/payment', requireAdmin, registrationController.updateTeamMemberPayment);
 
-module.exports = router;
-
-
 // Registration overview
-
 router.get('/registrations/overview', requireAdmin, registrationController.getRegistrationOverview);
 
 // Get registrations for a specific game (with optional search)
@@ -1642,3 +1638,32 @@ router.post('/registrations/confirm/:registrationId', requireAdmin, registration
 
 // Remove team member (admin override)
 router.delete('/team-members/:memberId', requireAdmin, teamController.adminRemoveTeamMember);
+
+// ============================================================
+// SCHEDULING ENGINE ROUTES
+// ============================================================
+const schedulingController = require('../controllers/schedulingController');
+
+// Game configs
+router.get('/scheduling/configs/:tournamentId', requireAdmin, schedulingController.getGameConfigs);
+router.post('/scheduling/configs/game/:gameId', requireAdmin, schedulingController.saveGameConfig);
+
+// Schedule config (global time window)
+router.post('/scheduling/config/:tournamentId', requireAdmin, schedulingController.saveScheduleConfig);
+
+// Run scheduling algorithm
+router.post('/scheduling/run/:tournamentId', requireAdmin, schedulingController.shuffleAndSchedule);
+
+// Results & reports
+router.get('/scheduling/results/:tournamentId', requireAdmin, schedulingController.getScheduleResults);
+router.get('/scheduling/report/:tournamentId', requireAdmin, schedulingController.getScheduleReport);
+router.get('/scheduling/reports/all', requireAdmin, schedulingController.getAllReports);
+
+// Match actions
+router.post('/scheduling/match/:matchId/status', requireAdmin, schedulingController.updateMatchStatus);
+router.post('/scheduling/match/:matchId/reschedule', requireAdmin, schedulingController.rescheduleMatch);
+
+// Bracket
+router.get('/scheduling/bracket/:tournamentId/:gameId', requireAdmin, schedulingController.getBracketData);
+
+module.exports = router;
