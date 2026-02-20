@@ -516,6 +516,7 @@
 
                 const response = await fetch(`${API_URL}/admin/registrations/overview`, {
                     headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
                         'x-user-email': userEmail
                     }
                 });

@@ -4183,6 +4183,7 @@
 
                 const response = await fetch(`${API_URL}/admin/tunnel/status`, {
                     headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
                         'x-user-email': userEmail || ''
                     }
                 });
@@ -4265,6 +4266,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
                         'x-user-email': userEmail || ''
                     }
                 });
@@ -4454,8 +4456,9 @@
                 ? 'http://localhost:3000/api/admin' : '/api/admin';
 
             function getHeaders() {
-                const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-                return { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) };
+                const token = localStorage.getItem('msAccessToken');
+                const userEmail = localStorage.getItem('userEmail');
+                return { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}), ...(userEmail ? { 'x-user-email': userEmail } : {}) };
             }
 
             // Hook into showSection to load data when panels are activated
