@@ -1,66 +1,196 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AIUB Sports Portal - Login</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏆</text></svg>" type="image/svg+xml">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏆</text></svg>"
+        type="image/svg+xml">
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
             min-height: 100vh;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            padding:20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
         }
+
         .login-container {
-            background:white;
-            border-radius:8px;
-            box-shadow:0 4px 20px rgba(0,0,0,0.1);
-            padding:40px;
-            width:100%;
-            max-width:450px;
-            text-align:center;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
         }
-        .logo-section { margin-bottom:30px; }
+
+        .logo-section {
+            margin-bottom: 30px;
+        }
+
         .university-name {
-            font-size:20px; font-weight:600; color:#333; margin-bottom:5px; line-height:1.4;
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+            line-height: 1.4;
         }
-        .tagline { font-size:14px; color:#666; font-style:italic; margin-bottom:30px; }
-        .portal-title { font-size:24px; font-weight:700; color:#1976d2; margin-bottom:30px; }
-        .login-instruction { font-size:15px; color:#555; margin-bottom:25px; line-height:1.6; }
+
+        .tagline {
+            font-size: 14px;
+            color: #666;
+            font-style: italic;
+            margin-bottom: 30px;
+        }
+
+        .portal-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1976d2;
+            margin-bottom: 30px;
+        }
+
+        .login-instruction {
+            font-size: 15px;
+            color: #555;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
         .login-button {
-            width:100%; padding:14px 24px;
-            background:linear-gradient(135deg,#1976d2 0%,#1565c0 100%);
-            color:white; border:none; border-radius:6px;
-            font-size:16px; font-weight:600;
-            cursor:pointer; transition:all 0.3s ease;
-            display:flex; align-items:center; justify-content:center; gap:10px;
-            box-shadow:0 2px 8px rgba(25,118,210,0.3);
+            width: 100%;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
         }
+
         .login-button:hover:not(:disabled) {
-            background:linear-gradient(135deg,#1565c0 0%,#0d47a1 100%);
-            box-shadow:0 4px 12px rgba(25,118,210,0.4); transform:translateY(-2px);
+            background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.4);
+            transform: translateY(-2px);
         }
-        .login-button:active { transform:translateY(0); }
-        .login-button:disabled { opacity:0.6; cursor:not-allowed; }
-        .ms-icon { width:24px; height:24px; }
-        .info-box { background:#e3f2fd; border-left:4px solid #2196f3; padding:15px; margin-top:25px; text-align:left; border-radius:4px; }
-        .info-box-title { font-weight:600; color:#1976d2; margin-bottom:8px; font-size:14px; }
-        .info-box-text { font-size:13px; color:#555; line-height:1.6; }
-        .email-format { font-family:'Courier New', monospace; background:#f5f5f5; padding:2px 6px; border-radius:3px; color:#d32f2f; font-weight:600; }
-        .spinner { width:20px; height:20px; border:3px solid rgba(255,255,255,0.3); border-top-color:white; border-radius:50%; animation:spin 0.8s linear infinite; }
-        @keyframes spin { to { transform:rotate(360deg); } }
-        .alert { padding:12px; border-radius:6px; margin-bottom:20px; text-align:left; font-size:14px; }
-        .alert-error { background:#f8d7da; border:1px solid #f5c6cb; color:#721c24; }
-        .hidden { display:none; }
-        .security-badge { display:flex; align-items:center; justify-content:center; gap:8px; margin-top:20px; padding:10px; background:#f5f5f5; border-radius:5px; font-size:12px; color:#666; }
-        .security-badge svg { width:16px; height:16px; fill:#4caf50; }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
+        .login-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .ms-icon {
+            width: 24px;
+            height: 24px;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin-top: 25px;
+            text-align: left;
+            border-radius: 4px;
+        }
+
+        .info-box-title {
+            font-weight: 600;
+            color: #1976d2;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .info-box-text {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .email-format {
+            font-family: 'Courier New', monospace;
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #d32f2f;
+            font-weight: 600;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .security-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 5px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .security-badge svg {
+            width: 16px;
+            height: 16px;
+            fill: #4caf50;
+        }
     </style>
 </head>
+
 <body>
     <div class="login-container">
         <div class="logo-section">
@@ -78,18 +208,19 @@
 
         <button class="login-button" id="loginBtn" onclick="handleMicrosoftLogin()">
             <svg class="ms-icon" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="23" height="23" fill="white"/>
-                <rect x="1" y="1" width="9" height="9" fill="#F25022"/>
-                <rect x="1" y="13" width="9" height="9" fill="#00A4EF"/>
-                <rect x="13" y="1" width="9" height="9" fill="#7FBA00"/>
-                <rect x="13" y="13" width="9" height="9" fill="#FFB900"/>
+                <rect width="23" height="23" fill="white" />
+                <rect x="1" y="1" width="9" height="9" fill="#F25022" />
+                <rect x="1" y="13" width="9" height="9" fill="#00A4EF" />
+                <rect x="13" y="1" width="9" height="9" fill="#7FBA00" />
+                <rect x="13" y="13" width="9" height="9" fill="#FFB900" />
             </svg>
             <span id="loginBtnText">Login with Microsoft Teams</span>
         </button>
 
         <div class="security-badge">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+                <path
+                    d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z" />
             </svg>
             <span>Secured by Microsoft Azure AD</span>
         </div>
@@ -97,7 +228,9 @@
         <div class="info-box">
             <div class="info-box-title">🔐 Authentication Requirements</div>
             <div class="info-box-text">
-                Only AIUB students with valid Microsoft Teams credentials and email format <span class="email-format">XX-XXXXX-X@student.aiub.edu</span> can access this portal.
+                Only AIUB accounts can access this portal:<br><br>
+                🟢 <strong>Students</strong> — <span class="email-format">XX-XXXXX-X@student.aiub.edu</span><br>
+                🔵 <strong>Faculty &amp; Officials</strong> — <span class="email-format">name@aiub.edu</span>
             </div>
         </div>
     </div>
@@ -108,38 +241,39 @@
         const loginBtn = document.getElementById('loginBtn');
         const loginBtnText = document.getElementById('loginBtnText');
 
-        function showAlert(message, type='error') {
+        function showAlert(message, type = 'error') {
             alertBox.className = `alert alert-${type}`;
             alertBox.textContent = message;
             alertBox.classList.remove('hidden');
-            setTimeout(()=>{ alertBox.classList.add('hidden'); },5000);
+            setTimeout(() => { alertBox.classList.add('hidden'); }, 5000);
         }
 
         async function handleMicrosoftLogin() {
             try {
-                loginBtn.disabled=true;
-                loginBtnText.innerHTML='<div class="spinner"></div> Connecting to Microsoft...';
+                loginBtn.disabled = true;
+                loginBtnText.innerHTML = '<div class="spinner"></div> Connecting to Microsoft...';
                 const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.MS_AUTH_LOGIN));
                 const data = await response.json();
-                if(data.success && data.authUrl){
-                    sessionStorage.setItem('oauth_state',data.state);
-                    window.location.href=data.authUrl;
+                if (data.success && data.authUrl) {
+                    sessionStorage.setItem('oauth_state', data.state);
+                    window.location.href = data.authUrl;
                 } else throw new Error('Failed to initiate login');
-            } catch(error){
-                console.error('Login error:',error);
-                showAlert('Connection error. Make sure the backend server is running.','error');
-                loginBtn.disabled=false;
-                loginBtnText.textContent='Login with Microsoft Teams';
+            } catch (error) {
+                console.error('Login error:', error);
+                showAlert('Connection error. Make sure the backend server is running.', 'error');
+                loginBtn.disabled = false;
+                loginBtnText.textContent = 'Login with Microsoft Teams';
             }
         }
 
-        window.addEventListener('DOMContentLoaded',()=>{
-            if(localStorage.getItem('isAuthenticated')==='true') window.location.href='dashboard.html';
+        window.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('isAuthenticated') === 'true') window.location.href = 'dashboard.html';
             const urlParams = new URLSearchParams(window.location.search);
-            const error=urlParams.get('error');
-            const errorDescription=urlParams.get('error_description');
-            if(error) showAlert(`Authentication failed: ${errorDescription || error}`,'error');
+            const error = urlParams.get('error');
+            const errorDescription = urlParams.get('error_description');
+            if (error) showAlert(`Authentication failed: ${errorDescription || error}`, 'error');
         });
     </script>
 </body>
+
 </html>

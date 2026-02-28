@@ -1021,6 +1021,84 @@
         .remove-from-cart-btn:hover {
             background: #dc2626;
         }
+
+        /* ── Nav avatar chip ── */
+        .nav-avatar-chip {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1.5px solid rgba(255, 255, 255, 0.22);
+            border-radius: 40px;
+            padding: 4px 14px 4px 5px;
+            cursor: default;
+            transition: background 0.2s;
+        }
+
+        .nav-avatar-chip:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-avatar-chip img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            background: #cbd5e0;
+        }
+
+        .nav-avatar-name {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: white;
+            max-width: 140px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* ── Sidebar user card ── */
+        #sidebarUserCard {
+            background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+            border-radius: 10px;
+            padding: 16px 14px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.30);
+        }
+
+        #sidebarUserPhoto {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgba(255, 255, 255, 0.75);
+            background: #bfdbfe;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+        }
+
+        #sidebarUserName {
+            font-size: 13px;
+            font-weight: 700;
+            color: white;
+            text-align: center;
+            line-height: 1.35;
+        }
+
+        #sidebarUserRole {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: rgba(255, 255, 255, 0.75);
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 2px 10px;
+        }
     </style>
     <style>
         /* Team Registration Modal Styles */
@@ -1310,7 +1388,10 @@
             </div>
         </div>
         <div class="header-right">
-            <span class="welcome-text" id="welcomeText">Welcome</span>
+            <!-- Profile name chip (top navbar) -->
+            <div class="nav-avatar-chip">
+                <span class="nav-avatar-name" id="navAvatarName">Welcome</span>
+            </div>
             <div class="icon-btn" id="adminBtn" style="display: none;" onclick="goToAdmin()">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1378,6 +1459,12 @@
     <div class="main-container">
         <!-- Sidebar -->
         <div class="sidebar">
+            <!-- Sidebar user profile card -->
+            <div id="sidebarUserCard">
+                <img id="sidebarUserPhoto" src="images/logo.svg" alt="Profile">
+                <div id="sidebarUserName">Loading...</div>
+                <div id="sidebarUserRole">Student</div>
+            </div>
             <button class="sidebar-btn" onclick="showSection('homeSection')">
                 <div class="sidebar-btn-content">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1775,9 +1862,8 @@
                     originalData = { ...data.profile };
                     displayProfile(data.profile);
 
-                    // Update welcome text
-                    document.getElementById('welcomeText').textContent =
-                        `Welcome ${data.profile.full_name || data.profile.student_id}`;
+                    // Update navbar avatar chip & sidebar user card
+                    updateUserPhotoUI(data.profile);
                 }
             } catch (error) {
                 console.error('Error loading profile:', error);
@@ -1795,6 +1881,8 @@
             document.getElementById('bloodGroup').value = user.blood_group || '';
             document.getElementById('programLevel').value = user.program_level || '';
             document.getElementById('department').value = user.department || '';
+            // Refresh photo UI whenever profile is displayed
+            updateUserPhotoUI(user);
 
             // Update name edit badge
             updateNameBadge(user.name_edit_count || 0);
@@ -1817,7 +1905,43 @@
             }
         }
 
-        // Enable edit mode
+        // Populate navbar avatar chip & sidebar user card from DB user record
+        function updateUserPhotoUI(user) {
+            const FALLBACK = 'images/logo.svg';
+            const photoUrl = user.profile_photo_url
+                || localStorage.getItem('profilePhotoUrl')
+                || FALLBACK;
+
+            // Navbar chip
+            const navImg = document.getElementById('navAvatarImg');
+            const navName = document.getElementById('navAvatarName');
+            if (navImg) {
+                navImg.src = photoUrl;
+                navImg.onerror = () => { navImg.src = FALLBACK; };
+            }
+            if (navName) {
+                const firstName = (user.full_name || user.student_id || 'User').split(' ')[0];
+                navName.textContent = firstName;
+            }
+
+            // Sidebar card
+            const sideImg = document.getElementById('sidebarUserPhoto');
+            const sideName = document.getElementById('sidebarUserName');
+            const sideRole = document.getElementById('sidebarUserRole');
+            if (sideImg) {
+                sideImg.src = photoUrl;
+                sideImg.onerror = () => { sideImg.src = FALLBACK; };
+            }
+            if (sideName) {
+                sideName.textContent = user.full_name || user.student_id || 'User';
+            }
+            if (sideRole) {
+                const roleMap = { student: 'Student', faculty: 'Faculty', official: 'Official' };
+                sideRole.textContent = roleMap[user.role] || (user.role || 'Member');
+            }
+        }
+
+
         function enableEdit() {
             isEditing = true;
 

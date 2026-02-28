@@ -1,9 +1,11 @@
 ﻿// Authentication Routes
-// Version 1.0
+// Version 2.0
 
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
+const authController = require('../controllers/authController');
+const { requireAuth } = require('../middleware/auth');
 
 // POST /api/auth/login - Login or register user
 router.post('/login', userController.login);
@@ -100,5 +102,8 @@ router.get('/game-requests/:studentId', userController.getUserGameRequests);
 
 // GET /api/auth/tournament-requests/:studentId - Get user's tournament requests
 router.get('/tournament-requests/:studentId', userController.getUserTournamentRequests);
+
+// PUT /api/auth/profile-setup - Complete profile setup (JWT protected, identity from token)
+router.put('/profile-setup', requireAuth, authController.completeProfileSetup);
 
 module.exports = router;

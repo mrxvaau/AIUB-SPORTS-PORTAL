@@ -694,18 +694,159 @@ const checkModeratorStatus = async (req, res) => {
     }
 };
 
+
+// ==== COMPLETE PROFILE SETUP (Role-Aware, JWT-Authenticated) ====
+// Used by profile-setup.html on first login.
+// Identity is ALWAYS derived from the JWT token, never from request body.
+const completeProfileSetup = async (req, res) => {
+    try {
+        // req.user is populated by requireAuth middleware
+        const userId = req.user.id;
+        const studentId = req.user.studentId;
+        const email = req.user.email;
+
+        // Determine which domain the user is on
+        const isStudent = email.endsWith('@student.aiub.edu');
+
+        const {
+            gender,
+            phone_number,
+            blood_group,
+            role,
+            faculty_name,
+            program_level,
+            department,
+            profile_photo_url: clientPhotoUrl
+        } = req.body;
+
+        // ── Common required fields ─────────────────────────────────────────────
+        const validGenders = ['Male', 'Female', 'Other'];
+        if (!gender || !validGenders.includes(gender)) {
+            return res.status(400).json({ success: false, message: 'Valid gender is required' });
+        }
+
+        if (!phone_number || !/^[0-9+\-\s()]{10,15}$/.test(phone_number.trim())) {
+            return res.status(400).json({ success: false, message: 'Valid phone number is required (10-15 digits)' });
+        }
+
+        const validBloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+        if (!blood_group || !validBloodGroups.includes(blood_group)) {
+            return res.status(400).json({ success: false, message: 'Valid blood group is required' });
+        }
+
+        // ── Role-specific validation ────────────────────────────────────────────
+        let resolvedRole;
+        let resolvedFacultyName = null;
+
+        if (isStudent) {
+            // Students: role is always 'student', not sent by frontend
+            resolvedRole = 'student';
+        } else {
+            // @aiub.edu: role must be selected by user
+            if (!role || !['faculty', 'official'].includes(role)) {
+                return res.status(400).json({ success: false, message: 'Please select a role: faculty or official' });
+            }
+            resolvedRole = role;
+
+            if (role === 'faculty') {
+                const validFaculties = [
+                    'Faculty of Arts and Social Sciences',
+                    'Faculty of Business Administration',
+                    'Faculty of Engineering',
+                    'Faculty of Science and Technology',
+                    'Faculty of Health and Life Sciences'
+                ];
+                if (!faculty_name || !validFaculties.includes(faculty_name)) {
+                    return res.status(400).json({ success: false, message: 'Please select a valid faculty name' });
+                }
+                resolvedFacultyName = faculty_name;
+            }
+        }
+
+        // ── Fetch current user to confirm they exist ────────────────────────────
+        const currentUser = await supabase
+            .from('users')
+            .select('id, profile_completed, role, profile_photo_url')
+            .eq('id', userId)
+            .single();
+
+        if (currentUser.error || !currentUser.data) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // ── Build update payload ────────────────────────────────────────────────
+        const updateData = {
+            gender,
+            phone_number: phone_number.trim(),
+            blood_group,
+            role: resolvedRole,
+            faculty_name: resolvedFacultyName,
+            is_first_login: false,
+            profile_completed: true,
+            last_login: new Date().toISOString()
+        };
+
+        // Save profile photo URL if DB doesn't have one yet and client sent one
+        const existingPhotoUrl = currentUser.data.profile_photo_url;
+        if (!existingPhotoUrl && clientPhotoUrl && typeof clientPhotoUrl === 'string' && clientPhotoUrl.startsWith('http')) {
+            updateData.profile_photo_url = clientPhotoUrl;
+        }
+
+        // Optional student fields
+        if (isStudent && program_level) {
+            if (!['Undergraduate', 'Postgraduate'].includes(program_level)) {
+                return res.status(400).json({ success: false, message: 'Invalid program level' });
+            }
+            updateData.program_level = program_level;
+        }
+
+        if (isStudent && department) {
+            updateData.department = department.trim();
+        }
+
+        // ── Write to DB ─────────────────────────────────────────────────────────
+        const { error: updateError } = await supabase
+            .from('users')
+            .update(updateData)
+            .eq('id', userId);
+
+        if (updateError) {
+            console.error('[auth] Profile setup update error:', updateError);
+            return res.status(500).json({ success: false, message: 'Failed to save profile', error: updateError.message });
+        }
+
+        // ── Return updated profile ──────────────────────────────────────────────
+        const { data: updatedUser } = await supabase
+            .from('users')
+            .select('id, student_id, email, full_name, role, gender, phone_number, blood_group, profile_photo_url, faculty_name, program_level, department, profile_completed')
+            .eq('id', userId)
+            .single();
+
+        return res.json({
+            success: true,
+            message: 'Profile completed successfully! Welcome aboard!',
+            user: updatedUser
+        });
+
+    } catch (error) {
+        console.error('[auth] completeProfileSetup error:', error);
+        return res.status(500).json({ success: false, message: 'Server error during profile setup', error: error.message });
+    }
+};
+
 module.exports = {
     // Helpers (exported for use by other controllers)
     validateEmail,
     extractStudentId,
     getUserProfile,
     EMAIL_PATTERN,
-    
+
     // Route handlers
     login,
     getProfile,
     updateProfile,
     getNameEditCount,
     checkModeratorStatus,
-    debugAdminCheck
+    debugAdminCheck,
+    completeProfileSetup
 };

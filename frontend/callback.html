@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Authenticating - AIUB Sports Portal</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏆</text></svg>" type="image/svg+xml">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏆</text></svg>"
+        type="image/svg+xml">
     <style>
         * {
             margin: 0;
@@ -28,6 +31,7 @@
             text-align: center;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             max-width: 500px;
+            width: 90%;
         }
 
         .logo {
@@ -65,8 +69,13 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .error-box {
@@ -105,6 +114,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="callback-container">
         <div class="logo">🏆</div>
@@ -122,14 +132,11 @@
     <script>
         async function handleCallback() {
             try {
-                // Get URL parameters
                 const urlParams = new URLSearchParams(window.location.search);
                 const code = urlParams.get('code');
-                const state = urlParams.get('state');
                 const error = urlParams.get('error');
                 const errorDescription = urlParams.get('error_description');
 
-                // Check for errors from Microsoft
                 if (error) {
                     showError(`Authentication failed: ${errorDescription || error}`);
                     return;
@@ -142,13 +149,11 @@
 
                 updateStatus('Exchanging authorization code...');
 
-                // Exchange code for token and user info
+                // Single call to msauth/callback — handles all upsert + identity logic server-side
                 const callbackResponse = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.MS_AUTH_CALLBACK), {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ code, state })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code })
                 });
 
                 const callbackData = await callbackResponse.json();
@@ -158,51 +163,39 @@
                     return;
                 }
 
-                updateStatus('Registering user in database...');
+                const user = callbackData.user;
 
-                // Register/login user in our system
-                const loginResponse = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.AUTH_LOGIN), {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        email: callbackData.user.email
-                    })
-                });
+                updateStatus('Setting up your session...');
 
-                const loginData = await loginResponse.json();
-
-                if (!loginData.success) {
-                    showError(loginData.message || 'Failed to complete registration');
-                    return;
-                }
-
-                // Store user data
-                localStorage.setItem('userEmail', callbackData.user.email);
-                localStorage.setItem('studentId', callbackData.user.studentId);
+                // Store trusted identity data from server
                 localStorage.setItem('isAuthenticated', 'true');
-                localStorage.setItem('userData', JSON.stringify(loginData.user));
+                localStorage.setItem('userEmail', user.email);
+                localStorage.setItem('studentId', user.studentId);
+                localStorage.setItem('azureId', user.azureId);
+                localStorage.setItem('userName', user.name);
+                localStorage.setItem('userRole', user.role || '');
+                localStorage.setItem('profilePhotoUrl', user.profilePhotoUrl || '');
+                localStorage.setItem('needsRoleSelection', user.needsRoleSelection ? 'true' : 'false');
                 localStorage.setItem('msAccessToken', callbackData.accessToken);
-                localStorage.setItem('userName', callbackData.user.name);
+                localStorage.setItem('userData', JSON.stringify(user));
 
-                // Check if profile is completed
-                if (loginData.user.profile_completed === true) {
-                    // Profile already completed - go to dashboard
-                    showSuccess(`Welcome back ${callbackData.user.name}! Redirecting...`);
-                    setTimeout(() => {
-                        window.location.href = 'dashboard.html';
-                    }, 1500);
-                } else {
-                    // First time or profile not completed - go to profile completion
-                    showSuccess(`Welcome ${callbackData.user.name}! Please complete your profile...`);
-                    setTimeout(() => {
-                        window.location.href = 'profile-setup.html';
-                    }, 1500);
+                // Store JWT for API calls
+                localStorage.setItem('jwtToken', callbackData.accessToken);
+                if (callbackData.refreshToken) {
+                    localStorage.setItem('jwtRefreshToken', callbackData.refreshToken);
                 }
 
-            } catch (error) {
-                console.error('Callback error:', error);
+                // Decide destination
+                if (user.profileCompleted === true) {
+                    showSuccess(`Welcome back, ${user.name}! Redirecting to your dashboard...`);
+                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
+                } else {
+                    showSuccess(`Welcome, ${user.name}! Let's set up your profile...`);
+                    setTimeout(() => { window.location.href = 'profile-setup.html'; }, 1500);
+                }
+
+            } catch (err) {
+                console.error('Callback error:', err);
                 showError('An unexpected error occurred. Please try again.');
             }
         }
@@ -228,8 +221,8 @@
             successBox.style.display = 'block';
         }
 
-        // Start callback handling on page load
         window.addEventListener('DOMContentLoaded', handleCallback);
     </script>
 </body>
+
 </html>
