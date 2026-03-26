@@ -262,70 +262,61 @@ const shuffleAndSchedule = async (req, res) => {
             // Shuffle matches with weighted randomness
             shuffleMatchesWeighted(matches, globalPlayerTimeline);
 
-            // Determine bracket rounds
-            const totalMatches = matches.length;
-            const roundInfo = calculateBracketRounds(totalMatches);
+            // ALL real matches go into round 1 — the bracket tree for later rounds
+            // is generated dynamically by getBracketData()
+            for (let i = 0; i < matches.length; i++) {
+                const match = matches[i];
 
-            let matchIndex = 0;
-            for (let round = 0; round < roundInfo.length && matchIndex < matches.length; round++) {
-                const matchesInRound = roundInfo[round].count;
-                const roundLabel = roundInfo[round].label;
+                // Try N random candidate slots, pick minimum conflict
+                const bestSlot = findBestSlot(slots, match, globalPlayerTimeline, 5);
 
-                for (let i = 0; i < matchesInRound && matchIndex < matches.length; i++) {
-                    const match = matches[matchIndex];
-                    matchIndex++;
-
-                    // Try N random candidate slots, pick minimum conflict
-                    const bestSlot = findBestSlot(slots, match, globalPlayerTimeline, 5);
-
-                    if (!bestSlot) {
-                        // No slot available - still schedule but mark
-                        continue;
-                    }
-
-                    // Calculate conflict
-                    const conflict = calculateConflict(bestSlot, match, globalPlayerTimeline);
-
-                    const scheduledMatch = {
-                        tournament_id: parseInt(tournamentId),
-                        game_id: game.id,
-                        slot_id: bestSlot.id,
-                        participant_a_user_id: match.a_user_id || null,
-                        participant_a_team_id: match.a_team_id || null,
-                        participant_b_user_id: match.b_user_id || null,
-                        participant_b_team_id: match.b_team_id || null,
-                        participant_a_label: match.a_label,
-                        participant_b_label: match.b_label,
-                        scheduled_start: bestSlot.slot_start,
-                        scheduled_end: bestSlot.slot_end,
-                        venue_name: bestSlot.venue_name,
-                        round_number: round + 1,
-                        round_label: roundLabel,
-                        match_order: i,
-                        status: conflict.weight > 0 ? 'SCHEDULED_OVERLAP' : 'SCHEDULED',
-                        conflict_type: conflict.type || null,
-                        conflict_player_ids: conflict.playerIds || null,
-                        created_at: new Date().toISOString(),
-                        updated_at: new Date().toISOString()
-                    };
-
-                    scheduledMatches.push(scheduledMatch);
-
-                    // Update slot usage
-                    bestSlot.used = (bestSlot.used || 0) + 1;
-
-                    // Update global timeline
-                    const playerIds = getPlayerIds(match);
-                    playerIds.forEach(pid => {
-                        if (!globalPlayerTimeline[pid]) globalPlayerTimeline[pid] = [];
-                        globalPlayerTimeline[pid].push({
-                            start: new Date(bestSlot.slot_start),
-                            end: new Date(bestSlot.slot_end),
-                            gameId: game.id,
-                            matchIndex: scheduledMatches.length - 1
-                        });
-                    });
+                if (!bestSlot) {
+                    // No slot available - skip
+                    continue;
                 }
+
+                // Calculate conflict
+                const conflict = calculateConflict(bestSlot, match, globalPlayerTimeline);
+
+                const scheduledMatch = {
+                    tournament_id: parseInt(tournamentId),
+                    game_id: game.id,
+                    slot_id: bestSlot.id,
+                    participant_a_user_id: match.a_user_id || null,
+                    participant_a_team_id: match.a_team_id || null,
+                    participant_b_user_id: match.b_user_id || null,
+                    participant_b_team_id: match.b_team_id || null,
+                    participant_a_label: match.a_label,
+                    participant_b_label: match.b_label,
+                    scheduled_start: bestSlot.slot_start,
+                    scheduled_end: bestSlot.slot_end,
+                    venue_name: bestSlot.venue_name,
+                    round_number: 1,
+                    round_label: 'Group Stage',
+                    match_order: i,
+                    status: conflict.weight > 0 ? 'SCHEDULED_OVERLAP' : 'SCHEDULED',
+                    conflict_type: conflict.type || null,
+                    conflict_player_ids: conflict.playerIds || null,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                };
+
+                scheduledMatches.push(scheduledMatch);
+
+                // Update slot usage
+                bestSlot.used = (bestSlot.used || 0) + 1;
+
+                // Update global timeline
+                const playerIds = getPlayerIds(match);
+                playerIds.forEach(pid => {
+                    if (!globalPlayerTimeline[pid]) globalPlayerTimeline[pid] = [];
+                    globalPlayerTimeline[pid].push({
+                        start: new Date(bestSlot.slot_start),
+                        end: new Date(bestSlot.slot_end),
+                        gameId: game.id,
+                        matchIndex: scheduledMatches.length - 1
+                    });
+                });
             }
         }
 
@@ -921,21 +912,154 @@ const getBracketData = async (req, res) => {
             .eq('id', gameId)
             .single();
 
-        // Group by round
-        const rounds = {};
-        if (matches) {
-            matches.forEach(m => {
-                const rn = m.round_number || 1;
-                if (!rounds[rn]) rounds[rn] = { label: m.round_label || `Round ${rn}`, matches: [] };
-                rounds[rn].matches.push(m);
-            });
+        // Build a proper single-elimination bracket from the matches
+        const allMatches = matches || [];
+        if (allMatches.length === 0) {
+            return res.json({ success: true, game, rounds: [], totalMatches: 0 });
+        }
+
+        // All real matches go into Round 1 (the first round of the bracket)
+        const round1Matches = allMatches.map((m, idx) => ({
+            ...m,
+            match_number: idx + 1
+        }));
+
+        // [BUG 1 FIX] Correct totalRounds: number of rounds in a single-elimination bracket
+        // with N first-round matches is ceil(log2(N)) + 1, but we need at least 1 round.
+        // For N=1 -> 1 round (Final only). For N=2 -> 2 rounds. For N=3,4 -> 3 rounds. etc.
+        const totalR1 = round1Matches.length;
+        let totalRounds;
+        if (totalR1 <= 1) {
+            totalRounds = 1;
+        } else {
+            // Number of rounds needed: keep halving R1 count until we reach 1
+            totalRounds = Math.ceil(Math.log2(totalR1)) + 1;
+        }
+
+        // Build round labels
+        function getRoundLabel(roundIdx, totalRounds) {
+            const fromEnd = totalRounds - roundIdx;
+            if (fromEnd === 1) return 'Final';
+            if (fromEnd === 2) return 'Semi Final';
+            if (fromEnd === 3) return 'Quarter Final';
+            if (fromEnd === 4) return 'Round of 16';
+            return `Round ${roundIdx + 1}`;
+        }
+
+        const rounds = [];
+
+        // Round 1: all real matches
+        const r1Label = totalRounds === 1 ? 'Final'
+            : totalRounds === 2 ? 'Semi Final'
+                : getRoundLabel(0, totalRounds);
+
+        rounds.push({
+            label: r1Label,
+            matches: round1Matches.map(m => ({
+                ...m,
+                _matchNum: m.match_number,
+                _isBye: m.participant_b_label === 'BYE'
+            }))
+        });
+
+        // [BUG 2 FIX] Running match number counter to prevent duplicates
+        let nextMatchNum = round1Matches.length + 1;
+
+        // Generate placeholder rounds for subsequent elimination stages
+        for (let r = 1; r < totalRounds; r++) {
+            const prevRoundMatches = rounds[r - 1].matches;
+            const nextRoundMatches = [];
+            const label = getRoundLabel(r, totalRounds);
+
+            for (let i = 0; i < prevRoundMatches.length; i += 2) {
+                const m1 = prevRoundMatches[i];
+                const m2 = prevRoundMatches[i + 1];
+
+                // Determine labels for this match's participants
+                let aLabel, bLabel;
+                let aUserId = null, bUserId = null;
+                let aTeamId = null, bTeamId = null;
+                let isAutoAdvance = false;
+
+                // [BUG 4 FIX] Check winner_label FIRST (even for BYE matches),
+                // fall back to participant_a_label only if no winner recorded
+                if (m1 && m1._isBye) {
+                    // BYE match — use winner_label if set, otherwise the non-BYE participant auto-advances
+                    aLabel = m1.winner_label || m1.participant_a_label;
+                    aUserId = m1.winner_user_id || m1.participant_a_user_id;
+                    aTeamId = m1.winner_team_id || m1.participant_a_team_id;
+                } else if (m1 && m1.winner_label) {
+                    aLabel = m1.winner_label;
+                    aUserId = m1.winner_user_id;
+                    aTeamId = m1.winner_team_id;
+                } else if (m1) {
+                    aLabel = `Winner of Match ${m1._matchNum}`;
+                } else {
+                    aLabel = 'TBD';
+                }
+
+                if (!m2) {
+                    // [BUG 3 FIX] Odd number of matches in previous round — this one auto-advances
+                    // Mark as auto-advance so the UI collapses it
+                    bLabel = 'BYE';
+                    isAutoAdvance = true;
+                } else if (m2._isBye) {
+                    // [BUG 4 FIX] Same as above — respect winner_label
+                    bLabel = m2.winner_label || m2.participant_a_label;
+                    bUserId = m2.winner_user_id || m2.participant_a_user_id;
+                    bTeamId = m2.winner_team_id || m2.participant_a_team_id;
+                } else if (m2.winner_label) {
+                    bLabel = m2.winner_label;
+                    bUserId = m2.winner_user_id;
+                    bTeamId = m2.winner_team_id;
+                } else {
+                    bLabel = `Winner of Match ${m2._matchNum}`;
+                }
+
+                // [BUG 2 FIX] Use running counter for unique match numbers
+                const matchNum = nextMatchNum++;
+
+                // [BUG 3 FIX] For auto-advance placeholders, pre-set winner so next round picks it up
+                let placeholderWinner = null;
+                if (isAutoAdvance) {
+                    placeholderWinner = aLabel;
+                }
+
+                nextRoundMatches.push({
+                    id: null, // placeholder — no DB record
+                    _matchNum: matchNum,
+                    _isBye: isAutoAdvance,
+                    _isPlaceholder: true,
+                    round_number: r + 1,
+                    round_label: label,
+                    participant_a_label: aLabel,
+                    participant_a_user_id: aUserId,
+                    participant_a_team_id: aTeamId,
+                    participant_b_label: bLabel,
+                    participant_b_user_id: bUserId,
+                    participant_b_team_id: bTeamId,
+                    scheduled_start: null,
+                    scheduled_end: null,
+                    venue_name: null,
+                    status: isAutoAdvance ? 'BYE_ADVANCE' : 'PENDING',
+                    score_a: null,
+                    score_b: null,
+                    winner_label: placeholderWinner,
+                    winner_user_id: isAutoAdvance ? aUserId : null,
+                    winner_team_id: isAutoAdvance ? aTeamId : null
+                });
+            }
+
+            // Stop generating rounds if we're down to 1 match (the Final)
+            rounds.push({ label, matches: nextRoundMatches });
+            if (nextRoundMatches.length <= 1) break;
         }
 
         res.json({
             success: true,
             game: game || null,
-            rounds: Object.values(rounds),
-            totalMatches: matches?.length || 0
+            rounds,
+            totalMatches: allMatches.length
         });
     } catch (error) {
         console.error('getBracketData error:', error);

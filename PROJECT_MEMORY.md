@@ -1,7 +1,7 @@
 # 🧠 AIUB Sports Portal - Project Memory
 
-**Last Updated**: 2026-02-08 @ 23:35  
-**Version**: 2.0  
+**Last Updated**: 2026-03-19 @ 18:15  
+**Version**: 2.1  
 **Status**: ✅ Stable - Development Active
 
 > 📌 **Purpose**: This file serves as a persistent memory across sessions and agents. Read this FIRST when starting work on this project to understand the context, progress, and known issues.
@@ -11,6 +11,37 @@
 ## 🔥 Recent Updates Log
 
 > ⚡ **Chain Reaction Rule**: Always READ this section → Work → UPDATE this section → READ again
+
+### 2026-03-19 18:15 - Session: Full Codebase Recursive Review & Understanding
+- **What**: Performed a full, end-to-end recursive read of the entire codebase to achieve complete project understanding
+- **Why**: User requested a complete understanding before beginning any code changes; no code was modified this session
+- **Backend Files Reviewed**:
+  - `server.js` – Express app init, CORS, static serving, Supabase healthcheck on startup
+  - `config/supabase.js` – Service-role key Supabase client (bypasses RLS for backend ops)
+  - `middleware/auth.js` – JWT verify/generate, `requireAuth`, `requireAdmin`, `requireModerator` middleware; role-based access via `admins` + `admin_role_map` tables
+  - `routes/auth.js` – User auth, profile, tournament, registration, team, notification, cart endpoints
+  - `routes/admin.js` (1674 lines) – Full admin CRUD for tournaments, games, scheduling config, match status, bracket, registrations, role/permission management, tunnel control
+  - `routes/dashboard.js` – Dashboard-specific aggregated data endpoints
+  - `routes/msauth.js` – Microsoft Azure AD OAuth 2.0 flow; domain validation; photo proxy
+  - `controllers/authController.js` – Login/register, profile complete/update, name edit limit (3×), first-login flow, admin/moderator check
+  - `controllers/registrationController.js` – Solo/team game reg, cancel, admin payment status update, per-member payment tracking
+  - `controllers/teamController.js` (1724 lines) – Create team, add/remove member, gender/mix validation, mutual exclusivity enforcement, accept/reject invitation, confirm team, replace member
+  - `controllers/schedulingController.js` – Slot generation, match pool, bracket building, cross-sport conflict detection, multi-round tournament scheduling
+  - `controllers/userController.js` – Re-export barrel file for all sub-controllers
+  - `controllers/notificationController.js`, `cartController.js`, `requestController.js`, `tournamentController.js` – Referenced but not directly read; confirmed existence via `userController.js`
+- **Frontend Files Reviewed**:
+  - `api-config.js` – Centralized endpoint map; auto-switches to tunnel URL when on `loca.lt` hostname
+  - `js/auth.js` – Admin access check + `checkAuthentication()` (localStorage-based)
+  - `js/utils.js` – `showAlert()`, `logout()`, `buildApiUrl()`, `getApiUrl()`
+  - `scheduling.html` (1404 lines) – Game config cards; global time config; shuffle-and-schedule trigger; results summary; match list with conflict/filter tabs; bracket links
+  - `bracket.html` (801 lines) – Visual tournament bracket; round-by-round match nodes; result modal; `submitResult()` → `POST /admin/scheduling/match/:id/status`
+  - `registrations.html` (808 lines) – Tournament list → game cards → inline modal for per-game registrations; payment confirm flow
+- **Database Schema Confirmed**:
+  - Tables: `users`, `tournaments`, `tournament_games`, `game_registrations`, `teams`, `team_members`, `notifications`, `cart`, `admins`, `admin_roles`, `admin_role_map`, `permissions`, `role_permissions`, `admin_audit_logs`, `game_requests`, `tournament_requests`
+  - `game_registrations` is **missing** the `team_id` column in `supabase-schema.sql` (the simplistic schema) but it is used in code (e.g. `registrationController.js` selects `team_id`). The production DB likely has it as an ALTER TABLE was run separately. The `database/supabse-complete-schema.sql` also lacks `team_id` on `game_registrations` — **confirm this column exists in production Supabase**.
+  - `action_taken` column on `notifications` used in `teamController.js` — not present in either schema file; must have been added via a manual migration.
+  - `tournament_games.team_size` used in controllers but **missing from schema files** — must exist in production DB.
+  - `notifications.action_taken` and `game_registrations.team_id` and `tournament_games.team_size` are **undocumented migrations** that exist in the live DB but not in the schema SQL files.
 
 ### 2026-02-08 23:35 - Implemented: Port Forwarding System
 - **What**: Added secure, admin-controlled tunneling for temporary online testing
@@ -55,29 +86,29 @@
 
 ## 📋 Last Session Work
 
-**Session**: 2026-02-08 @ 05:45-12:47 (7 hours)  
+**Session**: 2026-03-19 @ 17:30-18:15  
 **Agent**: Antigravity  
-**Focus**: Team Mutual Exclusivity + Profile Setup Bug Fix
+**Focus**: Full recursive codebase read — no code changes, understanding only
 
 **Completed**:
-- ✅ Implemented **Port Forwarding System** (Full Stack)
-  - Backend: `tunnelController.js` managing `localtunnel` processes
-  - Frontend: Admin Dashboard UI for start/stop control
-  - Config: Dynamic API URL switching via `tunnel-config.js` and `api-config.js`
-- ✅ Implemented Team Mutual Exclusivity (2 complementary features)
-  - Duplicate Prevention: Blocks adding users already on another team for same game
-  - Auto-Removal: Removes user from pending teams when accepting one invite
-- ✅ Fixed profile-setup.html CSS rendering issue (styles outside `<style>` tags)
-- ✅ Updated backend `teamController.js` with validation + cleanup logic
-- ✅ Updated frontend `registration.html` + `dashboard.html` with error handling
-- ✅ Created comprehensive walkthrough documentation
-- ✅ Updated PROJECT_MEMORY.md with all changes
+- ✅ Read ALL backend files: `server.js`, `config/supabase.js`, `middleware/auth.js`
+- ✅ Read ALL backend routes: `auth.js`, `admin.js` (1674 lines), `dashboard.js`, `msauth.js`
+- ✅ Read ALL controllers: `authController.js`, `registrationController.js`, `teamController.js` (1724 lines), `schedulingController.js`, `userController.js`
+- ✅ Read database schemas: `backend/supabase-schema.sql` + `database/supabse-complete-schema.sql`
+- ✅ Read frontend config: `api-config.js`, `js/auth.js`, `js/utils.js`
+- ✅ Read key admin frontend pages: `scheduling.html` (1404 lines), `bracket.html` (801 lines), `registrations.html` (808 lines)
+- ✅ Updated `PROJECT_MEMORY.md` with complete session summary and 3 critical schema gap findings
+
+**Critical Findings — Schema Discrepancies**:
+- ⚠️ `game_registrations.team_id` — used in code but NOT in schema SQL files → verify in Supabase dashboard
+- ⚠️ `tournament_games.team_size` — used in code but NOT in schema SQL files → verify in Supabase dashboard
+- ⚠️ `notifications.action_taken` — used in teamController but NOT in schema SQL files → verify in Supabase dashboard
 
 **Next Session Should**:
-- Test Port Forwarding system (Admin Dashboard > System Config)
-- Test team mutual exclusivity manually (multiple teams, same user)
-- Consider adding automated tests for team logic
-- Continue with planned features or bug fixes
+- Verify the 3 missing columns above exist in the live Supabase DB (`GET /api/admin/debug` or Supabase dashboard)
+- Decide what to fix/implement next (features, bugs, security hardening)
+- Start removing debug `console.log` statements if cleanup is desired
+- Update schema SQL files with the missing columns to keep documentation in sync
 
 ---
 

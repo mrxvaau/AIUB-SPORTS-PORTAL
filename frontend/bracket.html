@@ -121,6 +121,31 @@
             position: relative;
         }
 
+        /* Connector lines between rounds */
+        .bracket-round:not(:last-child) .match-node {
+            position: relative;
+        }
+
+        .bracket-round:not(:last-child) .match-node::after {
+            content: '';
+            position: absolute;
+            right: -16px;
+            top: 50%;
+            width: 16px;
+            height: 2px;
+            background: rgba(99, 102, 241, 0.35);
+        }
+
+        .bracket-round:not(:first-child) .match-node::before {
+            content: '';
+            position: absolute;
+            left: -16px;
+            top: 50%;
+            width: 16px;
+            height: 2px;
+            background: rgba(99, 102, 241, 0.35);
+        }
+
         .round-header {
             text-align: center;
             padding: 10px;
@@ -150,9 +175,20 @@
             border-radius: 10px;
             padding: 0;
             margin: 6px 16px;
-            overflow: hidden;
+            overflow: visible;
             cursor: pointer;
             transition: all 0.2s;
+            position: relative;
+        }
+
+        .match-node.bye-match {
+            opacity: 0.5;
+            cursor: default;
+        }
+
+        .match-node.bye-match:hover {
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: none;
         }
 
         .match-node:hover {
@@ -445,6 +481,11 @@
         .legend-dot.gray {
             background: #6b7280;
         }
+
+        .status-bye-advance {
+            background: rgba(168, 85, 247, 0.08);
+            border-color: rgba(168, 85, 247, 0.2);
+        }
     </style>
 </head>
 
@@ -648,34 +689,48 @@
         }
 
         function renderMatchNode(m) {
+            const isPlaceholder = m._isPlaceholder || false;
+            const isBye = m.participant_b_label === 'BYE';
+            const isByeAdvance = m.status === 'BYE_ADVANCE';
+
             const statusClass = m.status === 'SCHEDULED_OVERLAP' ? 'status-overlap'
                 : m.status === 'HOLD_BY_ADMIN' ? 'status-hold'
                     : m.status === 'PLAYED' ? 'status-played'
-                        : '';
+                        : isByeAdvance ? 'status-bye-advance'
+                            : '';
 
             const isAWinner = m.winner_label === m.participant_a_label && m.winner_label;
             const isBWinner = m.winner_label === m.participant_b_label && m.winner_label;
-            const isBye = m.participant_b_label === 'BYE';
+            const isAPlaceholder = (m.participant_a_label || '').startsWith('Winner of');
+            const isBPlaceholder = (m.participant_b_label || '').startsWith('Winner of');
 
             const time = m.scheduled_start
                 ? new Date(m.scheduled_start).toLocaleString('en-US', {
                     month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                 })
-                : '—';
+                : isPlaceholder ? '⏳ Awaiting previous round'
+                    : isBye ? '🔄 Auto-advance' : '—';
+
+            // [BUG 5 FIX] Disable clicks on BYE matches AND placeholders
+            const isClickable = !isPlaceholder && !isBye && !isByeAdvance;
+            const clickHandler = isClickable ? `onclick="openResultModal(${m.id})"` : '';
+            const byeClass = (isBye || isByeAdvance) ? 'bye-match' : '';
+            const placeholderStyle = isPlaceholder ? 'opacity: 0.55; cursor: default;' : '';
+            const matchLabel = m._matchNum ? `M${m._matchNum}` : '';
 
             return `
-                <div class="match-node ${statusClass}" onclick="openResultModal(${m.id})" data-match-id="${m.id}">
+                <div class="match-node ${statusClass} ${byeClass}" ${clickHandler} data-match-id="${m.id || ''}" style="${placeholderStyle}">
                     <div class="match-participant-row ${isAWinner ? 'winner' : ''}">
-                        <span class="participant-name">${m.participant_a_label || 'TBD'}</span>
+                        <span class="participant-name ${isAPlaceholder ? 'bye' : ''}" title="${m.participant_a_label || 'TBD'}">${m.participant_a_label || 'TBD'}</span>
                         <span class="participant-score">${m.score_a || ''}</span>
                     </div>
                     <div class="match-participant-row ${isBWinner ? 'winner' : ''} ${isBye ? 'bye-row' : ''}">
-                        <span class="participant-name ${isBye ? 'bye' : ''}">${m.participant_b_label || 'TBD'}</span>
+                        <span class="participant-name ${isBye || isBPlaceholder ? 'bye' : ''}" title="${m.participant_b_label || 'TBD'}">${m.participant_b_label || 'TBD'}</span>
                         <span class="participant-score">${m.score_b || ''}</span>
                     </div>
                     <div class="match-meta">
                         <span class="match-time">🕐 ${time}</span>
-                        <span class="match-venue">📍 ${m.venue_name || '—'}</span>
+                        <span class="match-venue">${m.venue_name ? '📍 ' + m.venue_name : matchLabel ? '🏷️ ' + matchLabel : ''}</span>
                     </div>
                 </div>
             `;
@@ -729,7 +784,9 @@
 
             document.getElementById('scoreA').value = match.score_a || '';
             document.getElementById('scoreB').value = match.score_b || '';
-            document.getElementById('statusSelect').value = match.status === 'PLAYED' ? 'PLAYED' : 'PLAYED';
+            // [BUG 7 FIX] Pre-fill with actual match status, fallback to PLAYED
+            const validStatuses = ['PLAYED', 'NO_SHOW_SINGLE', 'NO_SHOW_BOTH', 'HOLD_BY_ADMIN'];
+            document.getElementById('statusSelect').value = validStatuses.includes(match.status) ? match.status : 'PLAYED';
             document.getElementById('adminNotes').value = match.admin_notes || '';
 
             document.getElementById('resultModal').classList.add('active');
