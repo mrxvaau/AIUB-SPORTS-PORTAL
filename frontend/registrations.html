@@ -667,8 +667,11 @@
 
             try {
                 const userEmail = localStorage.getItem('userEmail');
-                const response = await fetch(`${API_URL}/admin/registrations/game/${gameId}`, {
-                    headers: { 'x-user-email': userEmail }
+                const response = await fetch(`${API_URL}/admin/games/${gameId}/registrations`, {
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                        'x-user-email': userEmail
+                    }
                 });
                 const data = await response.json();
 
@@ -732,7 +735,7 @@
                 const userEmail = localStorage.getItem('userEmail');
                 const body = teamId ? { teamId } : {};
 
-                const response = await fetch(`${API_URL}/admin/registrations/${registrationId}/confirm`, {
+                const response = await fetch(`${API_URL}/admin/registrations/confirm/${registrationId}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

@@ -436,16 +436,19 @@ function generateTimeSlots(schedConfig, gameConfig, gameId, tournamentId) {
     const parallelCount = gameConfig.parallel_matches || 1;
     const venueNames = gameConfig.venue_names || [];
 
-    const startDate = new Date(schedConfig.start_date);
-    const endDate = new Date(schedConfig.end_date);
+    const startDate = new Date(schedConfig.start_date + 'T00:00:00+06:00');
+    const endDate = new Date(schedConfig.end_date + 'T23:59:59+06:00');
+
+    // Strip seconds from time strings if present (DB may store HH:MM:SS)
+    // We only need HH:MM for ISO date construction
+    const dailyStartHHMM = schedConfig.daily_start_time.split(':').slice(0, 2).join(':');
+    const dailyEndHHMM = schedConfig.daily_end_time.split(':').slice(0, 2).join(':');
 
     for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
         const dateStr = d.toISOString().split('T')[0];
-        const [startH, startM] = schedConfig.daily_start_time.split(':').map(Number);
-        const [endH, endM] = schedConfig.daily_end_time.split(':').map(Number);
 
-        let slotStart = new Date(`${dateStr}T${schedConfig.daily_start_time}:00+06:00`);
-        const dayEnd = new Date(`${dateStr}T${schedConfig.daily_end_time}:00+06:00`);
+        let slotStart = new Date(`${dateStr}T${dailyStartHHMM}:00+06:00`);
+        const dayEnd = new Date(`${dateStr}T${dailyEndHHMM}:00+06:00`);
 
         while (slotStart.getTime() + slotDuration <= dayEnd.getTime()) {
             const slotEnd = new Date(slotStart.getTime() + gameConfig.match_duration * 60 * 1000);

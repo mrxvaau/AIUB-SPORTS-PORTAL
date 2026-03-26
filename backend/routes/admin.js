@@ -587,7 +587,9 @@ router.post('/tournaments', requireAdmin, upload.single('photo'), handleMulterEr
                             game_name: game.name,
                             game_type: dbGameType,
                             fee_per_person: game.fee,
-                            team_size: teamSize
+                            team_size: teamSize,
+                            participant_roles: game.participant_roles || 'student',
+                            allow_cross_roles: game.allow_cross_roles || false
                         }]);
 
                     if (gameError) {
@@ -654,7 +656,7 @@ router.get('/tournaments/:id/games', async (req, res) => {
 
         const { data: games, error } = await supabase
             .from('tournament_games')
-            .select('id, category, game_name, game_type, fee_per_person, team_size')
+            .select('id, category, game_name, game_type, fee_per_person, team_size, participant_roles, allow_cross_roles')
             .eq('tournament_id', tournamentId)
             .order('category')
             .order('game_name');
@@ -941,7 +943,9 @@ router.put('/tournaments/:id', requireAdmin, (req, res, next) => {
                             category: game.category,
                             game_name: game.name,
                             game_type: dbGameType,
-                            fee_per_person: game.fee
+                            fee_per_person: game.fee,
+                            participant_roles: game.participant_roles || 'student',
+                            allow_cross_roles: game.allow_cross_roles || false
                         }]);
 
                     if (gameError) {

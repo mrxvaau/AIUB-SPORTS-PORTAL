@@ -3569,7 +3569,41 @@
                 if (input) input.checked = true;
             });
 
+            // reset Roles — Student ON, Official OFF by default
+            document.getElementById('gc_roleStudent').classList.add('active');
+            document.getElementById('gc_roleStudentChk').checked = true;
+            document.getElementById('gc_roleOfficial').classList.remove('active');
+            document.getElementById('gc_roleOfficialChk').checked = false;
+            document.getElementById('gc_crossRoleRow').style.display = 'none';
+            document.getElementById('gc_crossRoleChk').checked = false;
+            gc_updateCrossRoleHint();
+
             gc_resetFormats();
+        }
+
+        function gc_toggleRolePill(el) {
+            if (el.classList.contains('disabled')) return;
+            el.classList.toggle('active');
+            const input = el.querySelector('input');
+            if (input) input.checked = el.classList.contains('active');
+            // Show cross-role checkbox only when BOTH roles are active
+            const studentActive = document.getElementById('gc_roleStudent').classList.contains('active');
+            const officialActive = document.getElementById('gc_roleOfficial').classList.contains('active');
+            const crossRow = document.getElementById('gc_crossRoleRow');
+            if (studentActive && officialActive) {
+                crossRow.style.display = 'block';
+            } else {
+                crossRow.style.display = 'none';
+                document.getElementById('gc_crossRoleChk').checked = false;
+                gc_updateCrossRoleHint();
+            }
+        }
+
+        function gc_updateCrossRoleHint() {
+            const checked = document.getElementById('gc_crossRoleChk').checked;
+            document.getElementById('gc_crossRoleDesc').textContent = checked
+                ? '✅ Checked: Students and Officials share one bracket (can face each other)'
+                : '☐ Unchecked: each group plays in its own separate bracket';
         }
 
         function closeGameCategoryModal() {
@@ -3722,29 +3756,53 @@
             const mixDuo = document.getElementById('gc_formatMixDuo').checked;
             const squad = document.getElementById('gc_formatSquad').checked;
 
+            // --- Participant roles ---
+            const isStudent = document.getElementById('gc_roleStudentChk').checked;
+            const isOfficial = document.getElementById('gc_roleOfficialChk').checked;
+            const allowCrossRoles = document.getElementById('gc_crossRoleChk').checked;
+
+            let rolesArr = [];
+            if (isStudent) rolesArr.push('student');
+            if (isOfficial) rolesArr.push('official');
+            if (rolesArr.length === 0) rolesArr = ['student']; // fallback
+            const participantRoles = rolesArr.join(',');
+
+            // Validation
+            if (!gameKey) {
+                alert('Please select a game.');
+                return;
+            }
+            if (!solo && !duo && !mixDuo && !squad) {
+                alert('Please select at least one tournament format.');
+                return;
+            }
+
             let name = gameKey === 'custom' ? customName : gameKey;
+            if (!name) {
+                alert('Please enter a custom game name.');
+                return;
+            }
 
             // Capitalize first letter of game name
             if (name && typeof name === 'string') {
                 name = name.charAt(0).toUpperCase() + name.slice(1);
             }
 
-            // Determine categories based on pills
+            // Determine categories based on gender pills
             const menPill = document.querySelector('#gc_personGroup .pill-check:nth-child(1)');
             const womenPill = document.querySelector('#gc_personGroup .pill-check:nth-child(2)');
             const isMen = menPill.classList.contains('active');
             const isWomen = womenPill.classList.contains('active');
 
-            // Create category array based on selections
             let categories = [];
             if (isMen && isWomen) {
-                categories = ['Male', 'Female', 'Mix']; // If both selected, add all
+                categories = ['Male', 'Female', 'Mix'];
             } else if (isMen) {
                 categories = ['Male'];
             } else if (isWomen) {
                 categories = ['Female'];
             } else {
-                categories = ['Mix']; // If neither selected, default to mix
+                categories = ['Mix'];
             }
 
             // Create format array based on selections
@@ -3754,72 +3812,27 @@
             if (mixDuo) formats.push('Duo (Mixed)');
             if (squad) formats.push(teamSize ? `${teamSize}v${teamSize}` : 'Squad');
 
-            // Process each format separately and assign to appropriate categories
+            // Helper to push a game entry with role info
+            const pushGame = (category, format) => {
+                tournamentGames.push({
+                    category,
+                    name,
+                    type: format,
+                    fee: parseInt(fee) || 0,
+                    participant_roles: participantRoles,
+                    allow_cross_roles: allowCrossRoles
+                });
+            };
+
+            // Process each format separately
             for (const format of formats) {
-                if (format === 'Solo') {
-                    // Solo only goes to Male/Female, not Mix
-                    if (categories.includes('Male')) {
-                        tournamentGames.push({
-                            category: 'Male',
-                            name: name,
-                            type: format,
-                            fee: parseInt(fee) || 0
-                        });
-                    }
-                    if (categories.includes('Female')) {
-                        tournamentGames.push({
-                            category: 'Female',
-                            name: name,
-                            type: format,
-                            fee: parseInt(fee) || 0
-                        });
-                    }
-                } else if (format === 'Duo') {
-                    // Duo only goes to Male/Female, not Mix
-                    if (categories.includes('Male')) {
-                        tournamentGames.push({
-                            category: 'Male',
-                            name: name,
-                            type: format,
-                            fee: parseInt(fee) || 0
-                        });
-                    }
-                    if (categories.includes('Female')) {
-                        tournamentGames.push({
-                            category: 'Female',
-                            name: name,
-                            type: format,
-                            fee: parseInt(fee) || 0
-                        });
-                    }
-                } else if (format === 'Duo (Mixed)') {
-                    // Duo (Mixed) only goes to Mix category
-                    if (categories.includes('Mix')) {
-                        tournamentGames.push({
-                            category: 'Mix',
-                            name: name,
-                            type: format,
-                            fee: parseInt(fee) || 0
-                        });
-                    }
-                } else if (format.includes('v') || format === 'Squad') {
-                    // Squad formats only go to Male/Female, not Mix
-                    if (categories.includes('Male')) {
-                        tournamentGames.push({
-                            category: 'Male',
-                            name: name,
-                            type: format,
-                            fee: parseInt(fee) || 0
-                        });
-                    }
-                    if (categories.includes('Female')) {
-                        tournamentGames.push({
-                            category: 'Female',
-                            name: name,
-                            type: format,
-                            fee: parseInt(fee) || 0
-                        });
-                    }
+                if (format === 'Duo (Mixed)') {
+                    // Duo (Mixed) goes to Mix category only
+                    if (categories.includes('Mix')) pushGame('Mix', format);
+                } else {
+                    // Solo / Duo / Squad go to Male/Female only
+                    if (categories.includes('Male')) pushGame('Male', format);
+                    if (categories.includes('Female')) pushGame('Female', format);
                 }
             }
 
@@ -3838,11 +3851,24 @@
 
             let html = '<div style="margin-bottom: 10px;">';
             tournamentGames.forEach((game, index) => {
+                // Build readable role badge
+                const roles = (game.participant_roles || 'student').split(',').map(r => {
+                    if (r === 'student') return '🎓 Student';
+                    if (r === 'official') return '🏛️ Official';
+                    return r;
+                }).join(' + ');
+                const crossLabel = (game.participant_roles || '').includes(',') && game.allow_cross_roles
+                    ? ' <span style="color:#0369a1;font-size:11px;">| same bracket</span>'
+                    : (game.participant_roles || '').includes(',')
+                        ? ' <span style="color:#6b7280;font-size:11px;">| separate brackets</span>'
+                        : '';
+
                 html += `
                     <div style="background: #f9fafb; padding: 12px; border-radius: 6px; margin-bottom: 8px; border: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <strong>${game.name}</strong> <span style="color: #6b7280; font-size: 12px;">(${game.category})</span><br>
-                            <span style="font-size: 12px; color: #6b7280;">Type: ${game.type} • Fee: ${game.fee} BDT</span>
+                            <span style="font-size: 12px; color: #6b7280;">Type: ${game.type} • Fee: ${game.fee} BDT</span><br>
+                            <span style="font-size: 11px; color: #374151; background: #e0f2fe; border-radius: 4px; padding: 2px 6px; display:inline-block; margin-top:3px;">${roles}${crossLabel}</span>
                         </div>
                         <button onclick="removeGame(${index})" style="background: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">Delete</button>
                     </div>
@@ -4074,7 +4100,7 @@
                 </div>
 
                 <div class="field">
-                    <label>Available for</label>
+                    <label>Gender</label>
                     <div class="pill-group" id="gc_personGroup">
                         <label class="pill-check active" onclick="gc_togglePill(this)">
                             <input type="checkbox" checked />
@@ -4089,6 +4115,42 @@
                     </div>
                     <div class="hint">
                         By default, Men and Women are both allowed for all standard games.
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>Participant Roles</label>
+                    <div class="pill-group" id="gc_roleGroup">
+                        <label class="pill-check active" id="gc_roleStudent"
+                            onclick="gc_toggleRolePill(this); event.preventDefault();">
+                            <input type="checkbox" id="gc_roleStudentChk" checked onclick="event.stopPropagation();" />
+                            <span class="dot"></span>
+                            🎓 Student
+                        </label>
+                        <label class="pill-check" id="gc_roleOfficial"
+                            onclick="gc_toggleRolePill(this); event.preventDefault();">
+                            <input type="checkbox" id="gc_roleOfficialChk" onclick="event.stopPropagation();" />
+                            <span class="dot"></span>
+                            🏛️ Official (Faculty &amp; Staff)
+                        </label>
+                    </div>
+                    <div class="hint" id="gc_roleHint">
+                        Select who can register for this game. <strong>Official</strong> covers both Faculty and Staff.
+                    </div>
+                    <div id="gc_crossRoleRow"
+                        style="display:none; margin-top:10px; padding:10px 12px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:6px;">
+                        <label
+                            style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; font-size:13px; color:#0c4a6e;">
+                            <input type="checkbox" id="gc_crossRoleChk"
+                                style="margin-top:2px; width:16px; height:16px; flex-shrink:0;"
+                                onchange="gc_updateCrossRoleHint()">
+                            <span>
+                                <strong>Students &amp; Officials compete against each other</strong><br>
+                                <span id="gc_crossRoleDesc" style="font-size:12px; color:#475569;">
+                                    ☐ Unchecked: each group plays in its own separate bracket
+                                </span>
+                            </span>
+                        </label>
                     </div>
                 </div>
 
