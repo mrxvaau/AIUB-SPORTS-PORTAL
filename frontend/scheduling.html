@@ -839,6 +839,346 @@
                 grid-template-columns: 1fr 1fr;
             }
         }
+
+        /* ======================== */
+        /* UPGRADE: Suggestion Panel */
+        /* ======================== */
+        .suggestion-panel {
+            margin-top: 16px;
+            display: none;
+        }
+        .suggestion-panel.active { display: block; }
+
+        .suggest-btn {
+            padding: 10px 24px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: 12px;
+        }
+        .suggest-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+        .suggest-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .suggestion-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-top: 14px;
+        }
+        @media (max-width: 768px) {
+            .suggestion-cards { grid-template-columns: 1fr; }
+        }
+
+        .suggestion-card {
+            background: rgba(255,255,255,0.06);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .suggestion-card:hover {
+            border-color: rgba(99,102,241,0.5);
+            background: rgba(99,102,241,0.08);
+        }
+        .suggestion-card.selected {
+            border-color: #6366f1;
+            background: rgba(99,102,241,0.12);
+        }
+        .suggestion-card .s-label {
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+        .suggestion-card .s-dates {
+            font-size: 12px;
+            color: #a0a0c0;
+            margin-bottom: 8px;
+        }
+        .suggestion-card .s-util {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .suggestion-card .s-util.high {
+            background: rgba(239,68,68,0.15); color: #f87171;
+        }
+        .suggestion-card .s-util.med {
+            background: rgba(245,158,11,0.15); color: #fbbf24;
+        }
+        .suggestion-card .s-util.low {
+            background: rgba(16,185,129,0.15); color: #34d399;
+        }
+        .suggestion-card .s-desc {
+            font-size: 11px;
+            color: #8b8bb0;
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+
+        .analysis-summary {
+            margin-top: 14px;
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            font-size: 13px;
+            color: #a0a0c0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .analysis-item { display: flex; align-items: center; gap: 6px; }
+        .analysis-item .a-val { font-weight: 700; color: #fff; }
+
+        /* Scheduling mode selector */
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+            align-items: center;
+        }
+        .mode-selector label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #a0a0c0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .mode-selector select {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #fff;
+            font-size: 13px;
+            font-family: inherit;
+        }
+        .mode-selector select:focus { outline: none; border-color: rgba(99,102,241,0.6); }
+
+        /* ======================== */
+        /* UPGRADE: Timeline Preview */
+        /* ======================== */
+        .preview-section {
+            display: none;
+            margin-top: 32px;
+        }
+        .preview-section.active { display: block; }
+
+        .preview-actions {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .preview-btn {
+            padding: 14px 36px;
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .preview-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99,102,241,0.4);
+        }
+        .preview-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .confirm-btn {
+            padding: 14px 36px;
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .confirm-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16,185,129,0.4);
+        }
+        .confirm-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .day-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .day-tab {
+            padding: 8px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: transparent;
+            color: #a0a0c0;
+            transition: all 0.2s;
+        }
+        .day-tab.active {
+            background: rgba(99,102,241,0.2);
+            border-color: rgba(99,102,241,0.5);
+            color: #a5b4fc;
+        }
+        .day-tab:hover { background: rgba(99,102,241,0.1); }
+        .day-tab .tab-count {
+            font-size: 10px;
+            opacity: 0.7;
+            margin-left: 4px;
+        }
+        .day-tab .tab-conflict {
+            color: #f87171;
+            font-size: 10px;
+            margin-left: 2px;
+        }
+
+        .timeline-grid {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .timeline-header {
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            background: rgba(255,255,255,0.06);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding: 10px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #a0a0c0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .timeline-row {
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            min-height: 48px;
+            align-items: stretch;
+        }
+        .timeline-row:last-child { border-bottom: none; }
+        .timeline-time {
+            padding: 12px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #a0a0c0;
+            display: flex;
+            align-items: center;
+            border-right: 1px solid rgba(255,255,255,0.06);
+        }
+        .timeline-slots {
+            display: flex;
+            gap: 8px;
+            padding: 8px 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .timeline-match {
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 180px;
+        }
+        .timeline-match .tm-game {
+            font-size: 10px;
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .timeline-match .tm-matchup {
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .timeline-match .tm-venue {
+            font-size: 10px;
+            opacity: 0.6;
+        }
+        .timeline-match.tm-conflict {
+            border: 1px solid rgba(239,68,68,0.5);
+            box-shadow: 0 0 8px rgba(239,68,68,0.2);
+        }
+
+        /* Game color coding */
+        .game-color-0 { background: rgba(59,130,246,0.25); }
+        .game-color-1 { background: rgba(16,185,129,0.25); }
+        .game-color-2 { background: rgba(245,158,11,0.25); }
+        .game-color-3 { background: rgba(236,72,153,0.25); }
+        .game-color-4 { background: rgba(168,85,247,0.25); }
+        .game-color-5 { background: rgba(239,68,68,0.25); }
+        .game-color-6 { background: rgba(20,184,166,0.25); }
+        .game-color-7 { background: rgba(251,146,60,0.25); }
+
+        .preview-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .preview-stat-card {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 14px;
+            text-align: center;
+        }
+        .preview-stat-card .ps-value {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .preview-stat-card.ps-conflict .ps-value {
+            background: linear-gradient(135deg, #ef4444, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .preview-stat-card.ps-success .ps-value {
+            background: linear-gradient(135deg, #10b981, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .preview-stat-card .ps-label {
+            font-size: 11px;
+            color: #a0a0c0;
+            margin-top: 4px;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
     </style>
 </head>
 
@@ -892,8 +1232,25 @@
                 </div>
             </div>
             <button class="save-global-btn" onclick="saveGlobalConfig()">
-                💾 Save Time Window
+                Save Time Window
             </button>
+            <button class="suggest-btn" id="suggestBtn" onclick="suggestDates()">
+                Calculate Best Dates
+            </button>
+
+            <!-- Suggestion Panel -->
+            <div class="suggestion-panel" id="suggestionPanel">
+                <div class="suggestion-cards" id="suggestionCards"></div>
+                <div class="analysis-summary" id="analysisSummary"></div>
+            </div>
+
+            <!-- Scheduling Mode -->
+            <div class="mode-selector">
+                <label>Scheduling Mode</label>
+                <select id="schedulingMode">
+                    <option value="serial">Serial (fill slots sequentially, no gaps)</option>
+                </select>
+            </div>
         </div>
 
         <!-- Game Configs -->
@@ -911,14 +1268,45 @@
             </div>
         </div>
 
-        <!-- Shuffle Button -->
+        <!-- Schedule Actions -->
         <div class="shuffle-section">
-            <button class="shuffle-btn" id="shuffleBtn" onclick="runSchedule()">
-                <span class="btn-icon">⚡</span> Shuffle & Schedule
-            </button>
+            <div class="btn-row" style="justify-content:center;">
+                <button class="preview-btn" id="previewBtn" onclick="runPreview()">
+                    Preview Schedule
+                </button>
+                <button class="shuffle-btn" id="shuffleBtn" onclick="runSchedule()" style="display:none;">
+                    Shuffle & Schedule
+                </button>
+            </div>
             <div class="shuffle-loading" id="shuffleLoading">
                 <div class="loading-spinner"></div>
-                <p>Generating schedule... Minimizing conflicts...</p>
+                <p>Generating schedule... Building serial timeline...</p>
+            </div>
+        </div>
+
+        <!-- Preview Section (Day-by-Day Timeline) -->
+        <div class="preview-section" id="previewSection">
+            <h2 class="section-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a0a0c0" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+                Schedule Preview (Day-by-Day Timeline)
+            </h2>
+
+            <div class="preview-stats" id="previewStats"></div>
+            <div class="day-tabs" id="dayTabs"></div>
+            <div class="timeline-grid" id="timelineGrid"></div>
+
+            <div style="text-align:center; margin-top:24px;">
+                <button class="confirm-btn" id="confirmBtn" onclick="confirmSchedule()">
+                    Confirm & Save Schedule
+                </button>
+                <button class="preview-btn" onclick="runPreview()" style="margin-left:12px; background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+                    Reshuffle
+                </button>
             </div>
         </div>
 
@@ -962,6 +1350,8 @@
         let gamesData = [];
         let allMatchesData = [];
         let currentFilter = 'all';
+        let previewData = null; // Holds preview result before confirming
+        let gameColorMap = {}; // gameId -> color index
 
         const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
             ? `http://localhost:3000/api/admin`
@@ -1095,6 +1485,10 @@
                                 <label>Parallel Matches</label>
                                 <input type="number" id="parallel-${game.id}" value="${cfg.parallel_matches || 1}" min="1" max="20" onchange="updateVenueInputs(${game.id})">
                             </div>
+                            <div class="config-field">
+                                <label>Priority (higher = first)</label>
+                                <input type="number" id="priority-${game.id}" value="${cfg.priority || 0}" min="0" max="100">
+                            </div>
                         </div>
 
                         <div class="venue-section" id="venue-section-${game.id}" style="${venueCount > 1 ? '' : 'display:none'}">
@@ -1170,7 +1564,8 @@
                     match_duration: parseInt(document.getElementById(`duration-${gameId}`).value),
                     break_duration: parseInt(document.getElementById(`break-${gameId}`).value),
                     parallel_matches: parseInt(document.getElementById(`parallel-${gameId}`).value),
-                    venue_names: venues
+                    venue_names: venues,
+                    priority: parseInt(document.getElementById(`priority-${gameId}`).value) || 0
                 };
 
                 const res = await fetch(`${API_BASE}/scheduling/configs/game/${gameId}`, {
@@ -1205,7 +1600,8 @@
                     start_date: document.getElementById('startDate').value,
                     end_date: document.getElementById('endDate').value,
                     daily_start_time: document.getElementById('dailyStartTime').value,
-                    daily_end_time: document.getElementById('dailyEndTime').value
+                    daily_end_time: document.getElementById('dailyEndTime').value,
+                    scheduling_mode: document.getElementById('schedulingMode').value
                 };
 
                 if (!body.start_date || !body.end_date) {
@@ -1229,7 +1625,253 @@
         }
 
         // ============================================================
-        // RUN SCHEDULE
+        // SUGGEST DATES
+        // ============================================================
+        async function suggestDates() {
+            const btn = document.getElementById('suggestBtn');
+            btn.disabled = true;
+            btn.textContent = 'Calculating...';
+
+            try {
+                const body = {
+                    daily_start_time: document.getElementById('dailyStartTime').value || '09:00',
+                    daily_end_time: document.getElementById('dailyEndTime').value || '18:00'
+                };
+
+                const res = await fetch(`${API_BASE}/scheduling/suggest-dates/${tournamentId}`, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify(body)
+                });
+
+                const data = await res.json();
+                if (!data.success) throw new Error(data.message);
+
+                // Show suggestion panel
+                const panel = document.getElementById('suggestionPanel');
+                panel.classList.add('active');
+
+                // Render suggestion cards
+                const cardsEl = document.getElementById('suggestionCards');
+                cardsEl.innerHTML = data.suggestions.map((s, idx) => {
+                    const utilClass = s.utilization > 80 ? 'high' : s.utilization > 50 ? 'med' : 'low';
+                    return `
+                        <div class="suggestion-card" onclick="selectSuggestion('${s.start_date}', '${s.end_date}', this)">
+                            <div class="s-label">${s.label}</div>
+                            <div class="s-dates">${s.start_date} to ${s.end_date}</div>
+                            <span class="s-util ${utilClass}">${s.utilization}% utilization</span>
+                            <div class="s-desc">${s.description}</div>
+                        </div>
+                    `;
+                }).join('');
+
+                // Render analysis summary
+                const a = data.analysis;
+                document.getElementById('analysisSummary').innerHTML = `
+                    <div class="analysis-item"><span class="a-val">${a.total_matches}</span> total matches</div>
+                    <div class="analysis-item"><span class="a-val">${a.total_games}</span> games</div>
+                    <div class="analysis-item"><span class="a-val">${a.daily_hours}h</span> daily window</div>
+                    ${a.bottleneck_game ? `<div class="analysis-item">Bottleneck: <span class="a-val">${a.bottleneck_game}</span> (${a.bottleneck_days} day${a.bottleneck_days > 1 ? 's' : ''})</div>` : ''}
+                `;
+
+                showToast('Date suggestions calculated!', 'success');
+            } catch (err) {
+                showToast('Failed: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Calculate Best Dates';
+            }
+        }
+
+        function selectSuggestion(startDate, endDate, el) {
+            document.getElementById('startDate').value = startDate;
+            document.getElementById('endDate').value = endDate;
+
+            // Highlight selected card
+            document.querySelectorAll('.suggestion-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+
+            showToast('Dates applied! Save the time window to confirm.', 'info');
+        }
+
+        // ============================================================
+        // PREVIEW SCHEDULE
+        // ============================================================
+        async function runPreview() {
+            const btn = document.getElementById('previewBtn');
+            const loading = document.getElementById('shuffleLoading');
+
+            btn.disabled = true;
+            loading.classList.add('active');
+
+            try {
+                const res = await fetch(`${API_BASE}/scheduling/preview/${tournamentId}`, {
+                    method: 'POST',
+                    headers: getAuthHeaders()
+                });
+
+                const data = await res.json();
+                if (!data.success) throw new Error(data.message);
+
+                previewData = data;
+
+                // Build game color map
+                const uniqueGameIds = [...new Set(data.matches.map(m => m.game_id))];
+                uniqueGameIds.forEach((gid, idx) => { gameColorMap[gid] = idx % 8; });
+
+                // Show preview section
+                document.getElementById('previewSection').classList.add('active');
+
+                // Render stats
+                const r = data.report;
+                document.getElementById('previewStats').innerHTML = `
+                    <div class="preview-stat-card ps-success">
+                        <div class="ps-value">${r.total_matches}</div>
+                        <div class="ps-label">Scheduled</div>
+                    </div>
+                    <div class="preview-stat-card">
+                        <div class="ps-value">${r.total_matches_needed}</div>
+                        <div class="ps-label">Total Needed</div>
+                    </div>
+                    <div class="preview-stat-card ${r.total_conflicts > 0 ? 'ps-conflict' : 'ps-success'}">
+                        <div class="ps-value">${r.total_conflicts}</div>
+                        <div class="ps-label">Conflicts</div>
+                    </div>
+                    <div class="preview-stat-card ${r.unscheduled > 0 ? 'ps-conflict' : 'ps-success'}">
+                        <div class="ps-value">${r.unscheduled}</div>
+                        <div class="ps-label">Unscheduled</div>
+                    </div>
+                `;
+
+                // Render day tabs
+                renderDayTabs(data.dayBreakdown);
+
+                // Show first day's timeline
+                if (data.dayBreakdown.length > 0) {
+                    renderTimeline(data.dayBreakdown[0]);
+                }
+
+                showToast('Preview generated! Review the timeline below.', 'success');
+
+            } catch (err) {
+                showToast('Preview failed: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                loading.classList.remove('active');
+            }
+        }
+
+        function renderDayTabs(dayBreakdown) {
+            const tabsEl = document.getElementById('dayTabs');
+            tabsEl.innerHTML = dayBreakdown.map((day, idx) => {
+                const dateLabel = new Date(day.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                return `
+                    <button class="day-tab ${idx === 0 ? 'active' : ''}" onclick="switchDay(${idx}, this)">
+                        Day ${idx + 1} (${dateLabel})
+                        <span class="tab-count">${day.matchCount}m</span>
+                        ${day.conflictCount > 0 ? `<span class="tab-conflict">${day.conflictCount}!</span>` : ''}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function switchDay(dayIdx, tabEl) {
+            document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
+            tabEl.classList.add('active');
+
+            if (previewData && previewData.dayBreakdown[dayIdx]) {
+                renderTimeline(previewData.dayBreakdown[dayIdx]);
+            }
+        }
+
+        function renderTimeline(dayData) {
+            const grid = document.getElementById('timelineGrid');
+
+            if (!dayData || !dayData.slots || dayData.slots.length === 0) {
+                grid.innerHTML = '<div style="padding:40px;text-align:center;color:#6b7280;">No matches on this day.</div>';
+                return;
+            }
+
+            // Group slots by time
+            const timeGroups = {};
+            for (const slot of dayData.slots) {
+                const time = new Date(slot.time);
+                const timeKey = time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                if (!timeGroups[timeKey]) timeGroups[timeKey] = [];
+                timeGroups[timeKey].push(slot);
+            }
+
+            let html = `
+                <div class="timeline-header">
+                    <div>Time</div>
+                    <div>Matches</div>
+                </div>
+            `;
+
+            for (const [timeKey, slots] of Object.entries(timeGroups)) {
+                html += `
+                    <div class="timeline-row">
+                        <div class="timeline-time">${timeKey}</div>
+                        <div class="timeline-slots">
+                            ${slots.map(slot => {
+                                const colorIdx = gameColorMap[slot.game_id] || 0;
+                                const isConflict = slot.status === 'SCHEDULED_OVERLAP';
+                                return `
+                                    <div class="timeline-match game-color-${colorIdx} ${isConflict ? 'tm-conflict' : ''}">
+                                        <span class="tm-game">${slot.game}</span>
+                                        <span class="tm-matchup">${slot.matchup}</span>
+                                        <span class="tm-venue">${slot.venue}</span>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            grid.innerHTML = html;
+        }
+
+        // ============================================================
+        // CONFIRM SCHEDULE (save preview to DB)
+        // ============================================================
+        async function confirmSchedule() {
+            if (!confirm('Save this schedule? This will replace any existing schedule for this tournament.')) return;
+
+            const btn = document.getElementById('confirmBtn');
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+
+            try {
+                const res = await fetch(`${API_BASE}/scheduling/run/${tournamentId}`, {
+                    method: 'POST',
+                    headers: getAuthHeaders()
+                });
+
+                const data = await res.json();
+                if (!data.success) throw new Error(data.message);
+
+                showToast(data.message, 'success');
+
+                // Update badge
+                const badge = document.getElementById('statusBadge');
+                badge.textContent = 'SCHEDULED';
+                badge.className = 'schedule-status-badge badge-scheduled';
+
+                // Hide preview, show results
+                document.getElementById('previewSection').classList.remove('active');
+                loadResults();
+
+            } catch (err) {
+                showToast('Save failed: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Confirm & Save Schedule';
+            }
+        }
+
+        // ============================================================
+        // RUN SCHEDULE (direct, for backward compat)
         // ============================================================
         async function runSchedule() {
             const btn = document.getElementById('shuffleBtn');

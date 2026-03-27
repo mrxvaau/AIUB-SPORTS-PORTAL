@@ -423,6 +423,127 @@
             color: #6b7280;
         }
 
+        /* Schedule Match Items */
+        .match-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 14px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background: #f9fafb;
+            transition: box-shadow 0.2s;
+        }
+        .match-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+        .match-time-block {
+            min-width: 80px;
+            text-align: center;
+            padding: 6px 8px;
+            background: #1d4ed8;
+            color: white;
+            border-radius: 6px;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        .match-time-block .match-date { font-weight: 700; font-size: 13px; }
+        .match-time-block .match-time { font-size: 11px; opacity: 0.9; }
+        .match-details { flex: 1; }
+        .match-details .match-game-name { font-weight: 600; color: #1e3a8a; font-size: 14px; }
+        .match-details .match-vs { color: #374151; font-size: 13px; margin-top: 2px; }
+        .match-details .match-venue { color: #6b7280; font-size: 12px; margin-top: 2px; }
+        .match-status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .match-status-badge.scheduled { background: #dbeafe; color: #1d4ed8; }
+        .match-status-badge.played { background: #d1fae5; color: #065f46; }
+        .match-status-badge.cancelled { background: #fee2e2; color: #991b1b; }
+        .no-matches-msg {
+            text-align: center;
+            padding: 30px 20px;
+            color: #9ca3af;
+            font-size: 14px;
+        }
+
+        /* Leaderboard Section */
+        .leaderboard-container { padding: 0; }
+        .leaderboard-game-group {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .leaderboard-game-header {
+            background: linear-gradient(135deg, #1e3a8a, #2563eb);
+            color: white;
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        .leaderboard-game-header h3 { font-size: 16px; font-weight: 600; }
+        .leaderboard-game-header .game-meta {
+            font-size: 12px;
+            opacity: 0.85;
+            display: flex;
+            gap: 12px;
+        }
+        .leaderboard-game-header .game-meta span {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+        .leaderboard-matches-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .leaderboard-matches-table th {
+            background: #f3f4f6;
+            padding: 10px 14px;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .leaderboard-matches-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid #f3f4f6;
+            color: #374151;
+        }
+        .leaderboard-matches-table tr:hover td { background: #f9fafb; }
+        .winner-cell { color: #065f46; font-weight: 600; }
+        .score-cell { font-weight: 600; color: #1d4ed8; font-size: 14px; }
+        .leaderboard-progress {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .progress-bar-bg {
+            flex: 1;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: #2563eb;
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+
         .alert {
             padding: 12px 16px;
             border-radius: 6px;
@@ -1556,6 +1677,19 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
+            <button class="sidebar-btn" onclick="showSection('leaderboardSection')" style="background: #065f46;">
+                <div class="sidebar-btn-content">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                    </svg>
+                    <span>Leaderboard</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"
+                    height="16">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </button>
         </div>
 
         <!-- Content -->
@@ -1677,20 +1811,7 @@
                     </div>
                     <div class="schedule-body">
                         <div id="scheduleContentHome">
-                            <div class="schedule-row">
-                                <span class="schedule-day">Today</span>
-                                <span class="schedule-info">No Games Available</span>
-                            </div>
-                            <div class="schedule-row" style="border-top: 1px solid #e5e7eb; padding-top: 12px;">
-                                <span class="schedule-day">Tomorrow</span>
-                                <div class="schedule-info">
-                                    <div style="margin-bottom: 8px;">
-                                        <a href="#" style="color: #3b82f6; text-decoration: none;">No Games
-                                            Available</a>
-                                        <p style="font-size: 12px; color: #6b7280;">TBA</p>
-                                    </div>
-                                </div>
-                            </div>
+                            <div style="text-align:center; padding:20px; color:#6b7280;">Loading schedule...</div>
                         </div>
                     </div>
                 </div>
@@ -1712,20 +1833,7 @@
                     </div>
                     <div class="schedule-body">
                         <div id="scheduleContent">
-                            <div class="schedule-row">
-                                <span class="schedule-day">Today</span>
-                                <span class="schedule-info">No Games Available</span>
-                            </div>
-                            <div class="schedule-row" style="border-top: 1px solid #e5e7eb; padding-top: 12px;">
-                                <span class="schedule-day">Tomorrow</span>
-                                <div class="schedule-info">
-                                    <div style="margin-bottom: 8px;">
-                                        <a href="#" style="color: #3b82f6; text-decoration: none;">No Games
-                                            Available</a>
-                                        <p style="font-size: 12px; color: #6b7280;">TBA</p>
-                                    </div>
-                                </div>
-                            </div>
+                            <div style="text-align:center; padding:20px; color:#6b7280;">Loading schedule...</div>
                         </div>
                     </div>
                 </div>
@@ -1776,6 +1884,17 @@
                 </svg>
                 <h3 style="margin-top: 20px; color: #6b7280;">Bug Report</h3>
                 <p style="color: #9ca3af;">Under Construction</p>
+            </div>
+
+            <!-- Leaderboard Section -->
+            <div id="leaderboardSection" class="content-section" style="display:none;">
+                <h2 style="margin-bottom: 20px; font-size: 24px; color: #1e3a8a;">Match Results & Leaderboard</h2>
+                <div id="leaderboardContent">
+                    <div style="text-align:center; padding:40px; color:#6b7280;">
+                        <div class="spinner"></div>
+                        <p>Loading match results...</p>
+                    </div>
+                </div>
             </div>
 
             <!-- Tournament Registration Modal -->
@@ -2644,6 +2763,7 @@
             loadProfile();
             loadAvailableTournaments(); // Load available tournaments when page loads
             loadUserRegistrationStatus(); // Load user's registration status
+            loadUserSchedule(); // Load real schedule data
 
             // Check if this is first login after profile completion
             const justCompleted = sessionStorage.getItem('profileJustCompleted');
@@ -2676,6 +2796,8 @@
                 loadRegistrationView();
             } else if (sectionId === 'paymentSection') {
                 loadPaymentView();
+            } else if (sectionId === 'leaderboardSection') {
+                loadLeaderboardView();
             }
         }
 
@@ -3117,8 +3239,153 @@
             if (sectionId === 'registrationSection') loadRegistrationView();
             else if (sectionId === 'paymentSection') loadPaymentView();
             else if (sectionId === 'notificationSection') loadNotificationsView();
+            else if (sectionId === 'leaderboardSection') loadLeaderboardView();
+        }
 
-            // Close sidebar on mobile if needed (optional)
+        // Load real schedule data into both schedule cards
+        async function loadUserSchedule() {
+            const studentId = localStorage.getItem('studentId');
+            if (!studentId) return;
+
+            const containers = [
+                document.getElementById('scheduleContentHome'),
+                document.getElementById('scheduleContent')
+            ].filter(Boolean);
+
+            try {
+                const response = await authFetch(`${API_URL}/dashboard/schedule/${studentId}`);
+                const data = await response.json();
+
+                const html = buildScheduleHTML(data.success ? data.matches : []);
+                containers.forEach(c => c.innerHTML = html);
+            } catch (err) {
+                console.error('Error loading schedule:', err);
+                const errHtml = '<div class="no-matches-msg">Could not load schedule.</div>';
+                containers.forEach(c => c.innerHTML = errHtml);
+            }
+        }
+
+        function buildScheduleHTML(matches) {
+            if (!matches || matches.length === 0) {
+                return '<div class="no-matches-msg">No upcoming matches scheduled yet.</div>';
+            }
+
+            // Show up to 6 matches
+            const display = matches.slice(0, 6);
+            let html = '';
+            display.forEach(m => {
+                const start = new Date(m.scheduled_start);
+                const dateStr = start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const timeStr = start.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                const statusClass = (m.status || '').toLowerCase().includes('played') ? 'played'
+                    : (m.status || '').toLowerCase().includes('cancel') ? 'cancelled' : 'scheduled';
+                const scoreText = m.status === 'PLAYED' && m.score_a != null && m.score_b != null
+                    ? `${m.score_a} - ${m.score_b}` : '';
+
+                html += `
+                <div class="match-item">
+                    <div class="match-time-block">
+                        <div class="match-date">${dateStr}</div>
+                        <div class="match-time">${timeStr}</div>
+                    </div>
+                    <div class="match-details">
+                        <div class="match-game-name">${m.game_name || 'Game'} ${m.tournament_title ? '- ' + m.tournament_title : ''}</div>
+                        <div class="match-vs">${m.participant_a_label || 'TBD'} vs ${m.participant_b_label || 'TBD'}${scoreText ? ' &bull; ' + scoreText : ''}</div>
+                        <div class="match-venue">${m.venue_name || ''} ${m.round_label ? '&bull; ' + m.round_label : ''}</div>
+                    </div>
+                    <span class="match-status-badge ${statusClass}">${m.status || 'SCHEDULED'}</span>
+                </div>`;
+            });
+
+            if (matches.length > 6) {
+                html += `<div style="text-align:center; padding:8px; color:#6b7280; font-size:12px;">+ ${matches.length - 6} more matches</div>`;
+            }
+            return html;
+        }
+
+        // Load leaderboard view
+        async function loadLeaderboardView() {
+            const container = document.getElementById('leaderboardContent');
+            container.innerHTML = '<div style="text-align:center; padding:40px;"><div class="spinner"></div><p>Loading match results...</p></div>';
+
+            try {
+                const response = await authFetch(`${API_URL}/dashboard/leaderboard`);
+                const data = await response.json();
+
+                if (!data.success || !data.games || data.games.length === 0) {
+                    container.innerHTML = '<div class="no-matches-msg">No match results available yet.</div>';
+                    return;
+                }
+
+                let html = '<div class="leaderboard-container">';
+                data.games.forEach(game => {
+                    const progressPct = game.total > 0 ? Math.round((game.played / game.total) * 100) : 0;
+
+                    html += `
+                    <div class="leaderboard-game-group">
+                        <div class="leaderboard-game-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
+                            <h3>${game.game_name} ${game.tournament_title ? '(' + game.tournament_title + ')' : ''}</h3>
+                            <div class="game-meta">
+                                <span>${game.category || ''}</span>
+                                <span>${game.game_type || ''}</span>
+                                <span>${game.played}/${game.total} played</span>
+                            </div>
+                        </div>
+                        <div>
+                            <table class="leaderboard-matches-table">
+                                <thead>
+                                    <tr>
+                                        <th>Round</th>
+                                        <th>Match</th>
+                                        <th>Score</th>
+                                        <th>Winner</th>
+                                        <th>Venue</th>
+                                        <th>Time</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+
+                    game.matches.forEach(m => {
+                        const timeStr = m.time ? new Date(m.time).toLocaleString('en-US', {
+                            month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true
+                        }) : '-';
+                        const scoreStr = m.score_a != null && m.score_b != null ? `${m.score_a} - ${m.score_b}` : '-';
+                        const statusClass = m.status === 'PLAYED' ? 'played'
+                            : m.status === 'CANCELLED' ? 'cancelled' : 'scheduled';
+
+                        html += `
+                                    <tr>
+                                        <td>${m.round_label || '-'}</td>
+                                        <td>${m.participant_a || 'TBD'} vs ${m.participant_b || 'TBD'}</td>
+                                        <td class="score-cell">${scoreStr}</td>
+                                        <td class="winner-cell">${m.winner || '-'}</td>
+                                        <td>${m.venue || '-'}</td>
+                                        <td>${timeStr}</td>
+                                        <td><span class="match-status-badge ${statusClass}">${m.status}</span></td>
+                                    </tr>`;
+                    });
+
+                    html += `
+                                </tbody>
+                            </table>
+                            <div class="leaderboard-progress">
+                                <span>${progressPct}% complete</span>
+                                <div class="progress-bar-bg">
+                                    <div class="progress-bar-fill" style="width: ${progressPct}%"></div>
+                                </div>
+                                <span>${game.played}/${game.total}</span>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+
+                html += '</div>';
+                container.innerHTML = html;
+            } catch (err) {
+                console.error('Error loading leaderboard:', err);
+                container.innerHTML = '<div class="no-matches-msg">Could not load match results. Please try again later.</div>';
+            }
         }
 
         // Updated Registration View

@@ -1548,6 +1548,12 @@ router.post('/scheduling/config/:tournamentId', requireAdmin, schedulingControll
 // Run scheduling algorithm
 router.post('/scheduling/run/:tournamentId', requireAdmin, schedulingController.shuffleAndSchedule);
 
+// Preview schedule (dry run - no DB writes)
+router.post('/scheduling/preview/:tournamentId', requireAdmin, schedulingController.previewSchedule);
+
+// Suggest optimal date ranges
+router.post('/scheduling/suggest-dates/:tournamentId', requireAdmin, schedulingController.suggestDates);
+
 // Results & reports
 router.get('/scheduling/results/:tournamentId', requireAdmin, schedulingController.getScheduleResults);
 router.get('/scheduling/report/:tournamentId', requireAdmin, schedulingController.getScheduleReport);

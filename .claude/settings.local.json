@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__supabase__list_tables",
+      "mcp__supabase__apply_migration",
+      "Bash(node -c backend/controllers/schedulingController.js)",
+      "Bash(node -c backend/routes/admin.js)",
+      "Bash(node -c backend/routes/dashboard.js)"
+    ]
+  }
+}

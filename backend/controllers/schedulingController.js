@@ -100,7 +100,7 @@ const getGameConfigs = async (req, res) => {
 const saveGameConfig = async (req, res) => {
     try {
         const { gameId } = req.params;
-        const { match_duration, break_duration, parallel_matches, venue_names } = req.body;
+        const { match_duration, break_duration, parallel_matches, venue_names, priority } = req.body;
 
         const configData = {
             game_id: parseInt(gameId),
@@ -108,6 +108,7 @@ const saveGameConfig = async (req, res) => {
             break_duration: parseInt(break_duration) || 10,
             parallel_matches: parseInt(parallel_matches) || 1,
             venue_names: venue_names || [],
+            priority: parseInt(priority) || 0,
             updated_at: new Date().toISOString()
         };
 
@@ -131,7 +132,7 @@ const saveGameConfig = async (req, res) => {
 const saveScheduleConfig = async (req, res) => {
     try {
         const { tournamentId } = req.params;
-        const { start_date, end_date, daily_start_time, daily_end_time } = req.body;
+        const { start_date, end_date, daily_start_time, daily_end_time, scheduling_mode } = req.body;
 
         const configData = {
             tournament_id: parseInt(tournamentId),
@@ -139,6 +140,7 @@ const saveScheduleConfig = async (req, res) => {
             end_date,
             daily_start_time: daily_start_time || '09:00',
             daily_end_time: daily_end_time || '18:00',
+            scheduling_mode: scheduling_mode || 'serial',
             status: 'DRAFT',
             updated_at: new Date().toISOString()
         };
@@ -159,217 +161,403 @@ const saveScheduleConfig = async (req, res) => {
 };
 
 // ============================================================
-// CORE SCHEDULING ALGORITHM
+// CORE SCHEDULING ALGORITHM (v2 — UNIFIED SERIAL)
 // ============================================================
 
-const shuffleAndSchedule = async (req, res) => {
-    try {
-        const { tournamentId } = req.params;
+// ---- Shared core: runs algorithm without DB writes ----
+async function runSchedulingAlgorithm(tournamentId, schedConfig, games, configMap) {
+    // 1. Generate match pools per game
+    const allMatches = {};
+    for (const game of games) {
+        const matches = await generateMatchPool(game, tournamentId);
+        allMatches[game.id] = matches;
+    }
 
-        // 1. Load schedule config
-        const { data: schedConfig, error: scErr } = await supabase
-            .from('tournament_schedule_config')
-            .select('*')
-            .eq('tournament_id', tournamentId)
-            .single();
+    // 2. Sort games by priority (desc) then match count (desc)
+    const sortedGames = [...games].sort((a, b) => {
+        const pA = configMap[a.id]?.priority || 0;
+        const pB = configMap[b.id]?.priority || 0;
+        if (pB !== pA) return pB - pA;
+        return (allMatches[b.id]?.length || 0) - (allMatches[a.id]?.length || 0);
+    });
 
-        if (scErr || !schedConfig) {
-            return res.status(400).json({ success: false, message: 'Please configure the tournament schedule first (dates & times).' });
+    // 3. Build venue cursors per game
+    //    Each game has its own venues. Each venue has a time cursor
+    //    starting at daily_start_time on start_date.
+    const dailyStartHHMM = schedConfig.daily_start_time.split(':').slice(0, 2).join(':');
+    const dailyEndHHMM = schedConfig.daily_end_time.split(':').slice(0, 2).join(':');
+    const startDate = new Date(schedConfig.start_date + 'T00:00:00+06:00');
+    const endDate = new Date(schedConfig.end_date + 'T23:59:59+06:00');
+
+    // Helper: get next available time for a venue cursor
+    function advanceCursor(cursor, durationMs, breakMs) {
+        let next = new Date(cursor.getTime() + durationMs + breakMs);
+        const dateStr = next.toISOString().split('T')[0];
+        const dayEnd = new Date(`${dateStr}T${dailyEndHHMM}:00+06:00`);
+
+        // If next slot would exceed day end, jump to next day's start
+        if (next.getTime() > dayEnd.getTime() ||
+            next.getTime() + durationMs > dayEnd.getTime()) {
+            const nextDay = new Date(next);
+            nextDay.setDate(nextDay.getDate() + 1);
+            // Skip forward until we find a valid day within range
+            while (nextDay <= endDate) {
+                const ndStr = nextDay.toISOString().split('T')[0];
+                next = new Date(`${ndStr}T${dailyStartHHMM}:00+06:00`);
+                const ndEnd = new Date(`${ndStr}T${dailyEndHHMM}:00+06:00`);
+                if (next.getTime() + durationMs <= ndEnd.getTime()) {
+                    return next;
+                }
+                nextDay.setDate(nextDay.getDate() + 1);
+            }
+            return null; // No more days available
         }
+        return next;
+    }
 
-        // 2. Load all games with configs
-        const { data: games, error: gErr } = await supabase
-            .from('tournament_games')
-            .select('id, category, game_name, game_type, team_size')
-            .eq('tournament_id', tournamentId);
+    // Initialize venue cursors per game
+    const venueCursors = {}; // gameId -> [{venueName, cursor (Date)}]
+    for (const game of games) {
+        const cfg = configMap[game.id];
+        const parallelCount = cfg.parallel_matches || 1;
+        const venueNames = cfg.venue_names || [];
+        const firstDayStr = startDate.toISOString().split('T')[0];
+        const initialTime = new Date(`${firstDayStr}T${dailyStartHHMM}:00+06:00`);
 
-        if (gErr) throw gErr;
-        if (!games || games.length === 0) {
-            return res.status(400).json({ success: false, message: 'No games found for this tournament.' });
-        }
-
-        // Load configs for each game
-        const gameIds = games.map(g => g.id);
-        const { data: configs, error: cfgErr } = await supabase
-            .from('game_configs')
-            .select('*')
-            .in('game_id', gameIds);
-
-        if (cfgErr) throw cfgErr;
-
-        const configMap = {};
-        if (configs) configs.forEach(c => { configMap[c.game_id] = c; });
-
-        // Check all games have configs
-        const unconfigured = games.filter(g => !configMap[g.id]);
-        if (unconfigured.length > 0) {
-            return res.status(400).json({
-                success: false,
-                message: `Please configure all games first. Missing: ${unconfigured.map(g => g.game_name).join(', ')}`
+        venueCursors[game.id] = [];
+        for (let v = 0; v < parallelCount; v++) {
+            venueCursors[game.id].push({
+                venueName: venueNames[v] || `Venue ${v + 1}`,
+                cursor: new Date(initialTime)
             });
         }
+    }
 
-        // 3. Clear previous schedule for this tournament
-        await supabase.from('scheduled_matches').delete().eq('tournament_id', tournamentId);
-        await supabase.from('schedule_slots').delete().eq('tournament_id', tournamentId);
-        await supabase.from('schedule_reports').delete().eq('tournament_id', tournamentId);
+    // 4. Serial assignment — process each game, assign matches sequentially
+    const scheduledMatches = [];
+    const slotsToInsert = [];
+    const globalPlayerTimeline = {};
+    const schedulingMode = schedConfig.scheduling_mode || 'serial';
 
-        // 4. Generate time slots for each game
-        const allSlots = {};
-        for (const game of games) {
-            const cfg = configMap[game.id];
-            const slots = generateTimeSlots(schedConfig, cfg, game.id, tournamentId);
+    for (const game of sortedGames) {
+        const matches = allMatches[game.id] || [];
+        if (matches.length === 0) continue;
 
-            if (slots.length === 0) {
-                return res.status(400).json({
-                    success: false,
-                    message: `Not enough time to schedule ${game.game_name}. Adjust tournament dates or match duration.`
-                });
-            }
+        const cfg = configMap[game.id];
+        const matchDurationMs = cfg.match_duration * 60 * 1000;
+        const breakDurationMs = cfg.break_duration * 60 * 1000;
+        const venues = venueCursors[game.id];
 
-            // Insert slots into DB
-            const { data: insertedSlots, error: slotErr } = await supabase
-                .from('schedule_slots')
-                .insert(slots)
-                .select();
+        // Shuffle matches (random pairing order, but serial TIME assignment)
+        shuffleArray(matches);
 
-            if (slotErr) throw slotErr;
-            allSlots[game.id] = insertedSlots;
-        }
+        let matchOrder = 0;
 
-        // 5. Generate match pools for each game
-        const allMatches = {};
-        for (const game of games) {
-            const matches = await generateMatchPool(game, tournamentId);
-            allMatches[game.id] = matches;
-        }
+        for (const match of matches) {
+            if (match.isBye) {
+                // BYEs get the earliest venue's current slot but don't advance cursor
+                const byeVenue = venues[0];
+                const byeStart = new Date(byeVenue.cursor);
+                const byeEnd = new Date(byeStart.getTime() + matchDurationMs);
 
-        // 6. Guided random scheduling
-        const scheduledMatches = [];
-        const globalPlayerTimeline = {}; // userId -> [{start, end, matchId, gameId}]
-
-        // Sort games by number of matches (descending) - schedule busiest first
-        const sortedGames = [...games].sort((a, b) => {
-            return (allMatches[b.id]?.length || 0) - (allMatches[a.id]?.length || 0);
-        });
-
-        for (const game of sortedGames) {
-            const matches = allMatches[game.id] || [];
-            const slots = allSlots[game.id] || [];
-
-            if (matches.length === 0 || slots.length === 0) continue;
-
-            // Shuffle matches with weighted randomness
-            shuffleMatchesWeighted(matches, globalPlayerTimeline);
-
-            // ALL real matches go into round 1 — the bracket tree for later rounds
-            // is generated dynamically by getBracketData()
-            for (let i = 0; i < matches.length; i++) {
-                const match = matches[i];
-
-                // Try N random candidate slots, pick minimum conflict
-                const bestSlot = findBestSlot(slots, match, globalPlayerTimeline, 5);
-
-                if (!bestSlot) {
-                    // No slot available - skip
-                    continue;
-                }
-
-                // Calculate conflict
-                const conflict = calculateConflict(bestSlot, match, globalPlayerTimeline);
-
-                const scheduledMatch = {
+                const slot = {
                     tournament_id: parseInt(tournamentId),
                     game_id: game.id,
-                    slot_id: bestSlot.id,
+                    slot_start: byeStart.toISOString(),
+                    slot_end: byeEnd.toISOString(),
+                    venue_name: byeVenue.venueName,
+                    capacity: 1,
+                    used: 1
+                };
+                slotsToInsert.push(slot);
+
+                scheduledMatches.push({
+                    tournament_id: parseInt(tournamentId),
+                    game_id: game.id,
+                    _slot_ref: slotsToInsert.length - 1,
+                    participant_a_user_id: match.a_user_id || null,
+                    participant_a_team_id: match.a_team_id || null,
+                    participant_b_user_id: null,
+                    participant_b_team_id: null,
+                    participant_a_label: match.a_label,
+                    participant_b_label: 'BYE',
+                    scheduled_start: byeStart.toISOString(),
+                    scheduled_end: byeEnd.toISOString(),
+                    venue_name: byeVenue.venueName,
+                    round_number: 1,
+                    round_label: 'Round 1',
+                    match_order: matchOrder++,
+                    status: 'SCHEDULED',
+                    conflict_type: null,
+                    conflict_player_ids: null,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                });
+                continue;
+            }
+
+            // Find the venue with the EARLIEST cursor (serial fill)
+            let bestVenueIdx = 0;
+            let earliestTime = venues[0].cursor.getTime();
+            for (let v = 1; v < venues.length; v++) {
+                if (venues[v].cursor.getTime() < earliestTime) {
+                    earliestTime = venues[v].cursor.getTime();
+                    bestVenueIdx = v;
+                }
+            }
+
+            const venue = venues[bestVenueIdx];
+            const slotStart = new Date(venue.cursor);
+            const slotEnd = new Date(slotStart.getTime() + matchDurationMs);
+
+            // Check if slot fits within tournament dates
+            if (slotStart > endDate) {
+                // No more room — this match can't be scheduled
+                continue;
+            }
+
+            // Check daily end time
+            const dayStr = slotStart.toISOString().split('T')[0];
+            const dayEnd = new Date(`${dayStr}T${dailyEndHHMM}:00+06:00`);
+            if (slotEnd.getTime() > dayEnd.getTime()) {
+                // Advance to next day
+                const nextDay = advanceCursor(new Date(dayEnd.getTime() - 1), 0, 0);
+                if (!nextDay || nextDay > endDate) continue;
+                venue.cursor = nextDay;
+                // Re-attempt this match (push back to try again)
+                // For simplicity, just assign at next day start
+                const newStart = new Date(venue.cursor);
+                const newEnd = new Date(newStart.getTime() + matchDurationMs);
+
+                const slot = {
+                    tournament_id: parseInt(tournamentId),
+                    game_id: game.id,
+                    slot_start: newStart.toISOString(),
+                    slot_end: newEnd.toISOString(),
+                    venue_name: venue.venueName,
+                    capacity: 1,
+                    used: 1
+                };
+                slotsToInsert.push(slot);
+
+                // Check cross-sport conflict
+                const conflict = calculateConflictFromTimeline(
+                    newStart, newEnd, match, game.id, globalPlayerTimeline
+                );
+
+                scheduledMatches.push({
+                    tournament_id: parseInt(tournamentId),
+                    game_id: game.id,
+                    _slot_ref: slotsToInsert.length - 1,
                     participant_a_user_id: match.a_user_id || null,
                     participant_a_team_id: match.a_team_id || null,
                     participant_b_user_id: match.b_user_id || null,
                     participant_b_team_id: match.b_team_id || null,
                     participant_a_label: match.a_label,
                     participant_b_label: match.b_label,
-                    scheduled_start: bestSlot.slot_start,
-                    scheduled_end: bestSlot.slot_end,
-                    venue_name: bestSlot.venue_name,
+                    scheduled_start: newStart.toISOString(),
+                    scheduled_end: newEnd.toISOString(),
+                    venue_name: venue.venueName,
                     round_number: 1,
-                    round_label: 'Group Stage',
-                    match_order: i,
+                    round_label: 'Round 1',
+                    match_order: matchOrder++,
                     status: conflict.weight > 0 ? 'SCHEDULED_OVERLAP' : 'SCHEDULED',
                     conflict_type: conflict.type || null,
                     conflict_player_ids: conflict.playerIds || null,
                     created_at: new Date().toISOString(),
                     updated_at: new Date().toISOString()
-                };
-
-                scheduledMatches.push(scheduledMatch);
-
-                // Update slot usage
-                bestSlot.used = (bestSlot.used || 0) + 1;
-
-                // Update global timeline
-                const playerIds = getPlayerIds(match);
-                playerIds.forEach(pid => {
-                    if (!globalPlayerTimeline[pid]) globalPlayerTimeline[pid] = [];
-                    globalPlayerTimeline[pid].push({
-                        start: new Date(bestSlot.slot_start),
-                        end: new Date(bestSlot.slot_end),
-                        gameId: game.id,
-                        matchIndex: scheduledMatches.length - 1
-                    });
                 });
+
+                // Update timeline
+                updatePlayerTimeline(globalPlayerTimeline, match, newStart, newEnd, game.id);
+
+                // Advance cursor
+                venue.cursor = advanceCursor(newStart, matchDurationMs, breakDurationMs) || new Date(endDate.getTime() + 1);
+                continue;
+            }
+
+            // Normal assignment at current cursor position
+            const slot = {
+                tournament_id: parseInt(tournamentId),
+                game_id: game.id,
+                slot_start: slotStart.toISOString(),
+                slot_end: slotEnd.toISOString(),
+                venue_name: venue.venueName,
+                capacity: 1,
+                used: 1
+            };
+            slotsToInsert.push(slot);
+
+            // Check cross-sport conflict
+            const conflict = calculateConflictFromTimeline(
+                slotStart, slotEnd, match, game.id, globalPlayerTimeline
+            );
+
+            scheduledMatches.push({
+                tournament_id: parseInt(tournamentId),
+                game_id: game.id,
+                _slot_ref: slotsToInsert.length - 1,
+                participant_a_user_id: match.a_user_id || null,
+                participant_a_team_id: match.a_team_id || null,
+                participant_b_user_id: match.b_user_id || null,
+                participant_b_team_id: match.b_team_id || null,
+                participant_a_label: match.a_label,
+                participant_b_label: match.b_label,
+                scheduled_start: slotStart.toISOString(),
+                scheduled_end: slotEnd.toISOString(),
+                venue_name: venue.venueName,
+                round_number: 1,
+                round_label: 'Round 1',
+                match_order: matchOrder++,
+                status: conflict.weight > 0 ? 'SCHEDULED_OVERLAP' : 'SCHEDULED',
+                conflict_type: conflict.type || null,
+                conflict_player_ids: conflict.playerIds || null,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            });
+
+            // Update player timeline
+            updatePlayerTimeline(globalPlayerTimeline, match, slotStart, slotEnd, game.id);
+
+            // Advance cursor to next serial slot
+            const nextCursor = advanceCursor(slotStart, matchDurationMs, breakDurationMs);
+            venue.cursor = nextCursor || new Date(endDate.getTime() + 1);
+        }
+    }
+
+    // 5. Build day-by-day breakdown for preview
+    const dayBreakdown = buildDayBreakdown(scheduledMatches, games, configMap);
+
+    // 6. Calculate report stats
+    const totalConflicts = scheduledMatches.filter(m => m.status === 'SCHEDULED_OVERLAP').length;
+    const sameSportConflicts = scheduledMatches.filter(m =>
+        m.status === 'SCHEDULED_OVERLAP' && m.conflict_type === 'SAME_SPORT'
+    ).length;
+    const crossSportConflicts = scheduledMatches.filter(m =>
+        m.status === 'SCHEDULED_OVERLAP' && m.conflict_type === 'CROSS_SPORT'
+    ).length;
+
+    const totalMatchesNeeded = Object.values(allMatches).reduce((sum, m) => sum + m.length, 0);
+    const unscheduled = totalMatchesNeeded - scheduledMatches.length;
+
+    return {
+        scheduledMatches,
+        slotsToInsert,
+        games,
+        configMap,
+        allMatches,
+        dayBreakdown,
+        report: {
+            total_matches: scheduledMatches.length,
+            total_matches_needed: totalMatchesNeeded,
+            unscheduled,
+            total_conflicts: totalConflicts,
+            same_sport_conflicts: sameSportConflicts,
+            cross_sport_conflicts: crossSportConflicts,
+            games_breakdown: games.map(g => ({
+                id: g.id,
+                name: g.game_name,
+                category: g.category,
+                total_matches: allMatches[g.id]?.length || 0,
+                scheduled: scheduledMatches.filter(m => m.game_id === g.id).length,
+                conflicts: scheduledMatches.filter(m => m.game_id === g.id && m.status === 'SCHEDULED_OVERLAP').length
+            }))
+        }
+    };
+}
+
+// ---- Preview endpoint (dry run) ----
+const previewSchedule = async (req, res) => {
+    try {
+        const { tournamentId } = req.params;
+
+        // Load configs
+        const { schedConfig, games, configMap, error: loadErr } = await loadScheduleData(tournamentId);
+        if (loadErr) return res.status(400).json({ success: false, message: loadErr });
+
+        // Run algorithm without saving
+        const result = await runSchedulingAlgorithm(tournamentId, schedConfig, games, configMap);
+
+        res.json({
+            success: true,
+            preview: true,
+            matches: result.scheduledMatches.map(m => {
+                const { _slot_ref, ...rest } = m;
+                return rest;
+            }),
+            dayBreakdown: result.dayBreakdown,
+            report: result.report
+        });
+    } catch (error) {
+        console.error('previewSchedule error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// ---- Schedule endpoint (saves to DB) ----
+const shuffleAndSchedule = async (req, res) => {
+    try {
+        const { tournamentId } = req.params;
+
+        // Load configs
+        const { schedConfig, games, configMap, error: loadErr } = await loadScheduleData(tournamentId);
+        if (loadErr) return res.status(400).json({ success: false, message: loadErr });
+
+        // Run algorithm
+        const result = await runSchedulingAlgorithm(tournamentId, schedConfig, games, configMap);
+
+        // Clear previous schedule
+        await supabase.from('scheduled_matches').delete().eq('tournament_id', tournamentId);
+        await supabase.from('schedule_slots').delete().eq('tournament_id', tournamentId);
+        await supabase.from('schedule_reports').delete().eq('tournament_id', tournamentId);
+
+        // Insert slots into DB
+        let insertedSlots = [];
+        if (result.slotsToInsert.length > 0) {
+            for (let i = 0; i < result.slotsToInsert.length; i += 50) {
+                const batch = result.slotsToInsert.slice(i, i + 50);
+                const { data: ins, error: slotErr } = await supabase
+                    .from('schedule_slots')
+                    .insert(batch)
+                    .select();
+                if (slotErr) throw slotErr;
+                if (ins) insertedSlots = insertedSlots.concat(ins);
             }
         }
 
-        // 7. Insert all scheduled matches
+        // Map slot refs to actual IDs
+        const matchesToInsert = result.scheduledMatches.map(m => {
+            const { _slot_ref, ...rest } = m;
+            rest.slot_id = insertedSlots[_slot_ref]?.id || null;
+            return rest;
+        });
+
+        // Insert matches
         let insertedMatches = [];
-        if (scheduledMatches.length > 0) {
-            // Insert in batches of 50
-            for (let i = 0; i < scheduledMatches.length; i += 50) {
-                const batch = scheduledMatches.slice(i, i + 50);
-                const { data: inserted, error: insErr } = await supabase
+        if (matchesToInsert.length > 0) {
+            for (let i = 0; i < matchesToInsert.length; i += 50) {
+                const batch = matchesToInsert.slice(i, i + 50);
+                const { data: ins, error: insErr } = await supabase
                     .from('scheduled_matches')
                     .insert(batch)
                     .select();
-
                 if (insErr) throw insErr;
-                if (inserted) insertedMatches = insertedMatches.concat(inserted);
+                if (ins) insertedMatches = insertedMatches.concat(ins);
             }
         }
 
-        // 8. Cross-sport conflict detection
-        const crossConflicts = detectCrossSportConflicts(insertedMatches, globalPlayerTimeline);
-
-        // Update conflict flags on matches
-        for (const conflict of crossConflicts) {
-            await supabase
-                .from('scheduled_matches')
-                .update({
-                    status: 'SCHEDULED_OVERLAP',
-                    conflict_type: 'CROSS_SPORT',
-                    conflict_with_match_id: conflict.conflictMatchId,
-                    conflict_player_ids: conflict.playerIds
-                })
-                .eq('id', conflict.matchId);
-        }
-
-        // 9. Generate report
-        const totalConflicts = insertedMatches.filter(m => m.status === 'SCHEDULED_OVERLAP').length + crossConflicts.length;
-        const sameSportConflicts = insertedMatches.filter(m => m.status === 'SCHEDULED_OVERLAP' && m.conflict_type !== 'CROSS_SPORT').length;
-
+        // Insert report
         const report = {
             tournament_id: parseInt(tournamentId),
-            total_matches: insertedMatches.length,
-            total_conflicts: totalConflicts,
-            same_sport_conflicts: sameSportConflicts,
-            cross_sport_conflicts: crossConflicts.length,
-            conflicted_match_ids: insertedMatches.filter(m => m.status === 'SCHEDULED_OVERLAP').map(m => m.id).join(','),
+            total_matches: result.report.total_matches,
+            total_conflicts: result.report.total_conflicts,
+            same_sport_conflicts: result.report.same_sport_conflicts,
+            cross_sport_conflicts: result.report.cross_sport_conflicts,
+            conflicted_match_ids: insertedMatches
+                .filter(m => m.status === 'SCHEDULED_OVERLAP')
+                .map(m => m.id).join(','),
             report_data: {
-                games: games.map(g => ({
-                    id: g.id,
-                    name: g.game_name,
-                    matches: insertedMatches.filter(m => m.game_id === g.id).length,
-                    conflicts: insertedMatches.filter(m => m.game_id === g.id && m.status === 'SCHEDULED_OVERLAP').length
-                })),
+                ...result.report,
                 generated_at: new Date().toISOString()
             },
             generated_at: new Date().toISOString()
@@ -378,7 +566,6 @@ const shuffleAndSchedule = async (req, res) => {
         const { error: rptErr } = await supabase
             .from('schedule_reports')
             .insert([report]);
-
         if (rptErr) console.error('Report insert error:', rptErr);
 
         // Update schedule config status
@@ -387,28 +574,12 @@ const shuffleAndSchedule = async (req, res) => {
             .update({ status: 'SCHEDULED' })
             .eq('tournament_id', tournamentId);
 
-        // Update slot usage counts
-        for (const gameId in allSlots) {
-            for (const slot of allSlots[gameId]) {
-                if (slot.used > 0) {
-                    await supabase
-                        .from('schedule_slots')
-                        .update({ used: slot.used })
-                        .eq('id', slot.id);
-                }
-            }
-        }
-
         res.json({
             success: true,
-            message: `Scheduled ${insertedMatches.length} matches with ${totalConflicts} conflict(s).`,
-            report: {
-                total_matches: insertedMatches.length,
-                total_conflicts: totalConflicts,
-                same_sport_conflicts: sameSportConflicts,
-                cross_sport_conflicts: crossConflicts.length
-            },
-            matches: insertedMatches
+            message: `Scheduled ${insertedMatches.length} matches with ${result.report.total_conflicts} conflict(s).`,
+            report: result.report,
+            matches: insertedMatches,
+            dayBreakdown: result.dayBreakdown
         });
 
     } catch (error) {
@@ -417,51 +588,302 @@ const shuffleAndSchedule = async (req, res) => {
     }
 };
 
+// ---- Suggest dates endpoint ----
+const suggestDates = async (req, res) => {
+    try {
+        const { tournamentId } = req.params;
+        const { daily_start_time, daily_end_time } = req.body;
+
+        const dailyStart = daily_start_time || '09:00';
+        const dailyEnd = daily_end_time || '18:00';
+
+        // Parse daily hours to calculate available minutes per day
+        const [startH, startM] = dailyStart.split(':').map(Number);
+        const [endH, endM] = dailyEnd.split(':').map(Number);
+        const dailyMinutes = (endH * 60 + endM) - (startH * 60 + startM);
+
+        if (dailyMinutes <= 0) {
+            return res.status(400).json({ success: false, message: 'End time must be after start time.' });
+        }
+
+        // Load games and configs
+        const { data: games, error: gErr } = await supabase
+            .from('tournament_games')
+            .select('id, category, game_name, game_type, team_size')
+            .eq('tournament_id', tournamentId);
+
+        if (gErr) throw gErr;
+        if (!games || games.length === 0) {
+            return res.status(400).json({ success: false, message: 'No games found.' });
+        }
+
+        const gameIds = games.map(g => g.id);
+        const { data: configs } = await supabase
+            .from('game_configs')
+            .select('*')
+            .in('game_id', gameIds);
+
+        const configMap = {};
+        if (configs) configs.forEach(c => { configMap[c.game_id] = c; });
+
+        // Count matches needed per game
+        const gamesAnalysis = [];
+        let bottleneckDays = 0;
+        let totalMatchesAll = 0;
+
+        for (const game of games) {
+            const cfg = configMap[game.id];
+            if (!cfg) continue;
+
+            const matchDuration = cfg.match_duration || 30;
+            const breakDuration = cfg.break_duration || 10;
+            const slotDuration = matchDuration + breakDuration;
+            const parallelMatches = cfg.parallel_matches || 1;
+
+            // Count registrations / teams
+            let participantCount = 0;
+            if (game.game_type === 'Solo') {
+                const { count } = await supabase
+                    .from('game_registrations')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('game_id', game.id);
+                participantCount = count || 0;
+            } else {
+                const { count } = await supabase
+                    .from('teams')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('tournament_game_id', game.id)
+                    .in('status', ['CONFIRMED', 'PENDING']);
+                participantCount = count || 0;
+            }
+
+            // Single-elimination: matches = ceil(participants/2)
+            const totalMatches = Math.max(0, Math.ceil(participantCount / 2));
+            totalMatchesAll += totalMatches;
+
+            // Slots per day = floor(dailyMinutes / slotDuration) * parallelMatches
+            const slotsPerDay = Math.floor(dailyMinutes / slotDuration) * parallelMatches;
+            const minDays = slotsPerDay > 0 ? Math.ceil(totalMatches / slotsPerDay) : 999;
+
+            if (minDays > bottleneckDays) bottleneckDays = minDays;
+
+            gamesAnalysis.push({
+                id: game.id,
+                name: game.game_name,
+                category: game.category,
+                type: game.game_type,
+                participants: participantCount,
+                total_matches: totalMatches,
+                match_duration: matchDuration,
+                break_duration: breakDuration,
+                parallel_matches: parallelMatches,
+                slots_per_day: slotsPerDay,
+                min_days: minDays
+            });
+        }
+
+        // Generate 3 suggestions
+        const today = new Date();
+        today.setDate(today.getDate() + 1); // Start from tomorrow at earliest
+        const baseStartStr = today.toISOString().split('T')[0];
+
+        const compactDays = Math.max(bottleneckDays, 1);
+        const comfortableDays = Math.max(Math.ceil(compactDays * 1.4), compactDays + 1);
+        const relaxedDays = Math.max(Math.ceil(compactDays * 2), compactDays + 3);
+
+        function addDays(dateStr, days) {
+            const d = new Date(dateStr + 'T00:00:00');
+            d.setDate(d.getDate() + days - 1);
+            return d.toISOString().split('T')[0];
+        }
+
+        // Calculate total slots across all games for utilization
+        function calcUtilization(days) {
+            let totalSlots = 0;
+            gamesAnalysis.forEach(g => { totalSlots += g.slots_per_day * days; });
+            return totalSlots > 0 ? Math.round((totalMatchesAll / totalSlots) * 100) : 0;
+        }
+
+        const suggestions = [
+            {
+                label: `Compact (${compactDays} day${compactDays > 1 ? 's' : ''})`,
+                mode: 'compact',
+                start_date: baseStartStr,
+                end_date: addDays(baseStartStr, compactDays),
+                days: compactDays,
+                utilization: calcUtilization(compactDays),
+                description: 'Minimum days, tightly packed schedule. Possible time clashes in busy games.'
+            },
+            {
+                label: `Comfortable (${comfortableDays} day${comfortableDays > 1 ? 's' : ''})`,
+                mode: 'comfortable',
+                start_date: baseStartStr,
+                end_date: addDays(baseStartStr, comfortableDays),
+                days: comfortableDays,
+                utilization: calcUtilization(comfortableDays),
+                description: 'Balanced schedule with buffer days. Low chance of clashes.'
+            },
+            {
+                label: `Relaxed (${relaxedDays} day${relaxedDays > 1 ? 's' : ''})`,
+                mode: 'relaxed',
+                start_date: baseStartStr,
+                end_date: addDays(baseStartStr, relaxedDays),
+                days: relaxedDays,
+                utilization: calcUtilization(relaxedDays),
+                description: 'Spread out schedule with plenty of breathing room.'
+            }
+        ];
+
+        // Find bottleneck game
+        const bottleneckGame = gamesAnalysis.reduce((max, g) =>
+            g.min_days > (max?.min_days || 0) ? g : max, null
+        );
+
+        res.json({
+            success: true,
+            suggestions,
+            analysis: {
+                total_matches: totalMatchesAll,
+                total_games: games.length,
+                bottleneck_game: bottleneckGame ? `${bottleneckGame.name} (${bottleneckGame.category})` : null,
+                bottleneck_days: bottleneckDays,
+                daily_hours: dailyMinutes / 60,
+                games_breakdown: gamesAnalysis
+            }
+        });
+
+    } catch (error) {
+        console.error('suggestDates error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 // ============================================================
 // HELPER FUNCTIONS
 // ============================================================
 
-function generateTimeSlots(schedConfig, gameConfig, gameId, tournamentId) {
-    const slots = [];
-    const slotDuration = (gameConfig.match_duration + gameConfig.break_duration) * 60 * 1000; // ms
-    const parallelCount = gameConfig.parallel_matches || 1;
-    const venueNames = gameConfig.venue_names || [];
+// Load and validate all scheduling data
+async function loadScheduleData(tournamentId) {
+    const { data: schedConfig, error: scErr } = await supabase
+        .from('tournament_schedule_config')
+        .select('*')
+        .eq('tournament_id', tournamentId)
+        .single();
 
-    const startDate = new Date(schedConfig.start_date + 'T00:00:00+06:00');
-    const endDate = new Date(schedConfig.end_date + 'T23:59:59+06:00');
+    if (scErr || !schedConfig) {
+        return { error: 'Please configure the tournament schedule first (dates & times).' };
+    }
 
-    // Strip seconds from time strings if present (DB may store HH:MM:SS)
-    // We only need HH:MM for ISO date construction
-    const dailyStartHHMM = schedConfig.daily_start_time.split(':').slice(0, 2).join(':');
-    const dailyEndHHMM = schedConfig.daily_end_time.split(':').slice(0, 2).join(':');
+    const { data: games, error: gErr } = await supabase
+        .from('tournament_games')
+        .select('id, category, game_name, game_type, team_size')
+        .eq('tournament_id', tournamentId);
 
-    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-        const dateStr = d.toISOString().split('T')[0];
+    if (gErr) throw gErr;
+    if (!games || games.length === 0) {
+        return { error: 'No games found for this tournament.' };
+    }
 
-        let slotStart = new Date(`${dateStr}T${dailyStartHHMM}:00+06:00`);
-        const dayEnd = new Date(`${dateStr}T${dailyEndHHMM}:00+06:00`);
+    const gameIds = games.map(g => g.id);
+    const { data: configs, error: cfgErr } = await supabase
+        .from('game_configs')
+        .select('*')
+        .in('game_id', gameIds);
 
-        while (slotStart.getTime() + slotDuration <= dayEnd.getTime()) {
-            const slotEnd = new Date(slotStart.getTime() + gameConfig.match_duration * 60 * 1000);
+    if (cfgErr) throw cfgErr;
 
-            for (let v = 0; v < parallelCount; v++) {
-                slots.push({
-                    tournament_id: parseInt(tournamentId),
-                    game_id: gameId,
-                    slot_start: slotStart.toISOString(),
-                    slot_end: slotEnd.toISOString(),
-                    venue_name: venueNames[v] || `Venue ${v + 1}`,
-                    capacity: 1,
-                    used: 0
-                });
+    const configMap = {};
+    if (configs) configs.forEach(c => { configMap[c.game_id] = c; });
+
+    const unconfigured = games.filter(g => !configMap[g.id]);
+    if (unconfigured.length > 0) {
+        return { error: `Please configure all games first. Missing: ${unconfigured.map(g => g.game_name).join(', ')}` };
+    }
+
+    return { schedConfig, games, configMap };
+}
+
+// Calculate conflict from global player timeline
+function calculateConflictFromTimeline(slotStart, slotEnd, match, gameId, globalTimeline) {
+    const playerIds = getPlayerIds(match);
+    const startMs = slotStart.getTime();
+    const endMs = slotEnd.getTime();
+
+    let weight = 0;
+    let type = null;
+    const conflictingPlayers = [];
+
+    for (const pid of playerIds) {
+        const timeline = globalTimeline[pid] || [];
+        for (const entry of timeline) {
+            const eStart = entry.start.getTime();
+            const eEnd = entry.end.getTime();
+
+            if (startMs < eEnd && endMs > eStart) {
+                weight++;
+                conflictingPlayers.push(pid);
+                type = entry.gameId === gameId ? 'SAME_SPORT' : 'CROSS_SPORT';
             }
-
-            // Move to next slot (match + break)
-            slotStart = new Date(slotStart.getTime() + slotDuration);
         }
     }
 
-    return slots;
+    return {
+        weight,
+        type,
+        playerIds: conflictingPlayers.length > 0 ? conflictingPlayers.join(',') : null
+    };
+}
+
+// Update global player timeline
+function updatePlayerTimeline(timeline, match, start, end, gameId) {
+    const playerIds = getPlayerIds(match);
+    playerIds.forEach(pid => {
+        if (!timeline[pid]) timeline[pid] = [];
+        timeline[pid].push({
+            start: new Date(start),
+            end: new Date(end),
+            gameId
+        });
+    });
+}
+
+// Build day-by-day breakdown for preview
+function buildDayBreakdown(scheduledMatches, games, configMap) {
+    const days = {};
+    const gameNameMap = {};
+    games.forEach(g => { gameNameMap[g.id] = g.game_name; });
+
+    for (const match of scheduledMatches) {
+        if (!match.scheduled_start) continue;
+        const dayStr = match.scheduled_start.split('T')[0];
+        if (!days[dayStr]) {
+            days[dayStr] = { date: dayStr, slots: [], matchCount: 0, conflictCount: 0 };
+        }
+        days[dayStr].slots.push({
+            time: match.scheduled_start,
+            end: match.scheduled_end,
+            venue: match.venue_name,
+            game: gameNameMap[match.game_id] || `Game ${match.game_id}`,
+            game_id: match.game_id,
+            matchup: `${match.participant_a_label} vs ${match.participant_b_label}`,
+            status: match.status,
+            conflict_type: match.conflict_type
+        });
+        days[dayStr].matchCount++;
+        if (match.status === 'SCHEDULED_OVERLAP') days[dayStr].conflictCount++;
+    }
+
+    // Sort slots within each day by time, then venue
+    for (const dayStr in days) {
+        days[dayStr].slots.sort((a, b) => {
+            const timeDiff = new Date(a.time) - new Date(b.time);
+            if (timeDiff !== 0) return timeDiff;
+            return (a.venue || '').localeCompare(b.venue || '');
+        });
+    }
+
+    // Return as sorted array
+    return Object.values(days).sort((a, b) => a.date.localeCompare(b.date));
 }
 
 async function generateMatchPool(game, tournamentId) {
@@ -469,7 +891,6 @@ async function generateMatchPool(game, tournamentId) {
     const gameType = game.game_type;
 
     if (gameType === 'Solo') {
-        // Get all registered users for this game
         const { data: registrations, error } = await supabase
             .from('game_registrations')
             .select('user_id, users(id, full_name, student_id, gender)')
@@ -483,16 +904,10 @@ async function generateMatchPool(game, tournamentId) {
             gender: r.users?.gender
         }));
 
-        // Generate single-elimination bracket: pair users
-        // Shuffle first
         shuffleArray(users);
-
-        // If not power of 2, some get byes
-        const bracketSize = nextPowerOf2(users.length);
 
         for (let i = 0; i < users.length; i += 2) {
             if (i + 1 < users.length) {
-                // Gender rules for category
                 const catGender = game.category?.toLowerCase();
                 if (catGender === 'male' && (users[i].gender === 'Female' || users[i + 1].gender === 'Female')) continue;
                 if (catGender === 'female' && (users[i].gender === 'Male' || users[i + 1].gender === 'Male')) continue;
@@ -505,7 +920,6 @@ async function generateMatchPool(game, tournamentId) {
                     playerIds: [users[i].id, users[i + 1].id]
                 });
             } else {
-                // Bye - auto-advance
                 matches.push({
                     a_user_id: users[i].id,
                     a_label: users[i].name,
@@ -517,7 +931,6 @@ async function generateMatchPool(game, tournamentId) {
             }
         }
     } else {
-        // Team-based games (Duo, Custom)
         const { data: teams, error } = await supabase
             .from('teams')
             .select('id, team_name, leader_user_id, team_members(user_id)')
@@ -526,7 +939,6 @@ async function generateMatchPool(game, tournamentId) {
 
         if (error || !teams || teams.length < 2) return matches;
 
-        // Shuffle teams
         shuffleArray(teams);
 
         for (let i = 0; i < teams.length; i += 2) {
@@ -542,7 +954,6 @@ async function generateMatchPool(game, tournamentId) {
                     playerIds: [...teamAPlayers, ...teamBPlayers]
                 });
             } else {
-                // Bye
                 matches.push({
                     a_team_id: teams[i].id,
                     a_label: teams[i].team_name,
@@ -558,146 +969,6 @@ async function generateMatchPool(game, tournamentId) {
     return matches;
 }
 
-function shuffleMatchesWeighted(matches, globalTimeline) {
-    // Weight by how many existing scheduled matches the players have
-    matches.forEach(m => {
-        const pids = getPlayerIds(m);
-        m._weight = pids.reduce((sum, pid) => {
-            return sum + (globalTimeline[pid]?.length || 0);
-        }, 0);
-    });
-
-    // Sort: higher weight (busier players) first so they get more choice
-    matches.sort((a, b) => b._weight - a._weight);
-
-    // Add some randomness within same weight groups
-    let i = 0;
-    while (i < matches.length) {
-        let j = i;
-        while (j < matches.length && matches[j]._weight === matches[i]._weight) j++;
-        // Shuffle within this group
-        const group = matches.slice(i, j);
-        shuffleArray(group);
-        for (let k = 0; k < group.length; k++) {
-            matches[i + k] = group[k];
-        }
-        i = j;
-    }
-}
-
-function findBestSlot(slots, match, globalTimeline, tries) {
-    const available = slots.filter(s => (s.used || 0) < s.capacity);
-    if (available.length === 0) return null;
-
-    if (match.isBye) {
-        // Byes don't need real slots, just pick the first
-        return available[0];
-    }
-
-    let bestSlot = null;
-    let bestConflict = Infinity;
-
-    const numTries = Math.min(tries, available.length);
-    const tried = new Set();
-
-    for (let t = 0; t < numTries; t++) {
-        let idx;
-        do {
-            idx = Math.floor(Math.random() * available.length);
-        } while (tried.has(idx) && tried.size < available.length);
-        tried.add(idx);
-
-        const slot = available[idx];
-        const conflict = calculateConflict(slot, match, globalTimeline);
-
-        if (conflict.weight === 0) {
-            return slot; // Perfect slot, no conflict
-        }
-
-        if (conflict.weight < bestConflict) {
-            bestConflict = conflict.weight;
-            bestSlot = slot;
-        }
-    }
-
-    return bestSlot || available[0];
-}
-
-function calculateConflict(slot, match, globalTimeline) {
-    const playerIds = getPlayerIds(match);
-    const slotStart = new Date(slot.slot_start).getTime();
-    const slotEnd = new Date(slot.slot_end).getTime();
-
-    let weight = 0;
-    let type = null;
-    const conflictingPlayers = [];
-
-    for (const pid of playerIds) {
-        const timeline = globalTimeline[pid] || [];
-        for (const entry of timeline) {
-            const eStart = entry.start.getTime();
-            const eEnd = entry.end.getTime();
-
-            // Check overlap
-            if (slotStart < eEnd && slotEnd > eStart) {
-                weight++;
-                conflictingPlayers.push(pid);
-                type = entry.gameId === match.gameId ? 'SAME_SPORT' : 'CROSS_SPORT';
-            }
-        }
-    }
-
-    return {
-        weight,
-        type,
-        playerIds: conflictingPlayers.length > 0 ? conflictingPlayers.join(',') : null
-    };
-}
-
-function detectCrossSportConflicts(matches, globalTimeline) {
-    const conflicts = [];
-
-    // Group matches by player
-    const playerMatches = {};
-    matches.forEach(m => {
-        const pids = [];
-        if (m.participant_a_user_id) pids.push(m.participant_a_user_id);
-        if (m.participant_b_user_id) pids.push(m.participant_b_user_id);
-
-        pids.forEach(pid => {
-            if (!playerMatches[pid]) playerMatches[pid] = [];
-            playerMatches[pid].push(m);
-        });
-    });
-
-    // For each player, check for time overlaps across different games
-    for (const pid in playerMatches) {
-        const pMatches = playerMatches[pid].sort((a, b) =>
-            new Date(a.scheduled_start) - new Date(b.scheduled_start)
-        );
-
-        for (let i = 0; i < pMatches.length - 1; i++) {
-            const m1 = pMatches[i];
-            const m2 = pMatches[i + 1];
-
-            if (m1.game_id !== m2.game_id) {
-                const end1 = new Date(m1.scheduled_end).getTime();
-                const start2 = new Date(m2.scheduled_start).getTime();
-
-                if (end1 > start2) {
-                    conflicts.push({
-                        matchId: m2.id,
-                        conflictMatchId: m1.id,
-                        playerIds: pid.toString()
-                    });
-                }
-            }
-        }
-    }
-
-    return conflicts;
-}
-
 function getPlayerIds(match) {
     const ids = [];
     if (match.a_user_id) ids.push(match.a_user_id);
@@ -708,53 +979,6 @@ function getPlayerIds(match) {
         });
     }
     return ids;
-}
-
-function calculateBracketRounds(totalMatches) {
-    if (totalMatches <= 0) return [];
-    if (totalMatches === 1) return [{ count: 1, label: 'Final' }];
-
-    const rounds = [];
-    let remaining = totalMatches;
-
-    // Work backwards from total matches
-    if (remaining >= 8) {
-        const r16Count = Math.min(remaining, 8);
-        rounds.push({ count: r16Count, label: 'Round of 16' });
-        remaining -= r16Count;
-    }
-    if (remaining >= 4 || rounds.length > 0) {
-        const qfCount = Math.min(remaining > 0 ? remaining : 4, 4);
-        if (remaining > 0) {
-            rounds.push({ count: qfCount, label: 'Quarter Final' });
-            remaining -= qfCount;
-        }
-    }
-    if (remaining >= 2 || rounds.length > 0) {
-        const sfCount = Math.min(remaining > 0 ? remaining : 2, 2);
-        if (remaining > 0) {
-            rounds.push({ count: sfCount, label: 'Semi Final' });
-            remaining -= sfCount;
-        }
-    }
-    if (remaining >= 1 || rounds.length > 0) {
-        if (remaining > 0) {
-            rounds.push({ count: 1, label: 'Final' });
-            remaining -= 1;
-        }
-    }
-
-    // If we still have remaining, add as group stage
-    if (remaining > 0) {
-        rounds.unshift({ count: remaining, label: 'Group Stage' });
-    }
-
-    // If no rounds were created, just do a simple round structure
-    if (rounds.length === 0) {
-        rounds.push({ count: totalMatches, label: 'Round 1' });
-    }
-
-    return rounds;
 }
 
 function shuffleArray(arr) {
@@ -1121,6 +1345,8 @@ module.exports = {
     saveGameConfig,
     saveScheduleConfig,
     shuffleAndSchedule,
+    previewSchedule,
+    suggestDates,
     getScheduleResults,
     updateMatchStatus,
     rescheduleMatch,
