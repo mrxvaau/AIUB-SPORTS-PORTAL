@@ -1,6 +1,6 @@
 // API Configuration
 // This file contains the API endpoints for the AIUB Sports Portal
-// To switch environments, update the API_BASE_URL
+// Version 2.0 — Domain-grouped route structure
 
 // Default base URL
 // Check for tunnel configuration (loaded from js/tunnel-config.js)
@@ -22,37 +22,54 @@ const API_CONFIG = {
 
     // Specific endpoints
     ENDPOINTS: {
+        // Auth (login stays on /auth)
         AUTH_LOGIN: '/auth/login',
         MS_AUTH_LOGIN: '/msauth/login',
         MS_AUTH_CALLBACK: '/msauth/callback',
-        USER_PROFILE: (studentId) => `/auth/profile/${studentId}`,
-        UPDATE_PROFILE: (studentId) => `/auth/profile/${studentId}`,
-        NAME_EDIT_COUNT: (studentId) => `/auth/name-edit-count/${studentId}`,
-        TOURNAMENTS: '/auth/tournaments',
-        TOURNAMENT_GAMES: (id) => `/auth/tournaments/${id}/games`,
-        REGISTER_GAME: '/auth/register',
-        USER_REGISTRATIONS: (studentId) => `/auth/registrations/${studentId}`,
-        CREATE_TEAM: '/auth/create-team',
-        TEAM_DETAILS: (teamId) => `/auth/team/${teamId}`,
-        ADD_TEAM_MEMBER: (teamId) => `/auth/team/${teamId}/add-member`,
-        ACCEPT_INVITATION: '/auth/accept-invitation',
-        CONFIRM_TEAM: (teamId) => `/auth/confirm-team/${teamId}`,
-        NOTIFICATIONS: (studentId) => `/auth/notifications/${studentId}`,
-        MARK_NOTIFICATION_READ: (notificationId) => `/auth/notifications/${notificationId}/read`,
-        PENDING_INVITATIONS: (studentId) => `/auth/pending-invitations/${studentId}`,
-        CART_ADD: '/auth/cart/add',
-        CART_GET: (studentId) => `/auth/cart/${studentId}`,
-        CART_REMOVE: (cartItemId) => `/auth/cart/${cartItemId}`,
-        CART_CLEAR: (studentId) => `/auth/cart/clear/${studentId}`,
-        CANCEL_REGISTRATION: (gameId, studentId) => `/auth/registration/${gameId}/${studentId}`,
 
-        // Game and tournament requests
-        REQUEST_GAME: '/auth/request-game',
-        REQUEST_TOURNAMENT: '/auth/request-tournament',
-        GET_USER_GAME_REQUESTS: (studentId) => `/auth/game-requests/${studentId}`,
-        GET_USER_TOURNAMENT_REQUESTS: (studentId) => `/auth/tournament-requests/${studentId}`,
+        // User profile & notifications
+        USER_PROFILE: (studentId) => `/user/profile/${studentId}`,
+        UPDATE_PROFILE: (studentId) => `/user/profile/${studentId}`,
+        PROFILE_SETUP: '/user/profile-setup',
+        NAME_EDIT_COUNT: (studentId) => `/user/name-edit-count/${studentId}`,
+        NOTIFICATIONS: (studentId) => `/user/notifications/${studentId}`,
+        MARK_NOTIFICATION_READ: (notificationId) => `/user/notifications/${notificationId}/read`,
+        PENDING_INVITATIONS: (studentId) => `/user/pending-invitations/${studentId}`,
 
-        // Admin endpoints
+        // Tournaments
+        TOURNAMENTS: '/tournaments',
+        TOURNAMENT_GAMES: (id) => `/tournaments/${id}/games`,
+        REQUEST_GAME: '/tournaments/request-game',
+        REQUEST_TOURNAMENT: '/tournaments/request',
+        GET_USER_GAME_REQUESTS: (studentId) => `/tournaments/game-requests/${studentId}`,
+        GET_USER_TOURNAMENT_REQUESTS: (studentId) => `/tournaments/requests/${studentId}`,
+
+        // Registration
+        REGISTER_GAME: '/registration/register',
+        USER_REGISTRATIONS: (studentId) => `/registration/my/${studentId}`,
+        CANCEL_REGISTRATION: (gameId, studentId) => `/registration/${gameId}/${studentId}`,
+
+        // Teams
+        CREATE_TEAM: '/teams/create',
+        TEAM_DETAILS: (teamId) => `/teams/${teamId}`,
+        ADD_TEAM_MEMBER: (teamId) => `/teams/${teamId}/members`,
+        VALIDATE_MEMBER: '/teams/validate-member',
+        REMOVE_TEAM_MEMBER: (teamId, memberId) => `/teams/${teamId}/members/${memberId}`,
+        REPLACE_MEMBER: (teamId, memberId) => `/teams/${teamId}/members/${memberId}/replace`,
+        ACCEPT_INVITATION: '/teams/invitations/accept',
+        REJECT_INVITATION: '/teams/invitations/reject',
+        CONFIRM_TEAM: (teamId) => `/teams/${teamId}/confirm`,
+        TEAM_BY_GAME: (gameId, studentId) => `/teams/by-game/${gameId}/${studentId}`,
+
+        // Cart
+        CART_ADD: '/cart/add',
+        CART_GET: (studentId) => `/cart/${studentId}`,
+        CART_REMOVE: (cartItemId) => `/cart/${cartItemId}`,
+        CART_CLEAR: (studentId) => `/cart/clear/${studentId}`,
+        CART_CHECKOUT: '/cart/checkout',
+        CART_REMOVE_BY_GAME: (gameId, studentId) => `/cart/game/${gameId}/${studentId}`,
+
+        // Admin endpoints (unchanged)
         CHECK_ADMIN: '/admin/check-admin',
         PROMOTE_USER: '/admin/promote-user',
         ASSIGN_ROLE: '/admin/assign-role',
@@ -71,7 +88,7 @@ const API_CONFIG = {
         UPDATE_TOURNAMENT: (id) => `/admin/tournaments/${id}`,
         DELETE_TOURNAMENT: (id) => `/admin/tournaments/${id}`,
 
-        // Dashboard endpoints
+        // Dashboard endpoints (unchanged)
         DASHBOARD_PROFILE: (studentId) => `/dashboard/profile/${studentId}`,
         DASHBOARD_TOURNAMENTS: (studentId) => `/dashboard/tournaments/${studentId}`,
         DASHBOARD_REGISTRATIONS: (studentId) => `/dashboard/registrations/${studentId}`,

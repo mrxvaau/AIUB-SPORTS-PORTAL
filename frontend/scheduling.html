@@ -846,7 +846,7 @@
 
     <!-- Header -->
     <div class="page-header">
-        <a class="back-btn" href="registrations.html">
+        <a class="back-btn" href="admin-dashboard.html">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
@@ -953,6 +953,7 @@
         </div>
     </div>
 
+    <script src="js/auth-fetch.js"></script>
     <script>
         // ============================================================
         // STATE
@@ -967,7 +968,7 @@
             : `/api/admin`;
 
         function getAuthHeaders() {
-            const token = localStorage.getItem('msAccessToken');
+            const token = localStorage.getItem('jwtToken');
             const userEmail = localStorage.getItem('userEmail');
             return {
                 'Content-Type': 'application/json',

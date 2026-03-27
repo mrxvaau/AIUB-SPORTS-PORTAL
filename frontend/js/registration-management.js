@@ -44,7 +44,7 @@ async function loadRegistrationManagementNested() {
         const userEmail = localStorage.getItem('userEmail');
 
 
-        const response = await fetch(`${API_URL}/admin/registrations/overview`, {
+        const response = await authFetch(`${API_URL}/admin/registrations/overview`, {
             headers: {
                 'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
                 'x-user-email': userEmail || ''
@@ -57,7 +57,7 @@ async function loadRegistrationManagementNested() {
             console.warn('Session expired in loadRegistrationManagementNested');
             localStorage.removeItem('msAccessToken');
             localStorage.removeItem('userEmail');
-            window.location.href = 'index.html';
+            window.location.href = 'login.html';
             return;
         }
 
@@ -321,7 +321,7 @@ async function manageGameRegistrations(gameId, gameName) {
 
     // Load registration data
     try {
-        const response = await fetch(`${API_URL}/admin/games/${gameId}/registrations`, {
+        const response = await authFetch(`${API_URL}/admin/games/${gameId}/registrations`, {
             headers: {
                 'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
                 'x-user-email': userEmail || ''
@@ -332,7 +332,7 @@ async function manageGameRegistrations(gameId, gameName) {
             console.warn('Session expired in manageGameRegistrations');
             localStorage.removeItem('msAccessToken');
             localStorage.removeItem('userEmail');
-            window.location.href = 'index.html';
+            window.location.href = 'login.html';
             return;
         }
 
@@ -582,7 +582,7 @@ window.updatePayment = async function (registrationId, status) {
     }
 
     try {
-        const response = await fetch(`${API_URL}/admin/registrations/${registrationId}/payment`, {
+        const response = await authFetch(`${API_URL}/admin/registrations/${registrationId}/payment`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -594,7 +594,7 @@ window.updatePayment = async function (registrationId, status) {
 
         if (response.status === 401) {
             alert('Session expired. Please log in again.');
-            window.location.href = 'index.html';
+            window.location.href = 'login.html';
             return;
         }
 
@@ -629,7 +629,7 @@ window.updateTeamMemberPayment = async function (memberId, status) {
     }
 
     try {
-        const response = await fetch(`${API_URL}/admin/team-members/${memberId}/payment`, {
+        const response = await authFetch(`${API_URL}/admin/team-members/${memberId}/payment`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -641,7 +641,7 @@ window.updateTeamMemberPayment = async function (memberId, status) {
 
         if (response.status === 401) {
             alert('Session expired. Please log in again.');
-            window.location.href = 'index.html';
+            window.location.href = 'login.html';
             return;
         }
 
@@ -669,7 +669,7 @@ window.updateMemberStatus = async function (memberId, status) {
     const userEmail = localStorage.getItem('userEmail');
 
     try {
-        const response = await fetch(`${API_URL}/admin/team-members/${memberId}/status`, {
+        const response = await authFetch(`${API_URL}/admin/team-members/${memberId}/status`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -681,7 +681,7 @@ window.updateMemberStatus = async function (memberId, status) {
 
         if (response.status === 401) {
             alert('Session expired. Please log in again.');
-            window.location.href = 'index.html';
+            window.location.href = 'login.html';
             return;
         }
 
@@ -713,7 +713,7 @@ window.removeMember = async function (memberId, memberName) {
     const userEmail = localStorage.getItem('userEmail');
 
     try {
-        const response = await fetch(`${API_URL}/admin/team-members/${memberId}`, {
+        const response = await authFetch(`${API_URL}/admin/team-members/${memberId}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
@@ -723,7 +723,7 @@ window.removeMember = async function (memberId, memberName) {
 
         if (response.status === 401) {
             alert('Session expired. Please log in again.');
-            window.location.href = 'index.html';
+            window.location.href = 'login.html';
             return;
         }
 
@@ -774,7 +774,7 @@ window.confirmRegistration = async function (registrationId, teamId) {
             url += registrationId;
         }
 
-        const response = await fetch(url, {
+        const response = await authFetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -786,7 +786,7 @@ window.confirmRegistration = async function (registrationId, teamId) {
 
         if (response.status === 401) {
             alert('Session expired. Please log in again.');
-            window.location.href = 'index.html';
+            window.location.href = 'login.html';
             return;
         }
 

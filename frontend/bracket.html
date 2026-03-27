@@ -579,6 +579,7 @@
         </div>
     </div>
 
+    <script src="js/auth-fetch.js"></script>
     <script>
         let tournamentId = null;
         let currentGameId = null;
@@ -591,7 +592,7 @@
             : `/api/admin`;
 
         function getAuthHeaders() {
-            const token = localStorage.getItem('msAccessToken');
+            const token = localStorage.getItem('jwtToken');
             const userEmail = localStorage.getItem('userEmail');
             return {
                 'Content-Type': 'application/json',

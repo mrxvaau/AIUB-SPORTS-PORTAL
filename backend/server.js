@@ -1,5 +1,5 @@
 ﻿// AIUB Sports Portal - Backend Server (Supabase)
-// Version 1.0
+// Version 2.0
 
 const express = require('express');
 const cors = require('cors');
@@ -20,6 +20,13 @@ const authRoutes = require('./routes/auth');
 const msAuthRoutes = require('./routes/msauth');
 const adminRoutes = require('./routes/admin');
 const dashboardRoutes = require('./routes/dashboard');
+
+// New domain-grouped routes
+const userRoutes = require('./routes/user');
+const tournamentRoutes = require('./routes/tournaments');
+const registrationRoutes = require('./routes/registration');
+const teamRoutes = require('./routes/teams');
+const cartRoutes = require('./routes/cart');
 
 // Middleware
 app.use(cors({
@@ -82,7 +89,14 @@ app.use((req, res, next) => {
     next();
 });
 
-// Routes
+// Routes — new domain-grouped structure
+app.use('/api/user', userRoutes);
+app.use('/api/tournaments', tournamentRoutes);
+app.use('/api/registration', registrationRoutes);
+app.use('/api/teams', teamRoutes);
+app.use('/api/cart', cartRoutes);
+
+// Legacy routes (kept for backward compatibility)
 app.use('/api/auth', authRoutes);
 app.use('/api/msauth', msAuthRoutes);
 app.use('/api/admin', adminRoutes);

@@ -11,7 +11,7 @@ let tournamentGames = [];
  */
 async function loadTournaments() {
     try {
-        const response = await fetch(`${API_URL}/admin/tournaments`, {
+        const response = await authFetch(`${API_URL}/admin/tournaments`, {
             headers: {
                 'x-user-email': localStorage.getItem('userEmail') || ''
             }
@@ -219,7 +219,7 @@ async function submitTournament(title, photoUrl, deadline, games, description, d
             formData.append('games', JSON.stringify(games));
             formData.append('photo', photoFile);
 
-            const response = await fetch(`${API_URL}/admin/tournaments`, {
+            const response = await authFetch(`${API_URL}/admin/tournaments`, {
                 method: 'POST',
                 headers: {
                     'x-user-email': localStorage.getItem('userEmail') || ''
@@ -242,7 +242,7 @@ async function submitTournament(title, photoUrl, deadline, games, description, d
                 showAlert(result.message || 'Failed to create tournament', 'error');
             }
         } else {
-            const response = await fetch(`${API_URL}/admin/tournaments`, {
+            const response = await authFetch(`${API_URL}/admin/tournaments`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -349,7 +349,7 @@ function editTournament(tournamentId, title, deadline, description) {
  */
 async function loadExistingGames(tournamentId) {
     try {
-        const response = await fetch(`${API_URL}/admin/tournaments/${tournamentId}/games`);
+        const response = await authFetch(`${API_URL}/admin/tournaments/${tournamentId}/games`);
         const data = await response.json();
 
         if (data.success && data.games) {
@@ -439,7 +439,7 @@ async function updateTournament(tournamentId) {
             formData.append('games', JSON.stringify(games));
             formData.append('photo', photoFile);
 
-            response = await fetch(`${API_URL}/admin/tournaments/${tournamentId}`, {
+            response = await authFetch(`${API_URL}/admin/tournaments/${tournamentId}`, {
                 method: 'PUT',
                 headers: {
                     'x-user-email': localStorage.getItem('userEmail') || ''
@@ -447,7 +447,7 @@ async function updateTournament(tournamentId) {
                 body: formData
             });
         } else {
-            response = await fetch(`${API_URL}/admin/tournaments/${tournamentId}`, {
+            response = await authFetch(`${API_URL}/admin/tournaments/${tournamentId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -561,7 +561,7 @@ async function confirmDelete() {
     confirmBtn.disabled = true;
 
     try {
-        const response = await fetch(`${API_URL}/admin/tournaments/${tournamentId}`, {
+        const response = await authFetch(`${API_URL}/admin/tournaments/${tournamentId}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',

@@ -848,6 +848,7 @@
 
     <script src="js/tunnel-config.js"></script>
     <script src="api-config.js"></script>
+    <script src="js/auth-fetch.js"></script>
     <script>
         const API_URL = typeof API_CONFIG !== 'undefined' ? API_CONFIG.API_BASE_URL : 'http://localhost:3000/api';
         const gameDataMap = new Map();
@@ -894,7 +895,7 @@
 
         async function loadTournaments() {
             try {
-                const response = await fetch(`${API_URL}/auth/tournaments`);
+                const response = await authFetch(`${API_URL}/tournaments`);
                 const data = await response.json();
 
                 document.getElementById('loading').style.display = 'none';
@@ -911,7 +912,7 @@
                 let userRegistrations = [];
                 if (studentId) {
                     try {
-                        const regResponse = await fetch(`${API_URL}/auth/registrations/${studentId}`);
+                        const regResponse = await authFetch(`${API_URL}/registration/my/${studentId}`);
                         const regData = await regResponse.json();
                         if (regData.success && regData.registrations) {
                             userRegistrations = regData.registrations;
@@ -932,7 +933,7 @@
                         </div>
                     `;
 
-                    const gamesResponse = await fetch(`${API_URL}/auth/tournaments/${tournament.id}/games`);
+                    const gamesResponse = await authFetch(`${API_URL}/tournaments/${tournament.id}/games`);
                     const gamesData = await gamesResponse.json();
 
                     const tempCard = document.getElementById(tempCardId);
@@ -1131,7 +1132,7 @@
                     button.disabled = true;
 
                     try {
-                        const response = await fetch(`${API_URL}/auth/register`, {
+                        const response = await authFetch(`${API_URL}/registration/register`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -1147,7 +1148,7 @@
                         if (result.success) {
                             // Add to cart after successful registration
                             try {
-                                await fetch(`${API_URL}/auth/cart/add`, {
+                                await authFetch(`${API_URL}/cart/add`, {
                                     method: 'POST',
                                     headers: {
                                         'Content-Type': 'application/json',
@@ -1336,7 +1337,7 @@
                     button.disabled = true;
 
                     try {
-                        const response = await fetch(`${API_URL}/auth/registration/${gameId}/${studentId}`, {
+                        const response = await authFetch(`${API_URL}/registration/${gameId}/${studentId}`, {
                             method: 'DELETE',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -1348,7 +1349,7 @@
                         if (result.success) {
                             // Remove from cart after successful cancellation
                             try {
-                                await fetch(`${API_URL}/auth/cart/game/${gameId}/${studentId}`, {
+                                await authFetch(`${API_URL}/cart/game/${gameId}/${studentId}`, {
                                     method: 'DELETE',
                                     headers: {
                                         'Content-Type': 'application/json',
@@ -1412,7 +1413,7 @@
             try {
                 // Fetch team directly using game ID and student ID
                 // This works even for legacy registrations that don't have team_id linked
-                const teamResponse = await fetch(`${API_URL}/auth/team-by-game/${gameId}/${studentId}`);
+                const teamResponse = await authFetch(`${API_URL}/teams/by-game/${gameId}/${studentId}`);
                 const teamData = await teamResponse.json();
 
                 if (!teamData.success) {
@@ -1533,7 +1534,7 @@
                     return;
                 }
 
-                const response = await fetch(`${API_URL}/auth/team/${teamId}/member/${memberId}/replace`, {
+                const response = await authFetch(`${API_URL}/teams/${teamId}/members/${memberId}/replace`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -1562,7 +1563,7 @@
             if (!confirm('Are you sure you want to remove this member?')) return;
 
             try {
-                const response = await fetch(`${API_URL}/auth/team/${teamId}/member/${memberId}`, {
+                const response = await authFetch(`${API_URL}/teams/${teamId}/members/${memberId}`, {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ studentId })
@@ -1592,7 +1593,7 @@
 
             const studentId = localStorage.getItem('studentId');
             try {
-                const response = await fetch(`${API_URL}/auth/team/${currentTeamId}/add-member`, {
+                const response = await authFetch(`${API_URL}/teams/${currentTeamId}/members`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ studentId, memberStudentId: memberId })
@@ -1787,7 +1788,7 @@
                     createBtn.textContent = 'Checking members...';
 
                     for (let i = 1; i < memberIds.length; i++) {
-                        const validateResponse = await fetch(`${API_URL}/auth/validate-member`, {
+                        const validateResponse = await authFetch(`${API_URL}/teams/validate-member`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
@@ -1821,7 +1822,7 @@
                 // STEP 2: All members validated - now create the team
                 createBtn.textContent = 'Creating...';
 
-                const response = await fetch(`${API_URL}/auth/create-team`, {
+                const response = await authFetch(`${API_URL}/teams/create`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1920,7 +1921,7 @@
             const leaderStudentId = localStorage.getItem('studentId');
             try {
                 console.log(`Adding member ${memberStudentId} to team ${teamId} (leader: ${leaderStudentId})`);
-                const response = await fetch(`${API_URL}/auth/team/${teamId}/add-member`, {
+                const response = await authFetch(`${API_URL}/teams/${teamId}/members`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -2040,7 +2041,7 @@
 
             try {
                 // Call replace member API
-                const response = await fetch(`${API_URL}/auth/team/${replaceModalData.teamId}/member/${replaceModalData.memberId}/replace`, {
+                const response = await authFetch(`${API_URL}/teams/${replaceModalData.teamId}/members/${replaceModalData.memberId}/replace`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -2081,7 +2082,7 @@
 
         async function addToCart(studentId, itemType, itemId, tournamentGameId) {
             try {
-                const response = await fetch(`${API_URL}/auth/cart/add`, {
+                const response = await authFetch(`${API_URL}/cart/add`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -2142,7 +2143,7 @@
 
             const studentId = localStorage.getItem('studentId');
 
-            fetch(`${API_URL}/auth/request-game`, {
+            authFetch(`${API_URL}/tournaments/request-game`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

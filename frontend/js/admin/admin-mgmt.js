@@ -21,7 +21,7 @@ async function loadAdminManagement() {
  */
 async function loadUsersForPromotion() {
     try {
-        const response = await fetch(`${API_URL}/users/all`);
+        const response = await authFetch(`${API_URL}/users/all`);
         const data = await response.json();
 
         const selectUser = document.getElementById('selectUser');
@@ -48,7 +48,7 @@ async function loadUsersForPromotion() {
  */
 async function loadAvailableRoles() {
     try {
-        const response = await fetch(`${API_URL}/admin/roles`, {
+        const response = await authFetch(`${API_URL}/admin/roles`, {
             headers: {
                 'x-user-email': localStorage.getItem('userEmail') || ''
             }
@@ -91,7 +91,7 @@ async function loadAvailableRoles() {
  */
 async function loadAvailablePermissions() {
     try {
-        const response = await fetch(`${API_URL}/admin/permissions`, {
+        const response = await authFetch(`${API_URL}/admin/permissions`, {
             headers: {
                 'x-user-email': localStorage.getItem('userEmail') || ''
             }
@@ -122,7 +122,7 @@ async function loadAvailablePermissions() {
  */
 async function loadModerators() {
     try {
-        const response = await fetch(`${API_URL}/admin/moderators`, {
+        const response = await authFetch(`${API_URL}/admin/moderators`, {
             headers: {
                 'x-user-email': localStorage.getItem('userEmail') || ''
             }
@@ -176,7 +176,7 @@ async function loadModerators() {
  */
 async function loadAdmins() {
     try {
-        const response = await fetch(`${API_URL}/admin/moderators`, {
+        const response = await authFetch(`${API_URL}/admin/moderators`, {
             headers: {
                 'x-user-email': localStorage.getItem('userEmail') || ''
             }
@@ -232,7 +232,7 @@ async function loadAdmins() {
  */
 async function loadAuditLogs() {
     try {
-        const response = await fetch(`${API_URL}/admin/audit-logs`, {
+        const response = await authFetch(`${API_URL}/admin/audit-logs`, {
             headers: {
                 'x-user-email': localStorage.getItem('userEmail') || ''
             }
@@ -279,7 +279,7 @@ async function loadAuditLogs() {
  */
 async function loadTournamentRequests() {
     try {
-        const response = await fetch(`${API_URL}/admin/tournament-requests`, {
+        const response = await authFetch(`${API_URL}/admin/tournament-requests`, {
             headers: {
                 'x-user-email': localStorage.getItem('userEmail') || ''
             }
@@ -327,7 +327,7 @@ async function loadTournamentRequests() {
  */
 async function loadGameRequests() {
     try {
-        const response = await fetch(`${API_URL}/admin/game-requests`, {
+        const response = await authFetch(`${API_URL}/admin/game-requests`, {
             headers: {
                 'x-user-email': localStorage.getItem('userEmail') || ''
             }
@@ -389,7 +389,7 @@ async function assignRoleToAdmin() {
             return;
         }
 
-        const response = await fetch(`${API_URL}/admin/assign-role`, {
+        const response = await authFetch(`${API_URL}/admin/assign-role`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -435,7 +435,7 @@ async function assignPermissionToRole() {
             return;
         }
 
-        const response = await fetch(`${API_URL}/admin/assign-permission`, {
+        const response = await authFetch(`${API_URL}/admin/assign-permission`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -478,7 +478,7 @@ async function demoteAdmin(userId) {
             return;
         }
 
-        const response = await fetch(`${API_URL}/admin/remove-role/${userId}/${roleId}`, {
+        const response = await authFetch(`${API_URL}/admin/remove-role/${userId}/${roleId}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -513,7 +513,7 @@ async function demoteModerator(userId) {
     try {
         const userEmail = localStorage.getItem('userEmail');
 
-        const response = await fetch(`${API_URL}/admin/demote-moderator/${userId}`, {
+        const response = await authFetch(`${API_URL}/admin/demote-moderator/${userId}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',

@@ -8,52 +8,8 @@ const teamController = require('../controllers/teamController');
 
 const fs = require('fs');
 
-// TEMP: Migration Route
-router.post('/run-migration', async (req, res) => {
-    try {
-        const { Client } = require('pg');
-        const connectionString = process.env.DATABASE_URL;
-
-        if (!connectionString) {
-            return res.status(500).json({ error: 'DATABASE_URL not found' });
-        }
-
-        const client = new Client({
-            connectionString: connectionString,
-            ssl: { rejectUnauthorized: false }
-        });
-
-        await client.connect();
-
-        const sql = `
-        CREATE TABLE IF NOT EXISTS payments (
-            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            user_id UUID REFERENCES users(id),
-            order_id TEXT,
-            bkash_transaction_id TEXT UNIQUE,
-            bkash_payment_id TEXT,
-            amount DECIMAL(10, 2) NOT NULL,
-            currency TEXT DEFAULT 'BDT',
-            payment_status TEXT CHECK (payment_status IN ('SUCCESS', 'FAILED', 'CANCELLED', 'PENDING')),
-            payment_method TEXT DEFAULT 'BKASH',
-            merchant_number TEXT,
-            invoice_no TEXT,
-            payment_time TIMESTAMP WITH TIME ZONE,
-            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-        );
-        CREATE INDEX IF NOT EXISTS idx_payments_user_id ON payments(user_id);
-        CREATE INDEX IF NOT EXISTS idx_payments_bkash_trx ON payments(bkash_transaction_id);
-        `;
-
-        await client.query(sql);
-        await client.end();
-
-        res.json({ success: true, message: 'Migration executed successfully' });
-    } catch (error) {
-        console.error('Migration failed:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
+// REMOVED: /run-migration endpoint — allowed unauthenticated SQL execution (CRITICAL SECURITY FIX)
+// Use backend/run-migration.js CLI script instead if migrations are needed.
 
 // Configure multer for file uploads - temporary storage
 const storage = multer.diskStorage({
@@ -124,11 +80,12 @@ function handleMulterError(err, req, res, next) {
 }
 
 // Import JWT-based admin authentication middleware
-const { requireAdmin } = require('../middleware/auth');
+const { requireAdmin, requireAuth } = require('../middleware/auth');
 
 // Check if user is admin - JWT VERSION
 // This endpoint is used by frontend to check admin status after login
-router.post('/check-admin', async (req, res) => {
+// Protected with requireAuth — anyone authenticated can check their admin status
+router.post('/check-admin', requireAuth, async (req, res) => {
     try {
         const { email } = req.body;
 
@@ -622,7 +579,7 @@ router.post('/tournaments', requireAdmin, upload.single('photo'), handleMulterEr
 });
 
 // Get all tournaments
-router.get('/tournaments', async (req, res) => {
+router.get('/tournaments', requireAdmin, async (req, res) => {
     try {
         const { data: tournaments, error } = await supabase
             .from('tournaments')
@@ -650,7 +607,7 @@ router.get('/tournaments', async (req, res) => {
 });
 
 // Get tournament games
-router.get('/tournaments/:id/games', async (req, res) => {
+router.get('/tournaments/:id/games', requireAdmin, async (req, res) => {
     try {
         const tournamentId = req.params.id;
 
@@ -1169,76 +1126,9 @@ router.post('/create-admin', requireAdmin, async (req, res) => {
     }
 });
 
-// Create a new admin (without role initially)
-router.post('/create-admin', requireAdmin, async (req, res) => {
-    try {
-        const { email, full_name, admin_id } = req.body;
+// REMOVED: Duplicate router.post('/create-admin') — identical to the one above (line ~1079)
 
-        // Check if admin already exists
-        const { data: existingAdmin, error: existingError } = await supabase
-            .from('admins')
-            .select('id')
-            .eq('email', email)
-            .single();
-
-        if (existingAdmin) {
-            return res.status(400).json({
-                success: false,
-                message: 'Admin with this email already exists'
-            });
-        }
-
-        // Create admin entry
-        const { data: newAdmin, error: adminError } = await supabase
-            .from('admins')
-            .insert([{
-                admin_id: admin_id || null,
-                email: email,
-                full_name: full_name,
-                status: 'ACTIVE'
-            }])
-            .select()
-            .single();
-
-        if (adminError) {
-            console.error('Create admin error:', adminError);
-            return res.status(500).json({
-                success: false,
-                message: 'Error creating admin',
-                error: adminError.message
-            });
-        }
-
-        res.json({
-            success: true,
-            message: 'Admin created successfully',
-            admin: newAdmin
-        });
-    } catch (error) {
-        console.error('Create admin error:', error);
-        res.status(500).json({ success: false, message: error.message });
-    }
-});
-
-// Get all admin roles
-router.get('/roles', requireAdmin, async (req, res) => {
-    try {
-        const { data: roles, error } = await supabase
-            .from('admin_roles')
-            .select('*')
-            .order('role_name');
-
-        if (error) {
-            console.error('Get roles error:', error);
-            return res.status(500).json({ success: false, message: error.message });
-        }
-
-        res.json({ success: true, roles });
-    } catch (error) {
-        console.error('Get roles error:', error);
-        res.status(500).json({ success: false, message: error.message });
-    }
-});
+// REMOVED: Duplicate router.get('/roles') — identical to the one above (line ~1059)
 
 // Assign role to admin
 router.post('/assign-role', requireAdmin, async (req, res) => {

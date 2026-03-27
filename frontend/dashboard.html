@@ -1806,6 +1806,7 @@
 
     <script src="js/tunnel-config.js"></script>
     <script src="api-config.js"></script>
+    <script src="js/auth-fetch.js"></script>
     <script>
         const API_URL = typeof API_CONFIG !== 'undefined' ? API_CONFIG.API_BASE_URL : 'http://localhost:3000/api';
         let currentUser = null;
@@ -1825,7 +1826,7 @@
 
                 // Check if admin
                 try {
-                    const adminCheck = await fetch(`${API_URL}/admin/check-admin`, {
+                    const adminCheck = await authFetch(`${API_URL}/admin/check-admin`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -1854,7 +1855,7 @@
                 }
 
                 // Use the new dashboard endpoint for profile data
-                const response = await fetch(`${API_URL}/dashboard/profile/${studentId}`);
+                const response = await authFetch(`${API_URL}/dashboard/profile/${studentId}`);
                 const data = await response.json();
 
                 if (data.success && data.profile) {
@@ -2011,7 +2012,7 @@
                 saveBtn.innerHTML = '<span class="spinner"></span> Saving...';
                 saveBtn.disabled = true;
 
-                const response = await fetch(`${API_URL}/auth/profile/${studentId}`, {
+                const response = await authFetch(`${API_URL}/user/profile/${studentId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData)
@@ -2068,7 +2069,7 @@
                 const studentId = localStorage.getItem('studentId');
 
                 // Use the new dashboard endpoint
-                const response = await fetch(`${API_URL}/dashboard/tournaments/${studentId}`);
+                const response = await authFetch(`${API_URL}/dashboard/tournaments/${studentId}`);
                 const data = await response.json();
 
                 if (data.success && data.tournaments && data.tournaments.length > 0) {
@@ -2115,7 +2116,7 @@
                 modalBody.innerHTML = '<p>Loading tournaments...</p>';
 
                 const studentId = localStorage.getItem('studentId');
-                const response = await fetch(`${API_URL}/dashboard/tournaments/${studentId}`);
+                const response = await authFetch(`${API_URL}/dashboard/tournaments/${studentId}`);
                 const data = await response.json();
 
                 if (data.success && data.tournaments && data.tournaments.length > 0) {
@@ -2151,7 +2152,7 @@
                 gamesContainer.style.display = 'block';
                 gamesContainer.innerHTML = '<p>Loading games...</p>';
 
-                const response = await fetch(`${API_URL}/auth/tournaments/${tournamentId}/games`);
+                const response = await authFetch(`${API_URL}/tournaments/${tournamentId}/games`);
                 const data = await response.json();
 
                 if (data.success && data.games && data.games.length > 0) {
@@ -2185,7 +2186,7 @@
             try {
                 const studentId = localStorage.getItem('studentId');
 
-                const response = await fetch(`${API_URL}/auth/register`, {
+                const response = await authFetch(`${API_URL}/registration/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ studentId, gameId })
@@ -2223,7 +2224,7 @@
             }
 
             try {
-                const response = await fetch(`${API_URL}/auth/request-game`, {
+                const response = await authFetch(`${API_URL}/tournaments/request-game`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -2263,7 +2264,7 @@
             }
 
             try {
-                const response = await fetch(`${API_URL}/auth/request-tournament`, {
+                const response = await authFetch(`${API_URL}/tournaments/request`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -2293,7 +2294,7 @@
         async function loadUserRegistrationStatus() {
             try {
                 const studentId = localStorage.getItem('studentId');
-                const response = await fetch(`${API_URL}/dashboard/registrations/${studentId}`);
+                const response = await authFetch(`${API_URL}/dashboard/registrations/${studentId}`);
                 const data = await response.json();
 
                 if (data.success && data.registrations) {
@@ -2307,7 +2308,7 @@
                         messageDiv.innerHTML = `<p>You have registered for ${data.registrations.length} game${data.registrations.length > 1 ? 's' : ''}. Check your registration status.</p>`;
                     } else {
                         // If tournaments are available but user hasn't registered yet
-                        const tournamentResponse = await fetch(`${API_URL}/dashboard/tournaments/${studentId}`);
+                        const tournamentResponse = await authFetch(`${API_URL}/dashboard/tournaments/${studentId}`);
                         const tournamentData = await tournamentResponse.json();
 
                         if (tournamentData.success && tournamentData.tournaments && tournamentData.tournaments.length > 0) {
@@ -2332,7 +2333,7 @@
                 const studentId = localStorage.getItem('studentId');
                 // Cache-busting timestamp ensures fresh data even if browser caches the page
                 const cacheBuster = Date.now();
-                const response = await fetch(`${API_URL}/auth/notifications/${studentId}?t=${cacheBuster}`);
+                const response = await authFetch(`${API_URL}/user/notifications/${studentId}?t=${cacheBuster}`);
                 const data = await response.json();
                 console.log('[Notifications] Raw API response:', JSON.stringify(data.notifications?.map(n => ({ id: n.id, type: n.type, status: n.status, action_taken: n.action_taken }))));
 
@@ -2408,7 +2409,7 @@
         // Mark notification as read
         async function markNotificationAsRead(notificationId) {
             try {
-                const response = await fetch(`${API_URL}/auth/notifications/${notificationId}/read`, {
+                const response = await authFetch(`${API_URL}/user/notifications/${notificationId}/read`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
@@ -2456,7 +2457,7 @@
                 // Show loading in both containers immediately
                 updateNotificationActionUI(notificationId, '<span style="font-size:12px; color:#6b7280;">Processing...</span>', false);
 
-                const response = await fetch(`${API_URL}/auth/accept-invitation`, {
+                const response = await authFetch(`${API_URL}/teams/invitations/accept`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ studentId, notificationId })
@@ -2491,7 +2492,7 @@
                 // Show loading in both containers immediately
                 updateNotificationActionUI(notificationId, '<span style="font-size:12px; color:#6b7280;">Processing...</span>', false);
 
-                const response = await fetch(`${API_URL}/auth/reject-invitation`, {
+                const response = await authFetch(`${API_URL}/teams/invitations/reject`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ studentId, notificationId })
@@ -2534,7 +2535,7 @@
                 }
 
                 console.log('Fetching cart for:', studentId);
-                const response = await fetch(`${API_URL}/auth/cart/${studentId}`);
+                const response = await authFetch(`${API_URL}/cart/${studentId}`);
 
                 if (!response.ok) {
                     throw new Error(`Server returned ${response.status} ${response.statusText}`);
@@ -2610,7 +2611,7 @@
             }
 
             try {
-                const response = await fetch(`${API_URL}/auth/cart/${cartItemId}`, {
+                const response = await authFetch(`${API_URL}/cart/${cartItemId}`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json'
@@ -2686,7 +2687,7 @@
             try {
                 const studentId = localStorage.getItem('studentId');
                 // Use dashboard endpoint or auth endpoint
-                const response = await fetch(`${API_URL}/dashboard/tournaments/${studentId}`);
+                const response = await authFetch(`${API_URL}/dashboard/tournaments/${studentId}`);
                 const data = await response.json();
 
                 if (data.success && data.tournaments && data.tournaments.length > 0) {
@@ -2721,7 +2722,7 @@
 
                 // Fallback to simpler fetch if dashboard endpoint fails or doesn't exist
                 try {
-                    const response = await fetch(`${API_URL}/auth/tournaments`);
+                    const response = await authFetch(`${API_URL}/tournaments`);
                     const data = await response.json();
                     if (data.success && data.tournaments) {
                         // Render same as above... (simplified for brevity in fallback)
@@ -2753,7 +2754,7 @@
             gamesContainer.innerHTML = '<p>Loading games...</p>';
 
             try {
-                const response = await fetch(`${API_URL}/auth/tournaments/${tournamentId}/games`);
+                const response = await authFetch(`${API_URL}/tournaments/${tournamentId}/games`);
                 const data = await response.json();
 
                 if (data.success && data.games && data.games.length > 0) {
@@ -2797,7 +2798,7 @@
 
             try {
                 const studentId = localStorage.getItem('studentId');
-                const response = await fetch(`${API_URL}/dashboard/registrations/${studentId}`);
+                const response = await authFetch(`${API_URL}/dashboard/registrations/${studentId}`);
                 const data = await response.json();
 
                 if (data.success) {
@@ -2880,7 +2881,7 @@
 
             try {
                 // Add to cart
-                const response = await fetch(`${API_URL}/auth/cart/add`, {
+                const response = await authFetch(`${API_URL}/cart/add`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -2905,7 +2906,7 @@
                     // This is correct behavior for now.
 
                     // Fetch TRUE total from cart to avoid discrepancies
-                    const cartRes = await fetch(`${API_URL}/auth/cart/${studentId}`);
+                    const cartRes = await authFetch(`${API_URL}/cart/${studentId}`);
                     const cartData = await cartRes.json();
                     let trueTotal = amount;
 
@@ -2923,7 +2924,7 @@
                     // Check if already in cart
                     if (data.message && data.message.includes('already')) {
                         // Even if already in cart, we should fetch total
-                        const cartRes = await fetch(`${API_URL}/auth/cart/${studentId}`);
+                        const cartRes = await authFetch(`${API_URL}/cart/${studentId}`);
                         const cartData = await cartRes.json();
                         let trueTotal = amount;
                         if (cartData.success && (cartData.cart || cartData.cartItems)) {
@@ -2975,7 +2976,7 @@
                 const transactionId = 'TRX-' + Date.now() + Math.floor(Math.random() * 1000);
                 const studentId = localStorage.getItem('studentId');
 
-                const response = await fetch(`${API_URL}/auth/cart/checkout`, {
+                const response = await authFetch(`${API_URL}/cart/checkout`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -3021,7 +3022,7 @@
             // 1. Get all pending registrations from the current view (or fetch again)
             // Ideally we fetch again to be sure
             try {
-                const response = await fetch(`${API_URL}/dashboard/registrations/${studentId}`);
+                const response = await authFetch(`${API_URL}/dashboard/registrations/${studentId}`);
                 const data = await response.json();
 
                 if (!data.success) {
@@ -3051,7 +3052,7 @@
                     const gameId = item.gameId || item.game_id;
                     const teamId = item.teamId || item.team_id;
 
-                    await fetch(`${API_URL}/auth/cart/add`, {
+                    await authFetch(`${API_URL}/cart/add`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -3065,7 +3066,7 @@
                 }
 
                 // 3. Open Payment Modal with TRUE total
-                const cartRes = await fetch(`${API_URL}/auth/cart/${studentId}`);
+                const cartRes = await authFetch(`${API_URL}/cart/${studentId}`);
                 const cartData = await cartRes.json();
                 let trueTotal = 0;
 
@@ -3127,7 +3128,7 @@
 
             try {
                 const studentId = localStorage.getItem('studentId');
-                const response = await fetch(`${API_URL}/dashboard/tournaments/${studentId}`);
+                const response = await authFetch(`${API_URL}/dashboard/tournaments/${studentId}`);
                 const data = await response.json();
 
                 if (data.success && data.tournaments && data.tournaments.length > 0) {
@@ -3171,7 +3172,7 @@
             gamesContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #6b7280; font-size: 14px;">Loading games...</div>';
 
             try {
-                const response = await fetch(`${API_URL}/auth/tournaments/${tournamentId}/games`);
+                const response = await authFetch(`${API_URL}/tournaments/${tournamentId}/games`);
                 const data = await response.json();
 
                 if (data.success && data.games && data.games.length > 0) {
@@ -3217,7 +3218,7 @@
             if (!confirm(`Register for ${gameName} (${category})?\nFee: ৳${gameData.fee_per_person || 0}`)) return;
 
             try {
-                const response = await fetch(`${API_URL}/auth/register`, {
+                const response = await authFetch(`${API_URL}/registration/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ studentId: studentId, gameId: gameId })
@@ -3225,7 +3226,7 @@
 
                 const result = await response.json();
                 if (result.success) {
-                    await fetch(`${API_URL}/auth/cart/add`, {
+                    await authFetch(`${API_URL}/cart/add`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -3330,7 +3331,7 @@
             createBtn.disabled = true;
 
             try {
-                const response = await fetch(`${API_URL}/auth/create-team`, {
+                const response = await authFetch(`${API_URL}/teams/create`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ studentId, gameId: currentGameId, teamName })
@@ -3344,7 +3345,7 @@
                     }
 
                     alert('Team created and added to cart!');
-                    await fetch(`${API_URL}/auth/cart/add`, {
+                    await authFetch(`${API_URL}/cart/add`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -3372,7 +3373,7 @@
         async function addTeamMember(teamId, memberStudentId) {
             const leaderStudentId = localStorage.getItem('studentId');
             try {
-                await fetch(`${API_URL}/auth/team/${teamId}/add-member`, {
+                await authFetch(`${API_URL}/teams/${teamId}/members`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ leaderStudentId, memberStudentId })
@@ -3398,7 +3399,7 @@
 
             try {
                 const studentId = localStorage.getItem('studentId');
-                const response = await fetch(`${API_URL}/dashboard/registrations/${studentId}`);
+                const response = await authFetch(`${API_URL}/dashboard/registrations/${studentId}`);
                 const data = await response.json();
 
                 if (data.success) {
@@ -3581,7 +3582,7 @@
 
                         try {
                             const studentId = localStorage.getItem('studentId');
-                            const response = await fetch(`${API_URL}/auth/notifications/${studentId}`);
+                            const response = await authFetch(`${API_URL}/user/notifications/${studentId}`);
                             const data = await response.json();
 
                             if (data.success) {

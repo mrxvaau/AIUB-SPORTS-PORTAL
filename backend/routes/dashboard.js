@@ -1,13 +1,14 @@
 // Dashboard Routes
-// Version 1.0
+// Version 2.0 — All routes require authentication
 
 const express = require('express');
 const router = express.Router();
 const { supabase } = require('../config/supabase');
 const userController = require('../controllers/userController');
+const { requireAuth } = require('../middleware/auth');
 
 // GET /api/dashboard/profile - Get comprehensive user profile data
-router.get('/profile/:studentId', async (req, res) => {
+router.get('/profile/:studentId', requireAuth, async (req, res) => {
     try {
         const { studentId } = req.params;
         
@@ -53,7 +54,7 @@ router.get('/profile/:studentId', async (req, res) => {
 });
 
 // GET /api/dashboard/tournaments - Get tournaments with registration status
-router.get('/tournaments/:studentId', async (req, res) => {
+router.get('/tournaments/:studentId', requireAuth, async (req, res) => {
     try {
         const { studentId } = req.params;
         
@@ -172,10 +173,10 @@ router.get('/tournaments/:studentId', async (req, res) => {
 });
 
 // GET /api/dashboard/registrations/:studentId - Get user's game registrations
-router.get('/registrations/:studentId', userController.getUserRegistrations);
+router.get('/registrations/:studentId', requireAuth, userController.getUserRegistrations);
 
 // GET /api/dashboard/overview/:studentId - Get comprehensive dashboard overview
-router.get('/overview/:studentId', async (req, res) => {
+router.get('/overview/:studentId', requireAuth, async (req, res) => {
     try {
         const { studentId } = req.params;
 

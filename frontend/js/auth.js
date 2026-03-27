@@ -16,14 +16,15 @@ async function checkAdminAccess() {
     }
 
     try {
-        const response = await fetch(`${API_URL}/admin/check-admin`, {
+        const response = await authFetch(`${API_URL}/admin/check-admin`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'x-user-email': userEmail || ''
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({ email: userEmail })
         });
+
+        if (!response) return false; // authFetch redirected to login
 
         const result = await response.json();
 
@@ -71,7 +72,7 @@ async function checkAdminAccess() {
  * Redirects to login if not authenticated
  */
 function checkAuthentication() {
-    if (localStorage.getItem('isAuthenticated') !== 'true' || localStorage.getItem('isAdmin') !== 'true') {
+    if (localStorage.getItem('isAuthenticated') !== 'true') {
         window.location.href = 'login.html';
         return false;
     }

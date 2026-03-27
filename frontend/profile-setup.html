@@ -548,6 +548,7 @@
 
     <script src="js/tunnel-config.js"></script>
     <script src="api-config.js"></script>
+    <script src="js/auth-fetch.js"></script>
     <script>
         /* ── Constants ─────────────────────────────────────── */
         const UNDERGRAD_DEPTS = ['English', 'MMC', 'Economics', 'LLB', 'BBA', 'B.Arch.', 'EEE', 'IPE', 'COE', 'Pharmacy', 'CSE', 'DS', 'CNCS'];
@@ -571,7 +572,7 @@
             // Check completeness via server
             try {
                 const API_URL = typeof API_CONFIG !== 'undefined' ? API_CONFIG.API_BASE_URL : 'http://localhost:3000/api';
-                const r = await fetch(`${API_URL}/auth/profile/${studentId}`);
+                const r = await authFetch(`${API_URL}/user/profile/${studentId}`);
                 const d = await r.json();
                 if (d.success && d.user && d.user.profile_completed === true) {
                     window.location.href = 'dashboard.html';
@@ -698,7 +699,7 @@
 
             try {
                 const API_URL = typeof API_CONFIG !== 'undefined' ? API_CONFIG.API_BASE_URL : 'http://localhost:3000/api';
-                const r = await fetch(`${API_URL}/auth/profile-setup`, {
+                const r = await authFetch(`${API_URL}/user/profile-setup`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
