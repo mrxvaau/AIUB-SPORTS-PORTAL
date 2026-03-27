@@ -846,7 +846,7 @@
 
     <!-- Header -->
     <div class="page-header">
-        <a class="back-btn" href="admin-dashboard.html">
+        <a class="back-btn" href="admin-dashboard.html#/database/tournament-data" id="backLink" onclick="if(window.parent!==window){window.parent.navigateTo('/database/tournament-data');return false;}">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
@@ -981,6 +981,12 @@
         // INIT
         // ============================================================
         document.addEventListener('DOMContentLoaded', () => {
+            // Admin auth guard — block direct access by non-authenticated users
+            if (!localStorage.getItem('jwtToken')) {
+                document.body.innerHTML = '<p style="padding:40px;text-align:center;color:#ef4444;font-size:18px;">Access denied. Please log in as admin.</p>';
+                return;
+            }
+
             const params = new URLSearchParams(window.location.search);
             tournamentId = params.get('tournamentId');
             if (!tournamentId) {
@@ -1380,7 +1386,9 @@
             });
 
             container.innerHTML = Object.entries(uniqueGames).map(([gameId, gameName]) => `
-                <a href="bracket.html?tournamentId=${tournamentId}&gameId=${gameId}" class="bracket-link-btn" target="_blank">
+                <a href="bracket.html?tournamentId=${tournamentId}&gameId=${gameId}" class="bracket-link-btn"
+                   onclick="if(window.parent!==window){window.parent.openBracket('${tournamentId}');return false;}"
+                   target="_blank">
                     🏆 ${gameName} Bracket
                 </a>
             `).join('');

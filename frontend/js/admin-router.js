@@ -8,11 +8,13 @@ const ADMIN_ROUTES = {
     '/': 'existing-tournaments',
     '/tournaments': 'existing-tournaments',
     '/tournaments/create': 'create-tournament',
-    '/registrations': 'registration-management-placeholder',
     '/users': 'user-management-placeholder',
     '/database': 'database-placeholder',
     '/database/maintenance': 'database-maintenance-placeholder',
     '/database/tournament-data': 'tournament-data-management-placeholder',
+    '/database/registrations': 'registration-management-placeholder',
+    '/database/scheduling': 'scheduling-section',
+    '/database/bracket': 'bracket-section',
     '/content': 'content-management-placeholder',
     '/reports': 'analytics-reporting-placeholder',
     '/settings': 'system-configuration-placeholder',
@@ -25,8 +27,6 @@ const ADMIN_ROUTES = {
  * Initialize the router
  */
 function initRouter() {
-
-
     // Handle hash changes (back/forward/manual url change)
     window.addEventListener('hashchange', handleRoute);
 
@@ -44,7 +44,6 @@ function initRouter() {
  * @param {string} path - The path to navigate to (e.g., '/users')
  */
 function navigateTo(path) {
-
     window.location.hash = path;
 }
 
@@ -56,25 +55,26 @@ function handleRoute() {
     // If empty, default to '/'
     let path = window.location.hash.slice(1) || '/';
 
-
-
     // Handle root hash case (empty hash)
     if (path === '') path = '/';
 
     // Find the matching route
     let sectionId = ADMIN_ROUTES[path];
 
-
     // Default to tournaments if route not found
     if (!sectionId) {
-        // Check if it's a sub-route of registrations which handles its own routing
-        if (path.startsWith('/registrations')) {
-            sectionId = ADMIN_ROUTES['/registrations'];
+        // Check if it's a sub-route of a known parent
+        if (path.startsWith('/database/registrations')) {
+            sectionId = ADMIN_ROUTES['/database/registrations'];
+        } else if (path.startsWith('/database/scheduling')) {
+            sectionId = ADMIN_ROUTES['/database/scheduling'];
+        } else if (path.startsWith('/database/bracket')) {
+            sectionId = ADMIN_ROUTES['/database/bracket'];
+        } else if (path.startsWith('/database')) {
+            sectionId = ADMIN_ROUTES['/database'];
         } else {
-            // Check for potential sub-paths matching generic parents
             sectionId = ADMIN_ROUTES['/'];
         }
-
     }
 
     // Update the UI
@@ -94,7 +94,7 @@ function handleRoute() {
 
 /**
  * Update the active state in the sidebar
- * @param {string} currentPath 
+ * @param {string} currentPath
  */
 function updateSidebaractive(currentPath) {
     // Remove active class from all sidebar buttons
@@ -103,10 +103,6 @@ function updateSidebaractive(currentPath) {
     });
 
     // Find button that navigates to this path
-    // We look for onclick="navigateTo('currentPath')"
-
-    // Exact match approach
-    // Note: escape quotes in selector just in case
     let activeBtn = document.querySelector(`.sidebar-btn[onclick="navigateTo('${currentPath}')"]`);
 
     if (activeBtn) {

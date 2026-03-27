@@ -1142,13 +1142,33 @@
                     </div>
                 </button>
                 <button class="sidebar-btn" style="width: 100%; justify-content: flex-start;"
-                    onclick="navigateTo('/registrations')">
+                    onclick="navigateTo('/database/registrations')">
                     <div class="sidebar-btn-content" style="padding-left: 10px;">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                         </svg>
                         <span>Registration Management</span>
+                    </div>
+                </button>
+                <button class="sidebar-btn" style="width: 100%; justify-content: flex-start;"
+                    onclick="navigateTo('/database/scheduling')">
+                    <div class="sidebar-btn-content" style="padding-left: 10px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span>Scheduling</span>
+                    </div>
+                </button>
+                <button class="sidebar-btn" style="width: 100%; justify-content: flex-start;"
+                    onclick="navigateTo('/database/bracket')">
+                    <div class="sidebar-btn-content" style="padding-left: 10px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h4v4H4V6zm0 8h4v4H4v-4zm12-8h4v4h-4V6zm0 8h4v4h-4v-4zM8 8h8M8 16h8M12 8v8" />
+                        </svg>
+                        <span>Brackets</span>
                     </div>
                 </button>
                 <button class="sidebar-btn" style="width: 100%; justify-content: flex-start;"
@@ -1343,6 +1363,34 @@
                     <div class="warning-box">
                         <p>This panel is under development. Will be fixed soon.</p>
                     </div>
+                </div>
+            </div>
+
+            <!-- Scheduling Section (iframe) -->
+            <div id="scheduling-section" class="content-section">
+                <div id="schedulingPicker" class="player-card" style="padding: 30px;">
+                    <div class="card-header"><h2>Scheduling</h2></div>
+                    <p style="color:#6b7280;margin:16px 0;">Select a tournament to manage its schedule:</p>
+                    <div id="schedulingTournamentList" style="display:flex;flex-direction:column;gap:10px;">
+                        <p style="text-align:center;color:#94a3b8;">Loading tournaments...</p>
+                    </div>
+                </div>
+                <div id="schedulingFrameWrap" class="player-card" style="height: calc(100vh - 100px); padding: 0; overflow: hidden; display: none;">
+                    <iframe id="schedulingFrame" style="width:100%;height:100%;border:none;" src="about:blank"></iframe>
+                </div>
+            </div>
+
+            <!-- Bracket Section (iframe) -->
+            <div id="bracket-section" class="content-section">
+                <div id="bracketPicker" class="player-card" style="padding: 30px;">
+                    <div class="card-header"><h2>Brackets</h2></div>
+                    <p style="color:#6b7280;margin:16px 0;">Select a tournament to view its brackets:</p>
+                    <div id="bracketTournamentList" style="display:flex;flex-direction:column;gap:10px;">
+                        <p style="text-align:center;color:#94a3b8;">Loading tournaments...</p>
+                    </div>
+                </div>
+                <div id="bracketFrameWrap" class="player-card" style="height: calc(100vh - 100px); padding: 0; overflow: hidden; display: none;">
+                    <iframe id="bracketFrame" style="width:100%;height:100%;border:none;" src="about:blank"></iframe>
                 </div>
             </div>
 
@@ -1566,7 +1614,7 @@
         // Check if user is authenticated and has admin privileges
         async function checkAdminAccess() {
             const userEmail = localStorage.getItem('userEmail');
-            const token = localStorage.getItem('msAccessToken');
+            const token = localStorage.getItem('jwtToken');
 
             if (!userEmail || !token) {
                 // alert('Access denied. Please log in first.');
@@ -1658,8 +1706,92 @@
                 if (typeof loadAdminManagement === 'function') {
                     loadAdminManagement();
                 }
+            } else if (sectionId === 'scheduling-section') {
+                if (currentSchedulingTournamentId) {
+                    showIframe('scheduling', currentSchedulingTournamentId);
+                } else {
+                    loadTournamentPicker('scheduling');
+                }
+            } else if (sectionId === 'bracket-section') {
+                if (currentBracketTournamentId) {
+                    showIframe('bracket', currentBracketTournamentId);
+                } else {
+                    loadTournamentPicker('bracket');
+                }
             }
             // Add other specific loading logic here as needed
+        }
+
+        // State for iframe tournament IDs
+        let currentSchedulingTournamentId = null;
+        let currentBracketTournamentId = null;
+
+        // Show iframe and hide picker
+        function showIframe(type, tournamentId) {
+            const picker = document.getElementById(type === 'scheduling' ? 'schedulingPicker' : 'bracketPicker');
+            const wrap = document.getElementById(type === 'scheduling' ? 'schedulingFrameWrap' : 'bracketFrameWrap');
+            const frame = document.getElementById(type === 'scheduling' ? 'schedulingFrame' : 'bracketFrame');
+            const page = type === 'scheduling' ? 'scheduling.html' : 'bracket.html';
+            const url = `${page}?tournamentId=${tournamentId}`;
+
+            picker.style.display = 'none';
+            wrap.style.display = 'block';
+            if (!frame.src.includes(url)) frame.src = url;
+        }
+
+        // Load tournament picker for scheduling/bracket sections
+        async function loadTournamentPicker(type) {
+            const listId = type === 'scheduling' ? 'schedulingTournamentList' : 'bracketTournamentList';
+            const container = document.getElementById(listId);
+            const picker = document.getElementById(type === 'scheduling' ? 'schedulingPicker' : 'bracketPicker');
+            const wrap = document.getElementById(type === 'scheduling' ? 'schedulingFrameWrap' : 'bracketFrameWrap');
+
+            // Show picker, hide iframe
+            picker.style.display = 'block';
+            wrap.style.display = 'none';
+
+            container.innerHTML = '<p style="text-align:center;color:#94a3b8;">Loading tournaments...</p>';
+
+            try {
+                const res = await authFetch(`${API_URL}/admin/tournaments`);
+                const data = await res.json();
+
+                if (!data.success || !data.tournaments || data.tournaments.length === 0) {
+                    container.innerHTML = '<p style="text-align:center;color:#94a3b8;">No tournaments found.</p>';
+                    return;
+                }
+
+                container.innerHTML = data.tournaments.map(t => `
+                    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;cursor:pointer;transition:all 0.2s;"
+                         onmouseover="this.style.background='#eef2ff';this.style.borderColor='#818cf8'"
+                         onmouseout="this.style.background='#f8fafc';this.style.borderColor='#e2e8f0'"
+                         onclick="${type === 'scheduling' ? `openScheduling('${t.id}')` : `openBracket('${t.id}')`}">
+                        <div>
+                            <div style="font-weight:600;font-size:15px;color:#1e293b;">${t.title}</div>
+                            <div style="font-size:12px;color:#94a3b8;margin-top:3px;">Status: ${t.status} | Deadline: ${new Date(t.registration_deadline).toLocaleDateString()}</div>
+                        </div>
+                        <div style="background:${type === 'scheduling' ? 'linear-gradient(135deg,#f59e0b,#ef4444)' : '#6366f1'};color:#fff;padding:8px 18px;border-radius:8px;font-size:12px;font-weight:600;">
+                            ${type === 'scheduling' ? '⚡ Open Schedule' : '🏆 View Brackets'}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                container.innerHTML = `<p style="text-align:center;color:#ef4444;">Failed to load tournaments: ${err.message}</p>`;
+            }
+        }
+
+        // Open scheduling page in iframe
+        function openScheduling(tournamentId) {
+            currentSchedulingTournamentId = tournamentId;
+            showIframe('scheduling', tournamentId);
+            navigateTo('/database/scheduling');
+        }
+
+        // Open bracket page in iframe
+        function openBracket(tournamentId) {
+            currentBracketTournamentId = tournamentId;
+            showIframe('bracket', tournamentId);
+            navigateTo('/database/bracket');
         }
 
         // Initialize the admin dashboard
@@ -1821,7 +1953,7 @@
 
                 const response = await authFetch(`${API_URL}/users/all`, {
                     headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                        'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
                         'x-user-email': localStorage.getItem('userEmail') || ''
                     }
                 });
@@ -1862,7 +1994,7 @@
             try {
                 const response = await authFetch(`${API_URL}/admin/roles`, {
                     headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                        'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
                         'x-user-email': localStorage.getItem('userEmail') || ''
                     }
                 });
@@ -1901,7 +2033,7 @@
             try {
                 const response = await authFetch(`${API_URL}/admin/permissions`, {
                     headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                        'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
                         'x-user-email': localStorage.getItem('userEmail') || ''
                     }
                 });
@@ -1939,7 +2071,7 @@
             try {
                 const response = await authFetch(`${API_URL}/admin/moderators`, {
                     headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                        'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
                         'x-user-email': localStorage.getItem('userEmail') || ''
                     }
                 });
@@ -2024,7 +2156,7 @@
             try {
                 const response = await authFetch(`${API_URL}/admin/moderators`, {
                     headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                        'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
                         'x-user-email': localStorage.getItem('userEmail') || ''
                     }
                 });
@@ -2088,7 +2220,7 @@
             try {
                 const response = await authFetch(`${API_URL}/admin/audit-logs`, {
                     headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                        'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
                         'x-user-email': localStorage.getItem('userEmail') || ''
                     }
                 });
@@ -2142,7 +2274,7 @@
             try {
                 const response = await authFetch(`${API_URL}/admin/tournament-requests`, {
                     headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                        'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
                         'x-user-email': localStorage.getItem('userEmail') || ''
                     }
                 });
@@ -2197,7 +2329,7 @@
             try {
                 const response = await authFetch(`${API_URL}/admin/game-requests`, {
                     headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                        'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
                         'x-user-email': localStorage.getItem('userEmail') || ''
                     }
                 });
@@ -2268,7 +2400,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                        'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
                         'x-user-email': localStorage.getItem('userEmail') || ''
                     },
                     body: JSON.stringify({
@@ -2315,7 +2447,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                        'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
                         'x-user-email': localStorage.getItem('userEmail') || ''
                     },
                     body: JSON.stringify({
@@ -2368,7 +2500,7 @@
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                        'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
                         'x-user-email': userEmail || '',
                         'X-User-Email': userEmail || ''  // Also send with capital letters to handle any case sensitivity
                     }
@@ -2409,7 +2541,7 @@
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                        'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
                         'x-user-email': userEmail || '',
                         'X-User-Email': userEmail || ''  // Also send with capital letters to handle any case sensitivity
                     }
@@ -2441,7 +2573,7 @@
             try {
                 const response = await authFetch(`${API_URL}/admin/tournaments`, {
                     headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                        'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
                         'x-user-email': localStorage.getItem('userEmail') || ''
                     }
                 });
@@ -2753,7 +2885,7 @@
                     const response = await authFetch(`${API_URL}/admin/tournaments`, {
                         method: 'POST',
                         headers: {
-                            'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                            'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
                             'x-user-email': localStorage.getItem('userEmail') || ''
                         },
                         body: formData
@@ -2787,7 +2919,7 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                            'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
                             'x-user-email': localStorage.getItem('userEmail') || ''
                         },
                         body: JSON.stringify({ title, photoUrl, deadline: deadlineInputValue, games, description })
@@ -3274,7 +3406,7 @@
                     const response = await authFetch(`${API_URL}/admin/tournaments/${tournamentId}`, {
                         method: 'PUT',
                         headers: {
-                            'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                            'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
                             'x-user-email': localStorage.getItem('userEmail') || ''
                         },
                         body: formData
@@ -3302,7 +3434,7 @@
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                            'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
                             'x-user-email': localStorage.getItem('userEmail') || ''
                         },
                         body: JSON.stringify({
@@ -3484,7 +3616,7 @@
             confirmBtn.disabled = true;
 
             try {
-                const token = localStorage.getItem('msAccessToken');
+                const token = localStorage.getItem('jwtToken');
                 console.log('Deleting tournament:', tournamentId);
                 console.log('Token present:', !!token);
 
@@ -3914,7 +4046,7 @@
                 const userEmail = localStorage.getItem('userEmail');
                 const response = await authFetch(`${API_URL}/admin/registrations/overview`, {
                     headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                        'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
                         'x-user-email': userEmail || ''
                     }
                 });
@@ -4246,7 +4378,7 @@
 
                 const response = await authFetch(`${API_URL}/admin/tunnel/status`, {
                     headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                        'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
                         'x-user-email': userEmail || ''
                     }
                 });
@@ -4329,7 +4461,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                        'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
                         'x-user-email': userEmail || ''
                     }
                 });
@@ -4519,7 +4651,7 @@
                 ? 'http://localhost:3000/api/admin' : '/api/admin';
 
             function getHeaders() {
-                const token = localStorage.getItem('msAccessToken');
+                const token = localStorage.getItem('jwtToken');
                 const userEmail = localStorage.getItem('userEmail');
                 return { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}), ...(userEmail ? { 'x-user-email': userEmail } : {}) };
             }
@@ -4610,12 +4742,12 @@
                                     <div style="font-size:12px;color:#94a3b8;margin-top:4px;">Status: ${t.status} | Deadline: ${new Date(t.registration_deadline).toLocaleDateString()}</div>
                                 </div>
                                 <div style="display:flex;gap:8px;">
-                                    <a href="scheduling.html?tournamentId=${t.id}" 
-                                       style="background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;">
+                                    <a href="#" onclick="openScheduling('${t.id}'); return false;"
+                                       style="background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;cursor:pointer;">
                                         ⚡ Schedule
                                     </a>
-                                    <a href="bracket.html?tournamentId=${t.id}" 
-                                       style="background:#6366f1;color:#fff;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;">
+                                    <a href="#" onclick="openBracket('${t.id}'); return false;"
+                                       style="background:#6366f1;color:#fff;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;cursor:pointer;">
                                         🏆 Brackets
                                     </a>
                                 </div>

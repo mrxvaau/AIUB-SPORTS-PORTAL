@@ -46,7 +46,7 @@ async function loadRegistrationManagementNested() {
 
         const response = await authFetch(`${API_URL}/admin/registrations/overview`, {
             headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
                 'x-user-email': userEmail || ''
             }
         });
@@ -323,7 +323,7 @@ async function manageGameRegistrations(gameId, gameName) {
     try {
         const response = await authFetch(`${API_URL}/admin/games/${gameId}/registrations`, {
             headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
                 'x-user-email': userEmail || ''
             }
         });
@@ -586,7 +586,7 @@ window.updatePayment = async function (registrationId, status) {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
                 'x-user-email': userEmail || ''
             },
             body: JSON.stringify({ payment_status: status })
@@ -633,7 +633,7 @@ window.updateTeamMemberPayment = async function (memberId, status) {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
                 'x-user-email': userEmail || ''
             },
             body: JSON.stringify({ payment_status: status })
@@ -673,7 +673,7 @@ window.updateMemberStatus = async function (memberId, status) {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
                 'x-user-email': userEmail || ''
             },
             body: JSON.stringify({ status })
@@ -716,7 +716,7 @@ window.removeMember = async function (memberId, memberName) {
         const response = await authFetch(`${API_URL}/admin/team-members/${memberId}`, {
             method: 'DELETE',
             headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
                 'x-user-email': userEmail || ''
             }
         });
@@ -778,7 +778,7 @@ window.confirmRegistration = async function (registrationId, teamId) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + localStorage.getItem('msAccessToken'),
+                'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
                 'x-user-email': userEmail || ''
             },
             body: JSON.stringify(body)
