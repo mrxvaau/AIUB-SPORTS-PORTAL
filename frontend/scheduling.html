@@ -1519,7 +1519,15 @@
             if (parallel > 1) {
                 section.style.display = '';
                 const list = document.getElementById(`venue-list-${gameId}`);
-                const existing = list.querySelectorAll('.venue-input-row').length;
+                const rows = list.querySelectorAll('.venue-input-row');
+                const existing = rows.length;
+
+                // Remove excess rows when count is reduced
+                if (existing > parallel) {
+                    for (let i = parallel; i < existing; i++) {
+                        rows[i].remove();
+                    }
+                }
 
                 // Add more venue inputs if needed
                 for (let i = existing; i < parallel; i++) {
@@ -1992,7 +2000,7 @@
                         <span class="match-participant">${m.participant_b_label || '—'}</span>
                         <span class="match-time">${startTime}</span>
                         <span class="match-venue">${m.venue_name || '—'}</span>
-                        <span class="match-status ${statusClass}">${m.status.replace('_', ' ')}</span>
+                        <span class="match-status ${statusClass}">${m.status.replaceAll('_', ' ')}</span>
                     </div>
                 `;
             }).join('');
@@ -2029,7 +2037,7 @@
 
             container.innerHTML = Object.entries(uniqueGames).map(([gameId, gameName]) => `
                 <a href="bracket.html?tournamentId=${tournamentId}&gameId=${gameId}" class="bracket-link-btn"
-                   onclick="if(window.parent!==window){window.parent.openBracket('${tournamentId}');return false;}"
+                   onclick="if(window.parent!==window){window.parent.openBracket('${tournamentId}', '${gameId}');return false;}"
                    target="_blank">
                     🏆 ${gameName} Bracket
                 </a>

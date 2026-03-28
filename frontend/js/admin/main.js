@@ -46,6 +46,10 @@ function showSection(sectionId) {
         loadTournaments();
     } else if (sectionId === 'create-tournament') {
         loadCreateTournamentForm();
+    } else if (sectionId === 'registration-management-placeholder') {
+        if (typeof loadRegistrationManagementNested === 'function') {
+            loadRegistrationManagementNested();
+        }
     }
 }
 

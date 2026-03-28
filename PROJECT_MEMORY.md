@@ -1,8 +1,8 @@
 # 🧠 AIUB Sports Portal - Project Memory
 
-**Last Updated**: 2026-03-19 @ 18:15  
-**Version**: 2.1  
-**Status**: ✅ Stable - Development Active
+**Last Updated**: 2026-03-29 @ 00:05  
+**Version**: 3.0  
+**Status**: ✅ Stable - Development Active  
 
 > 📌 **Purpose**: This file serves as a persistent memory across sessions and agents. Read this FIRST when starting work on this project to understand the context, progress, and known issues.
 
@@ -12,103 +12,85 @@
 
 > ⚡ **Chain Reaction Rule**: Always READ this section → Work → UPDATE this section → READ again
 
+### 2026-03-28/29 - Session: Storage Migration + Bracket/Scheduling Fixes + Registration Overhaul
+- **What**: Major multi-part session covering production architecture, bug fixes, and admin features
+- **Agent**: Antigravity (Claude Opus)
+
+#### Part 1: Bracket & Scheduling Bug Fixes (6 bugs)
+- **`bracket.html`**:
+  - Added missing `.bye-row` CSS (`opacity: 0.6`) to dim BYE participants
+  - Fixed `openResultModal` ID type mismatch — coerced IDs to `Number` before strict comparison
+  - Extended toast removal timeout (3000ms → 3100ms) so CSS slideOut animation completes
+- **`scheduling.html`**:
+  - Fixed status display — `.replaceAll('_', ' ')` for multi-word status formatting
+  - Fixed `renderBracketLinks` — now passes both `tournamentId` and `gameId` to bracket iframe
+  - Fixed `updateVenueInputs` — properly trims stale DOM inputs when parallel match count is reduced
+
+#### Part 2: Supabase Storage Migration (Production Architecture)
+- **Problem**: Tournament photos stored on local disk (`backend/uploads/`) — incompatible with multi-server deployment
+- **Solution**: Migrated to Supabase Storage bucket `tournament-photos`
+- **Changes**:
+  - Created `tournament-photos` bucket (public, 5MB limit, image MIME types only) via Supabase migration
+  - Added RLS policies: public SELECT, authenticated INSERT & DELETE
+  - `backend/routes/admin.js`: Replaced `multer.diskStorage` → `multer.memoryStorage`
+  - Removed `const fs = require('fs')` — no longer needed
+  - CREATE route: streams `req.file.buffer` directly to `supabase.storage.from('tournament-photos').upload()`
+  - UPDATE route: deletes old photo from Supabase via `extractStorageKey()` helper, then uploads new
+  - `photo_url` in DB now stores full Supabase CDN URL instead of relative `/uploads/...` path
+  - `/uploads` static route in `server.js` kept for backward compatibility with old photos
+- **Files Modified**: `backend/routes/admin.js`
+- **Backend restart required**: YES (multer storage changed)
+
+#### Part 3: Registration Management Overhaul
+- **Problem**: Registration panel blank when navigated to; search limited; no bulk confirm
+- **Changes**:
+  - `frontend/js/admin/main.js`: Added `loadRegistrationManagementNested()` call in `showSection()` — panel was never loading!
+  - `frontend/js/registration-management.js`:
+    - **Summary stats bar**: Shows Total/Confirmed/Pending counts with gradient background
+    - **"✅ Confirm All Pending" button**: Bulk confirms all pending registrations (teams or solo)
+    - **Solo "Confirm (Cash)" button**: Solo games now have proper cash confirmation option
+    - **Enhanced search**: Team search now matches ALL member IDs, names, and team name (was leader ID only). Solo search matches student ID, name, and email.
+    - **Better confirmed display**: Paid registrations show "✅ Confirmed" with subtle "Revert" option
+    - Added `confirmAllPending()` function — iterates pending items, calls `/admin/registrations/confirm/` for each
+- **Files Modified**: `frontend/js/admin/main.js`, `frontend/js/registration-management.js`
+- **Backend restart required**: NO (frontend-only changes)
+
 ### 2026-03-19 18:15 - Session: Full Codebase Recursive Review & Understanding
-- **What**: Performed a full, end-to-end recursive read of the entire codebase to achieve complete project understanding
-- **Why**: User requested a complete understanding before beginning any code changes; no code was modified this session
-- **Backend Files Reviewed**:
-  - `server.js` – Express app init, CORS, static serving, Supabase healthcheck on startup
-  - `config/supabase.js` – Service-role key Supabase client (bypasses RLS for backend ops)
-  - `middleware/auth.js` – JWT verify/generate, `requireAuth`, `requireAdmin`, `requireModerator` middleware; role-based access via `admins` + `admin_role_map` tables
-  - `routes/auth.js` – User auth, profile, tournament, registration, team, notification, cart endpoints
-  - `routes/admin.js` (1674 lines) – Full admin CRUD for tournaments, games, scheduling config, match status, bracket, registrations, role/permission management, tunnel control
-  - `routes/dashboard.js` – Dashboard-specific aggregated data endpoints
-  - `routes/msauth.js` – Microsoft Azure AD OAuth 2.0 flow; domain validation; photo proxy
-  - `controllers/authController.js` – Login/register, profile complete/update, name edit limit (3×), first-login flow, admin/moderator check
-  - `controllers/registrationController.js` – Solo/team game reg, cancel, admin payment status update, per-member payment tracking
-  - `controllers/teamController.js` (1724 lines) – Create team, add/remove member, gender/mix validation, mutual exclusivity enforcement, accept/reject invitation, confirm team, replace member
-  - `controllers/schedulingController.js` – Slot generation, match pool, bracket building, cross-sport conflict detection, multi-round tournament scheduling
-  - `controllers/userController.js` – Re-export barrel file for all sub-controllers
-  - `controllers/notificationController.js`, `cartController.js`, `requestController.js`, `tournamentController.js` – Referenced but not directly read; confirmed existence via `userController.js`
-- **Frontend Files Reviewed**:
-  - `api-config.js` – Centralized endpoint map; auto-switches to tunnel URL when on `loca.lt` hostname
-  - `js/auth.js` – Admin access check + `checkAuthentication()` (localStorage-based)
-  - `js/utils.js` – `showAlert()`, `logout()`, `buildApiUrl()`, `getApiUrl()`
-  - `scheduling.html` (1404 lines) – Game config cards; global time config; shuffle-and-schedule trigger; results summary; match list with conflict/filter tabs; bracket links
-  - `bracket.html` (801 lines) – Visual tournament bracket; round-by-round match nodes; result modal; `submitResult()` → `POST /admin/scheduling/match/:id/status`
-  - `registrations.html` (808 lines) – Tournament list → game cards → inline modal for per-game registrations; payment confirm flow
-- **Database Schema Confirmed**:
-  - Tables: `users`, `tournaments`, `tournament_games`, `game_registrations`, `teams`, `team_members`, `notifications`, `cart`, `admins`, `admin_roles`, `admin_role_map`, `permissions`, `role_permissions`, `admin_audit_logs`, `game_requests`, `tournament_requests`
-  - `game_registrations` is **missing** the `team_id` column in `supabase-schema.sql` (the simplistic schema) but it is used in code (e.g. `registrationController.js` selects `team_id`). The production DB likely has it as an ALTER TABLE was run separately. The `database/supabse-complete-schema.sql` also lacks `team_id` on `game_registrations` — **confirm this column exists in production Supabase**.
-  - `action_taken` column on `notifications` used in `teamController.js` — not present in either schema file; must have been added via a manual migration.
-  - `tournament_games.team_size` used in controllers but **missing from schema files** — must exist in production DB.
-  - `notifications.action_taken` and `game_registrations.team_id` and `tournament_games.team_size` are **undocumented migrations** that exist in the live DB but not in the schema SQL files.
+- **What**: Full read of entire codebase — no code changes
+- **Critical Findings**: 3 schema gaps (see Known Issues below)
 
-### 2026-02-08 23:35 - Implemented: Port Forwarding System
-- **What**: Added secure, admin-controlled tunneling for temporary online testing
-- **Where**: Admin Dashboard > System Config (`admin-dashboard.html`)
-- **Features**:
-  1. **One-Click Tunneling**: Start/Stop `localtunnel` from UI
-  2. **Dynamic Config**: Frontend automatically switches API URL based on tunnel hostname
-  3. **Security**: Protected by admin auth, processes cleaned up on shutdown
-- **Impact**: Enables real-world testing without deployment
-- **Files Modified**: `tunnelController.js`, `API config`, Admin UI
-
-### 2026-02-08 12:47 - Implemented: Team Mutual Exclusivity System
-- **What**: Added duplicate prevention + auto-removal for team memberships per game
-- **Where**: `teamController.js` (backend), `registration.html` + `dashboard.html` (frontend)
-- **Features**:
-  1. **Duplicate Prevention**: Leaders can't add users already CONFIRMED on another team for same game
-  2. **Auto-Removal**: Users accepting one team are auto-removed from all other PENDING teams for that game
-- **Impact**: Prevents confusion, ensures one user = one team per game
-- **Files Modified**: `teamController.js`, `registration.html`, `dashboard.html`
-
-### 2026-02-08 12:23 - Fixed: Profile Setup Page CSS Not Loading
-- **What**: Fixed critical CSS bug causing profile-setup.html to display unst yled
-- **Root Cause**: `</style>` tag closed on line 43, but CSS continued outside (lines 49-277)
-- **Solution**: Moved closing style tag to after all CSS rules (line 277)
-- **Impact**: Profile setup page now displays correctly with proper styling
-- **Files Modified**: `profile-setup.html`
-
-### 2026-02-08 11:44 - Created: PROJECT_MEMORY.md System
-- **What**: Initialized comprehensive memory file with full project documentation
-- **Where**: Root directory `PROJECT_MEMORY.md` + workflow `.agent/workflows/memory-update.md`
-- **Why**: Enable session continuity across account switches and agent transitions
-- **Impact**: Any agent can now get full context instantly
-- **Files**: PROJECT_MEMORY.md (17KB), memory-update.md workflow
-
-### 2026-02-08 11:39 - Documented: Recent Bug Fixes
-- **What**: Documented 5 major bug fixes from previous sessions
-- **Where**: "Known Issues & Fixes" section below
-- **Bugs Fixed**: Cancel button disappearing, cart integration, team validation, modal state, game ID stability
-- **Impact**: Future agents won't re-investigate already-fixed issues
+### 2026-02-08 - Multiple Sessions
+- Port Forwarding System implemented
+- Team Mutual Exclusivity System added
+- Profile Setup CSS fix
+- PROJECT_MEMORY.md created
+- 5 major bug fixes documented
 
 ---
 
 ## 📋 Last Session Work
 
-**Session**: 2026-03-19 @ 17:30-18:15  
-**Agent**: Antigravity  
-**Focus**: Full recursive codebase read — no code changes, understanding only
+**Session**: 2026-03-28 @ 20:00 → 2026-03-29 @ 00:05  
+**Agent**: Antigravity (Claude Opus)  
+**Focus**: Production readiness — storage migration, bug fixes, registration management
 
 **Completed**:
-- ✅ Read ALL backend files: `server.js`, `config/supabase.js`, `middleware/auth.js`
-- ✅ Read ALL backend routes: `auth.js`, `admin.js` (1674 lines), `dashboard.js`, `msauth.js`
-- ✅ Read ALL controllers: `authController.js`, `registrationController.js`, `teamController.js` (1724 lines), `schedulingController.js`, `userController.js`
-- ✅ Read database schemas: `backend/supabase-schema.sql` + `database/supabse-complete-schema.sql`
-- ✅ Read frontend config: `api-config.js`, `js/auth.js`, `js/utils.js`
-- ✅ Read key admin frontend pages: `scheduling.html` (1404 lines), `bracket.html` (801 lines), `registrations.html` (808 lines)
-- ✅ Updated `PROJECT_MEMORY.md` with complete session summary and 3 critical schema gap findings
+- ✅ Fixed 6 bugs in `bracket.html` and `scheduling.html`
+- ✅ Migrated tournament photo uploads from local disk to Supabase Storage
+- ✅ Created `tournament-photos` bucket with proper RLS policies
+- ✅ Fixed Registration Management panel not loading (showSection trigger missing)
+- ✅ Added "Confirm All Pending" bulk action for both team and solo games
+- ✅ Added "Confirm (Cash)" button for solo game registrations
+- ✅ Enhanced search to match all member IDs, names, team names (was leader ID only)
+- ✅ Added summary stats bar (Total/Confirmed/Pending counts)
 
-**Critical Findings — Schema Discrepancies**:
-- ⚠️ `game_registrations.team_id` — used in code but NOT in schema SQL files → verify in Supabase dashboard
-- ⚠️ `tournament_games.team_size` — used in code but NOT in schema SQL files → verify in Supabase dashboard
-- ⚠️ `notifications.action_taken` — used in teamController but NOT in schema SQL files → verify in Supabase dashboard
-
-**Next Session Should**:
-- Verify the 3 missing columns above exist in the live Supabase DB (`GET /api/admin/debug` or Supabase dashboard)
-- Decide what to fix/implement next (features, bugs, security hardening)
-- Start removing debug `console.log` statements if cleanup is desired
-- Update schema SQL files with the missing columns to keep documentation in sync
+**Pending / Next Session Should**:
+- Restart backend to apply Supabase Storage migration (`admin.js` change)
+- Test photo upload end-to-end with new Supabase Storage path
+- Test "Confirm All Pending" with real registration data
+- Verify schema gaps in Supabase dashboard (team_id, team_size, action_taken columns)
+- Consider cleanup: remove duplicate utility functions (`getAuthHeaders`, `showToast`) across frontend files
+- Consider cleanup: remove dead code (`runSchedule` function)
 
 ---
 
@@ -150,7 +132,8 @@
 - **Backend**: Node.js + Express.js REST API
 - **Database**: Supabase (PostgreSQL) with Row Level Security
 - **Authentication**: Microsoft Azure AD OAuth 2.0
-- **File Uploads**: Multer (tournament photos)
+- **File Storage**: Supabase Storage (`tournament-photos` bucket) — migrated from local disk 2026-03-28
+- **File Uploads**: Multer (`memoryStorage` — buffer in RAM, streamed to Supabase)
 - **Hosting**: Local dev (Frontend: `http://localhost:3001`, Backend: `http://localhost:3000`)
 
 ---
@@ -177,7 +160,7 @@ AIUB-SPORTS-PORTAL/
 │   │   ├── auth.js          # Auth routes
 │   │   ├── dashboard.js     # Student dashboard APIs
 │   │   └── msauth.js        # Microsoft OAuth routes
-│   ├── uploads/             # Tournament photo storage
+│   ├── uploads/             # LEGACY photo storage (kept for backward compat; new uploads go to Supabase Storage)
 │   ├── server.js            # Main Express app
 │   ├── package.json         # Dependencies
 │   └── .env                 # Environment variables (GITIGNORED!)
@@ -457,40 +440,46 @@ curl http://localhost:3000/api/health
 
 #### ⚠️ Issue 1: Debug Logs Still Present
 **Status**: Minor - Non-blocking  
-**Description**: Console.log statements still present throughout codebase from debugging sessions.
-
-**Impact**: Low - Only affects console output, no functional impact.
-
-**TODO**: Clean up debug logs before production deployment.
-
-**Files**: 
-- Most frontend HTML files
-- Some backend controllers
+**Description**: Console.log statements throughout codebase.
+**TODO**: Clean up before production.
 
 ---
 
 #### ⚠️ Issue 2: QWEN.md Outdated
 **Status**: Documentation  
-**Description**: `QWEN.md` still references Oracle database, but project migrated to Supabase.
-
-**Impact**: None - Only confuses new developers.
-
-**TODO**: Update or remove QWEN.md file.
+**Description**: `QWEN.md` still references Oracle database.
+**TODO**: Update or remove.
 
 ---
 
 #### ⚠️ Issue 3: RLS Policies Too Permissive
 **Status**: Security - Important for Production  
-**Description**: All Supabase RLS policies set to `FOR ALL USING (true)` (allow everything).
+**Description**: Many RLS policies set to `FOR ALL USING (true)` (allow everything). The new `tournament-photos` bucket has proper RLS (public read, authenticated write).
+**TODO**: Tighten all table-level RLS before production.
 
-**Impact**: Development is fine, but MUST be restricted before production.
+---
 
-**TODO**: 
-- Implement user-scoped RLS policies
-- Admin-only policies for admin tables
-- User can only see their own data
+#### ⚠️ Issue 4: Schema SQL Files Out of Sync
+**Status**: Documentation - Important  
+**Description**: Three columns used in code but missing from schema SQL files:
+- `game_registrations.team_id`
+- `tournament_games.team_size`  
+- `notifications.action_taken`
+**TODO**: Verify they exist in live Supabase DB, then update schema SQL files.
 
-**Files**: `backend/supabase-schema.sql`
+---
+
+#### ⚠️ Issue 5: Duplicate Utility Functions
+**Status**: Code Quality  
+**Description**: `getAuthHeaders()` and `showToast()` duplicated across multiple frontend HTML files.
+**TODO**: Consolidate into shared JS modules.
+
+---
+
+#### ⚠️ Issue 6: Dead Code
+**Status**: Code Quality  
+**Description**: `runSchedule()` function exists but is never called.
+**TODO**: Remove in cleanup sprint.
 
 ---
 
@@ -658,8 +647,9 @@ try {
 3. **JWT Tokens**: Used for session management
 4. **Service Role Key**: NEVER expose to frontend (backend only)
 5. **CORS**: Restricted to localhost during development
-6. **File Uploads**: Limited to images, stored in `backend/uploads/`
+6. **File Uploads**: Limited to images (5MB), stored in Supabase Storage `tournament-photos` bucket
 7. **RLS Policies**: Must be tightened before production
+8. **Storage Bucket RLS**: `tournament-photos` has proper RLS (public read, auth write/delete)
 
 ---
 
@@ -751,6 +741,8 @@ try {
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 3.0 | 2026-03-29 | Supabase Storage migration, registration management overhaul, 6 bug fixes |
+| 2.1 | 2026-03-19 | Full codebase review, schema gap discovery |
 | 2.0 | 2026-02-08 | Created PROJECT_MEMORY.md, project stable |
 | 1.5 | 2025-XX-XX | Migrated from Oracle to Supabase |
 | 1.0 | 2025-XX-XX | Initial release with Oracle |
@@ -773,7 +765,7 @@ try {
 
 ---
 
-**Last Updated**: 2026-02-08 @ 12:47 GMT+6  
+**Last Updated**: 2026-03-29 @ 00:05 GMT+6  
 **Next Review**: Start of every new session (read the "Recent Updates Log")  
 
 **Remember**: This is a LIVING DOCUMENT - Read it, Update it, Read it again! 🔁 Future you (or another agent) will thank you! 🙏

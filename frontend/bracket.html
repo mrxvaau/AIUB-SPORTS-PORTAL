@@ -486,6 +486,11 @@
             background: rgba(168, 85, 247, 0.08);
             border-color: rgba(168, 85, 247, 0.2);
         }
+
+        /* Dim BYE participant row */
+        .match-participant-row.bye-row {
+            opacity: 0.6;
+        }
     </style>
 </head>
 
@@ -753,7 +758,7 @@
             let match = null;
             if (bracketData && bracketData.rounds) {
                 for (const round of bracketData.rounds) {
-                    match = round.matches.find(m => m.id === matchId);
+                    match = round.matches.find(m => Number(m.id) === Number(matchId));
                     if (match) break;
                 }
             }
@@ -850,7 +855,7 @@
             toast.className = `toast ${type}`;
             toast.textContent = message;
             document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
+            setTimeout(() => toast.remove(), 3100);
         }
     </script>
 </body>

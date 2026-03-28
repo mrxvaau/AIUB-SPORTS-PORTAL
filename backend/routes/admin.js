@@ -6,48 +6,28 @@ const path = require('path');
 const registrationController = require('../controllers/registrationController');
 const teamController = require('../controllers/teamController');
 
-const fs = require('fs');
+// fs not needed — file uploads go directly to Supabase Storage
 
 // REMOVED: /run-migration endpoint — allowed unauthenticated SQL execution (CRITICAL SECURITY FIX)
 // Use backend/run-migration.js CLI script instead if migrations are needed.
 
-// Configure multer for file uploads - temporary storage
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        // For now, store in a temporary location since req.body isn't available yet
-        // We'll move it later after getting the title
-        const tempDir = 'uploads/temp/';
-        console.log('Setting up temp directory:', tempDir);
-        // Ensure directory exists
-        if (!fs.existsSync(tempDir)) {
-            fs.mkdirSync(tempDir, { recursive: true });
-            console.log('Created temp directory:', tempDir);
-        }
-        cb(null, tempDir);
-    },
-    filename: function (req, file, cb) {
-        // Generate unique filename to prevent conflicts
-        const filename = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname);
-        console.log('Generated filename for upload:', filename);
-        cb(null, filename);
-    }
-});
+// Configure multer — memory storage; buffer is uploaded directly to Supabase Storage
+// This avoids writing to local disk entirely, making the app stateless and safe for
+// multi-server / containerised deployments where servers do not share a filesystem.
+const storage = multer.memoryStorage();
 
 const upload = multer({
     storage: storage,
-    // Add file validation
     fileFilter: (req, file, cb) => {
         console.log('Validating uploaded file:', file.originalname, 'Mimetype:', file.mimetype);
-        // Accept only image files
         if (file.mimetype.startsWith('image/')) {
             console.log('File accepted:', file.originalname);
             return cb(null, true);
         } else {
-            console.log('File rejected - not an image:', file.originalname, 'Mimetype:', file.mimetype);
+            console.log('File rejected - not an image:', file.originalname);
             return cb(new Error('Only image files are allowed!'), false);
         }
     },
-    // Set file size limit (optional)
     limits: {
         fileSize: 5 * 1024 * 1024 // 5MB limit
     }
@@ -77,6 +57,19 @@ function handleMulterError(err, req, res, next) {
         });
     }
     next();
+}
+
+/**
+ * Extract the Supabase Storage object key from a public URL.
+ * e.g. "https://xxx.supabase.co/storage/v1/object/public/tournament-photos/tournaments/foo.jpg"
+ *   -> "tournaments/foo.jpg"
+ */
+function extractStorageKey(publicUrl, bucketName) {
+    if (!publicUrl) return null;
+    const marker = `/storage/v1/object/public/${bucketName}/`;
+    const idx = publicUrl.indexOf(marker);
+    if (idx === -1) return null;
+    return decodeURIComponent(publicUrl.slice(idx + marker.length));
 }
 
 // Import JWT-based admin authentication middleware
@@ -394,56 +387,35 @@ router.post('/tournaments', requireAdmin, upload.single('photo'), handleMulterEr
             }
         }
 
-        // If there's a photo file, move it to the correct location and store its path
+        // If there's a photo file, upload it to Supabase Storage
         if (req.file) {
-            console.log('Processing uploaded file:', req.file); // Debug logging
+            console.log('Uploading photo to Supabase Storage:', req.file.originalname);
             try {
-                // Sanitize the title to be filesystem-safe
-                let tournamentTitle = title || 'untitled';
-                tournamentTitle = tournamentTitle.replace(/[^a-zA-Z0-9-_]/g, '_');
-                console.log('Sanitized tournament title:', tournamentTitle);
+                const sanitizedTitle = (title || 'untitled').replace(/[^a-zA-Z0-9-_]/g, '_');
+                const ext = path.extname(req.file.originalname).toLowerCase() || '.jpg';
+                // Unique key: tournaments/<title>_<timestamp>.<ext>
+                const storageKey = `tournaments/${sanitizedTitle}_${Date.now()}${ext}`;
 
-                // Create the path: uploads/tournament_title/title_pic/
-                const tournamentDir = path.join(__dirname, '../uploads', tournamentTitle);
-                const titlePicDir = path.join(tournamentDir, 'title_pic');
-                console.log('Creating directories:', tournamentDir, titlePicDir);
+                const { error: uploadError } = await supabase.storage
+                    .from('tournament-photos')
+                    .upload(storageKey, req.file.buffer, {
+                        contentType: req.file.mimetype,
+                        upsert: false
+                    });
 
-                // Create directories if they don't exist
-                if (!fs.existsSync(tournamentDir)) {
-                    fs.mkdirSync(tournamentDir, { recursive: true });
-                    console.log('Created tournament directory:', tournamentDir);
-                }
-                if (!fs.existsSync(titlePicDir)) {
-                    fs.mkdirSync(titlePicDir, { recursive: true });
-                    console.log('Created title_pic directory:', titlePicDir);
-                }
+                if (uploadError) throw new Error('Supabase Storage upload failed: ' + uploadError.message);
 
-                // Create the new file path
-                const newFileName = 'tournament_image' + path.extname(req.file.originalname);
-                const newFilePath = path.join(titlePicDir, newFileName);
-                const oldFilePath = req.file.path; // This is the temp location
-                console.log('Moving file from:', oldFilePath, 'to:', newFilePath);
+                const { data: urlData } = supabase.storage
+                    .from('tournament-photos')
+                    .getPublicUrl(storageKey);
 
-                // Move the file to new location
-                fs.renameSync(oldFilePath, newFilePath);
-                console.log('File moved successfully');
-
-                photoPath = `/uploads/${tournamentTitle}/title_pic/${newFileName}`; // Store relative path
-                console.log('Set photoPath to:', photoPath);
+                photoPath = urlData.publicUrl;
+                console.log('Photo uploaded to Supabase Storage:', photoPath);
             } catch (fileError) {
-                console.error('Error processing uploaded file:', fileError);
-                // Clean up any created directories if file processing fails
-                try {
-                    const tempDir = path.dirname(req.file.path);
-                    if (tempDir && tempDir.includes('uploads/temp')) {
-                        fs.unlinkSync(req.file.path); // Remove the temp file
-                    }
-                } catch (cleanupError) {
-                    console.error('Error during file cleanup:', cleanupError);
-                }
+                console.error('Error uploading photo to Supabase Storage:', fileError);
                 return res.status(500).json({
                     success: false,
-                    message: 'Error processing uploaded file: ' + fileError.message
+                    message: 'Error uploading photo: ' + fileError.message
                 });
             }
         } else {
@@ -563,17 +535,7 @@ router.post('/tournaments', requireAdmin, upload.single('photo'), handleMulterEr
         res.json({ success: true, tournamentId });
     } catch (error) {
         console.error('Create tournament error:', error);
-        // If there was an error and a photo was uploaded, make sure to clean it up
-        if (req.file) {
-            try {
-                const tempDir = path.dirname(req.file.path);
-                if (tempDir && tempDir.includes('uploads/temp')) {
-                    fs.unlinkSync(req.file.path); // Remove the temp file
-                }
-            } catch (cleanupError) {
-                console.error('Error during file cleanup:', cleanupError);
-            }
-        }
+        // No local temp file to clean up — uploads go directly to Supabase Storage
         res.status(500).json({ success: false, message: error.message });
     }
 });
@@ -692,64 +654,50 @@ router.put('/tournaments/:id', requireAdmin, (req, res, next) => {
 
         console.log('Current tournament data:', currentTournament);
 
-        // If there's a photo file, handle the file upload
+        // If there's a photo file, upload it to Supabase Storage
         if (req.file) {
-            console.log('Processing uploaded file for update:', req.file);
+            console.log('Uploading new photo to Supabase Storage:', req.file.originalname);
             try {
-                // Sanitize the title to be filesystem-safe
-                let tournamentTitle = title || currentTournament.title || 'untitled';
-                tournamentTitle = tournamentTitle.replace(/[^a-zA-Z0-9-_]/g, '_');
-
-                // Create the path: uploads/tournament_title/title_pic/
-                const tournamentDir = path.join(__dirname, '../uploads', tournamentTitle);
-                const titlePicDir = path.join(tournamentDir, 'title_pic');
-
-                // Create directories if they don't exist
-                if (!fs.existsSync(tournamentDir)) {
-                    fs.mkdirSync(tournamentDir, { recursive: true });
-                }
-                if (!fs.existsSync(titlePicDir)) {
-                    fs.mkdirSync(titlePicDir, { recursive: true });
-                }
-
-                // Create the new file path
-                const newFileName = 'tournament_image' + path.extname(req.file.originalname);
-                const newFilePath = path.join(titlePicDir, newFileName);
-                const oldFilePath = req.file.path; // This is the temp location
-
-                // Move the file to new location
-                fs.renameSync(oldFilePath, newFilePath);
-
-                // If there was a previous photo, delete it from the filesystem
+                // Delete the old photo from Supabase Storage (if it's a Supabase URL)
                 if (currentTournament.photo_url) {
-                    const oldStoredFilePath = path.join(__dirname, '..', currentTournament.photo_url);
-                    if (fs.existsSync(oldStoredFilePath)) {
-                        try {
-                            fs.unlinkSync(oldStoredFilePath); // Delete old file
-                            console.log('Deleted old photo file:', oldStoredFilePath);
-                        } catch (err) {
-                            console.error('Error deleting old photo:', err);
-                            // Continue even if old file couldn't be deleted
+                    const oldKey = extractStorageKey(currentTournament.photo_url, 'tournament-photos');
+                    if (oldKey) {
+                        const { error: removeError } = await supabase.storage
+                            .from('tournament-photos')
+                            .remove([oldKey]);
+                        if (removeError) {
+                            console.warn('Could not delete old photo from Supabase Storage:', removeError.message);
+                        } else {
+                            console.log('Deleted old photo from Supabase Storage:', oldKey);
                         }
                     }
+                    // If it was a local /uploads path (legacy), we leave it — backward compat
                 }
 
-                photoPath = `/uploads/${tournamentTitle}/title_pic/${newFileName}`; // Store relative path
-                console.log('Set new photoPath to:', photoPath);
+                const sanitizedTitle = (title || currentTournament.title || 'untitled').replace(/[^a-zA-Z0-9-_]/g, '_');
+                const ext = path.extname(req.file.originalname).toLowerCase() || '.jpg';
+                const storageKey = `tournaments/${sanitizedTitle}_${Date.now()}${ext}`;
+
+                const { error: uploadError } = await supabase.storage
+                    .from('tournament-photos')
+                    .upload(storageKey, req.file.buffer, {
+                        contentType: req.file.mimetype,
+                        upsert: false
+                    });
+
+                if (uploadError) throw new Error('Supabase Storage upload failed: ' + uploadError.message);
+
+                const { data: urlData } = supabase.storage
+                    .from('tournament-photos')
+                    .getPublicUrl(storageKey);
+
+                photoPath = urlData.publicUrl;
+                console.log('New photo uploaded to Supabase Storage:', photoPath);
             } catch (fileError) {
-                console.error('Error processing uploaded file for update:', fileError);
-                // Clean up any created directories if file processing fails
-                try {
-                    const tempDir = path.dirname(req.file.path);
-                    if (tempDir && tempDir.includes('uploads/temp')) {
-                        fs.unlinkSync(req.file.path); // Remove the temp file
-                    }
-                } catch (cleanupError) {
-                    console.error('Error during file cleanup in update:', cleanupError);
-                }
+                console.error('Error uploading photo to Supabase Storage (update):', fileError);
                 return res.status(500).json({
                     success: false,
-                    message: 'Error processing uploaded file: ' + fileError.message
+                    message: 'Error uploading photo: ' + fileError.message
                 });
             }
         } else {

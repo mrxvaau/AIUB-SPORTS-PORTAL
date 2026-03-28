@@ -287,7 +287,7 @@ async function manageGameRegistrations(gameId, gameName) {
                 
                 <!-- Search Bar -->
                 <div style="padding: 20px 24px; border-bottom: 1px solid #e5e7eb; background: #f8fafc;">
-                    <input type="text" id="registrationSearch" placeholder="Search by Student ID..." 
+                    <input type="text" id="registrationSearch" placeholder="Search by Student ID, Name, or Team Name..." 
                            style="width: 100%; padding: 12px 16px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;" 
                            onkeyup="filterRegistrations()">
                 </div>
@@ -317,6 +317,7 @@ async function manageGameRegistrations(gameId, gameName) {
         delete window.updateTeamMemberPayment;
         delete window.updateMemberStatus;
         delete window.removeMember;
+        delete window.confirmAllPending;
     };
 
     // Load registration data
@@ -380,7 +381,36 @@ function renderRegistrations(data) {
         return;
     }
 
-    let html = '';
+    // Count pending vs confirmed
+    let pendingCount, confirmedCount;
+    if (isTeamGame) {
+        pendingCount = registrations.filter(r => r.team.status !== 'CONFIRMED').length;
+    } else {
+        pendingCount = registrations.filter(r => r.payment_status !== 'PAID').length;
+    }
+    confirmedCount = registrations.length - pendingCount;
+
+    let html = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding:16px 20px;background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border-radius:10px;border:1px solid #bbf7d0;">
+            <div style="display:flex;gap:20px;align-items:center;">
+                <div style="text-align:center;"><div style="font-size:24px;font-weight:800;color:#1e293b;">${registrations.length}</div><div style="font-size:11px;color:#64748b;">Total</div></div>
+                <div style="width:1px;height:36px;background:#d1d5db;"></div>
+                <div style="text-align:center;"><div style="font-size:24px;font-weight:800;color:#10b981;">${confirmedCount}</div><div style="font-size:11px;color:#64748b;">Confirmed</div></div>
+                <div style="width:1px;height:36px;background:#d1d5db;"></div>
+                <div style="text-align:center;"><div style="font-size:24px;font-weight:800;color:#f59e0b;">${pendingCount}</div><div style="font-size:11px;color:#64748b;">Pending</div></div>
+            </div>
+            ${pendingCount > 0 ? `
+                <button onclick="confirmAllPending()"
+                        style="background:linear-gradient(135deg,#10b981,#059669);color:white;border:none;padding:12px 24px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:700;box-shadow:0 4px 12px rgba(16,185,129,0.3);transition:all 0.2s;"
+                        onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 16px rgba(16,185,129,0.4)'"
+                        onmouseout="this.style.transform='';this.style.boxShadow='0 4px 12px rgba(16,185,129,0.3)'">
+                    ✅ Confirm All Pending (${pendingCount})
+                </button>
+            ` : `
+                <div style="display:flex;align-items:center;gap:8px;color:#10b981;font-weight:700;font-size:14px;">✅ All Confirmed</div>
+            `}
+        </div>
+    `;
 
     if (isTeamGame) {
         // Team game registrations
@@ -390,9 +420,10 @@ function renderRegistrations(data) {
             const team = reg.team;
             const leader = reg.members.find(m => m.role === 'LEADER');
             const fillPercentage = (team.member_count / team.required_size) * 100;
+            const teamSearchText = [team.team_name, ...reg.members.map(m => m.student_id || ''), ...reg.members.map(m => m.full_name || '')].join(' ');
 
             html += `
-                <div data-search-text="${leader?.student_id || ''}" style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                <div data-search-text="${teamSearchText}" style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
                     <!-- Team Header -->
                     <div style="padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
                         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
@@ -520,9 +551,10 @@ function renderRegistrations(data) {
 
         registrations.forEach(reg => {
             const paymentColor = reg.payment_status === 'PAID' ? '#10b981' : reg.payment_status === 'UNPAID' ? '#ef4444' : '#f59e0b';
+            const soloSearchText = `${reg.user.student_id} ${reg.user.full_name} ${reg.user.email}`;
 
             html += `
-                <tr data-search-text="${reg.user.student_id}" style="border-bottom: 1px solid #f1f5f9;">
+                <tr data-search-text="${soloSearchText}" style="border-bottom: 1px solid #f1f5f9;">
                     <td style="padding: 12px; font-weight: 500;">${reg.user.student_id}</td>
                     <td style="padding: 12px;">${reg.user.full_name}</td>
                     <td style="padding: 12px; color: #64748b; font-size: 13px;">${reg.user.email}</td>
@@ -533,16 +565,21 @@ function renderRegistrations(data) {
                         </span>
                     </td>
                     <td style="padding: 12px;">
-                        <div style="display: flex; gap: 6px;">
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
                             ${reg.payment_status !== 'PAID' ? `
+                                <button onclick="confirmRegistration(${reg.id}, null)" 
+                                        style="background: #10b981; color: white; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600;">
+                                    ✅ Confirm (Cash)
+                                </button>
                                 <button onclick="updatePayment(${reg.id}, 'PAID')" 
-                                        style="background: #10b981; color: white; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 12px;">
-                                    Mark as Paid
+                                        style="background: #3b82f6; color: white; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                                    💳 Mark Paid
                                 </button>
                             ` : `
+                                <span style="color: #10b981; font-weight: 600; font-size: 12px; padding: 6px 0;">✅ Confirmed</span>
                                 <button onclick="updatePayment(${reg.id}, 'PENDING')" 
-                                        style="background: #f59e0b; color: white; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 12px;">
-                                    Mark as Pending
+                                        style="background: #94a3b8; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 11px;">
+                                    Revert
                                 </button>
                             `}
                         </div>
@@ -808,7 +845,75 @@ window.confirmRegistration = async function (registrationId, teamId) {
     }
 };
 
+// Confirm All Pending registrations (bulk action)
+window.confirmAllPending = async function() {
+    const data = window.registrationData;
+    if (!data) return;
 
+    const isTeamGame = data.game.is_team_game;
+    let pendingItems;
+
+    if (isTeamGame) {
+        pendingItems = data.registrations.filter(r => r.team.status !== 'CONFIRMED');
+    } else {
+        pendingItems = data.registrations.filter(r => r.payment_status !== 'PAID');
+    }
+
+    if (pendingItems.length === 0) {
+        alert('No pending registrations to confirm.');
+        return;
+    }
+
+    const msg = isTeamGame
+        ? `Confirm ${pendingItems.length} pending team(s)? All members will be marked PAID (Cash) and CONFIRMED.`
+        : `Confirm ${pendingItems.length} pending registration(s)? All will be marked PAID (Cash).`;
+
+    if (!confirm(msg)) return;
+
+    const API_URL = window.API_URL || 'http://localhost:3000/api';
+    const userEmail = localStorage.getItem('userEmail');
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const item of pendingItems) {
+        try {
+            let url = `${API_URL}/admin/registrations/confirm/`;
+            let body = {};
+
+            if (isTeamGame) {
+                url += 'team';
+                body = { teamId: item.team.id };
+            } else {
+                url += item.id;
+            }
+
+            const response = await authFetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
+                    'x-user-email': userEmail || ''
+                },
+                body: JSON.stringify(body)
+            });
+
+            const result = await response.json();
+            if (result.success) successCount++;
+            else { failCount++; console.error('Confirm failed:', result.message); }
+        } catch (err) {
+            failCount++;
+            console.error('Error confirming item:', err);
+        }
+    }
+
+    alert(`✅ Confirmed: ${successCount}${failCount > 0 ? `, ❌ Failed: ${failCount}` : ''}`);
+
+    // Reload modal
+    const gameId = data.game.id;
+    const gameName = data.game.game_name;
+    closeRegistrationModal();
+    manageGameRegistrations(gameId, gameName);
+};
 
 // Handle browser back/forward buttons
 window.addEventListener('popstate', function (event) {
