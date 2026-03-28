@@ -161,19 +161,101 @@ const saveScheduleConfig = async (req, res) => {
 };
 
 // ============================================================
-// CORE SCHEDULING ALGORITHM (v2 — UNIFIED SERIAL)
+// CORE SCHEDULING ALGORITHM (v3 — CONFLICT-MINIMIZING)
 // ============================================================
+//
+// Key improvements over v2:
+// 1. Interleaved round-robin scheduling across all games (not sequential)
+// 2. Conflict-risk-aware ordering: multi-game players scheduled first
+// 3. Active conflict avoidance: tries multiple time slots before accepting
+// 4. Per-venue interval tracking: precisely tracks occupied slots + breaks
+// 5. Post-optimization swap pass: reduces remaining conflicts by swapping
+
+const TZ_OFFSET = '+06:00'; // Bangladesh Standard Time
+
+// Convert a Date to YYYY-MM-DD in Bangladesh timezone
+function toDateStr(d) {
+    const bdMs = d.getTime() + 6 * 3600000;
+    return new Date(bdMs).toISOString().split('T')[0];
+}
+
+// Create a Date from date string + HH:MM in Bangladesh timezone
+function makeTime(dateStr, timeHHMM) {
+    return new Date(`${dateStr}T${timeHHMM}:00${TZ_OFFSET}`);
+}
+
+// Find next free (unoccupied) slot on a venue starting from `fromTime`.
+// Returns null if no slot fits before endDate.
+function findFreeSlot(venue, fromTime, matchDurationMs, breakMs, dailyStartHHMM, dailyEndHHMM, endDate) {
+    let candidate = new Date(Math.max(fromTime.getTime(), 0));
+    let iterations = 0;
+
+    while (candidate <= endDate && iterations < 1000) {
+        iterations++;
+        const dayStr = toDateStr(candidate);
+        const dayStart = makeTime(dayStr, dailyStartHHMM);
+        const dayEnd = makeTime(dayStr, dailyEndHHMM);
+
+        // Snap to daily start if before
+        if (candidate < dayStart) candidate = new Date(dayStart);
+
+        const slotEnd = new Date(candidate.getTime() + matchDurationMs);
+
+        // Past daily end → jump to next day
+        if (slotEnd > dayEnd) {
+            const nextDayDate = new Date(dayStart.getTime() + 24 * 3600000);
+            candidate = makeTime(toDateStr(nextDayDate), dailyStartHHMM);
+            continue;
+        }
+
+        // Check overlap with occupied intervals (include break gap after each)
+        let blocked = false;
+        let skipTo = 0;
+        const candStartMs = candidate.getTime();
+        const candEndMs = slotEnd.getTime();
+
+        for (const occ of venue.occupied) {
+            const occEndWithBreak = occ.end + breakMs;
+            if (candStartMs < occEndWithBreak && candEndMs > occ.start) {
+                blocked = true;
+                skipTo = Math.max(skipTo, occEndWithBreak);
+            }
+        }
+
+        if (!blocked) return candidate;
+        candidate = new Date(skipTo);
+    }
+
+    return null;
+}
 
 // ---- Shared core: runs algorithm without DB writes ----
 async function runSchedulingAlgorithm(tournamentId, schedConfig, games, configMap) {
-    // 1. Generate match pools per game
+
+    // ================================================================
+    // Phase 1: Generate match pools per game
+    // ================================================================
     const allMatches = {};
     for (const game of games) {
-        const matches = await generateMatchPool(game, tournamentId);
-        allMatches[game.id] = matches;
+        allMatches[game.id] = await generateMatchPool(game, tournamentId);
     }
 
-    // 2. Sort games by priority (desc) then match count (desc)
+    // ================================================================
+    // Phase 2: Build player participation map
+    // ================================================================
+    // playerGameCount[playerId] = number of distinct games this player is in
+    const playerGameCount = {};
+    for (const game of games) {
+        for (const match of allMatches[game.id] || []) {
+            getPlayerIds(match).forEach(pid => {
+                playerGameCount[pid] = (playerGameCount[pid] || 0) + 1;
+            });
+        }
+    }
+
+    // ================================================================
+    // Phase 3: Sort games by priority; sort matches by conflict risk
+    // ================================================================
     const sortedGames = [...games].sort((a, b) => {
         const pA = configMap[a.id]?.priority || 0;
         const pB = configMap[b.id]?.priority || 0;
@@ -181,254 +263,221 @@ async function runSchedulingAlgorithm(tournamentId, schedConfig, games, configMa
         return (allMatches[b.id]?.length || 0) - (allMatches[a.id]?.length || 0);
     });
 
-    // 3. Build venue cursors per game
-    //    Each game has its own venues. Each venue has a time cursor
-    //    starting at daily_start_time on start_date.
-    const dailyStartHHMM = schedConfig.daily_start_time.split(':').slice(0, 2).join(':');
-    const dailyEndHHMM = schedConfig.daily_end_time.split(':').slice(0, 2).join(':');
-    const startDate = new Date(schedConfig.start_date + 'T00:00:00+06:00');
-    const endDate = new Date(schedConfig.end_date + 'T23:59:59+06:00');
-
-    // Helper: get next available time for a venue cursor
-    function advanceCursor(cursor, durationMs, breakMs) {
-        let next = new Date(cursor.getTime() + durationMs + breakMs);
-        const dateStr = next.toISOString().split('T')[0];
-        const dayEnd = new Date(`${dateStr}T${dailyEndHHMM}:00+06:00`);
-
-        // If next slot would exceed day end, jump to next day's start
-        if (next.getTime() > dayEnd.getTime() ||
-            next.getTime() + durationMs > dayEnd.getTime()) {
-            const nextDay = new Date(next);
-            nextDay.setDate(nextDay.getDate() + 1);
-            // Skip forward until we find a valid day within range
-            while (nextDay <= endDate) {
-                const ndStr = nextDay.toISOString().split('T')[0];
-                next = new Date(`${ndStr}T${dailyStartHHMM}:00+06:00`);
-                const ndEnd = new Date(`${ndStr}T${dailyEndHHMM}:00+06:00`);
-                if (next.getTime() + durationMs <= ndEnd.getTime()) {
-                    return next;
-                }
-                nextDay.setDate(nextDay.getDate() + 1);
-            }
-            return null; // No more days available
-        }
-        return next;
+    // Within each game, schedule high-risk matches first (players in multiple games)
+    // so they get the most scheduling flexibility (more open slots available)
+    for (const game of games) {
+        const matches = allMatches[game.id] || [];
+        matches.sort((a, b) => {
+            if (a.isBye !== b.isBye) return a.isBye ? 1 : -1;
+            const riskA = getPlayerIds(a).reduce((s, p) => s + (playerGameCount[p] || 1), 0);
+            const riskB = getPlayerIds(b).reduce((s, p) => s + (playerGameCount[p] || 1), 0);
+            return riskB - riskA; // Higher risk first
+        });
     }
 
-    // Initialize venue cursors per game
-    const venueCursors = {}; // gameId -> [{venueName, cursor (Date)}]
+    // ================================================================
+    // Phase 4: Build interleaved match queue (round-robin across games)
+    // ================================================================
+    // Instead of scheduling ALL of Game A, then ALL of Game B (which
+    // causes conflicts for shared players), we alternate: 1 from A,
+    // 1 from B, 1 from C, back to A, etc. This naturally spreads
+    // each game's matches across the timeline.
+    const matchQueue = [];
+    const ptrs = {};
+    sortedGames.forEach(g => { ptrs[g.id] = 0; });
+
+    let more = true;
+    while (more) {
+        more = false;
+        for (const game of sortedGames) {
+            const matches = allMatches[game.id] || [];
+            if (ptrs[game.id] < matches.length) {
+                matchQueue.push({ match: matches[ptrs[game.id]], game });
+                ptrs[game.id]++;
+                more = true;
+            }
+        }
+    }
+
+    // ================================================================
+    // Phase 5: Time grid setup
+    // ================================================================
+    const dailyStartHHMM = schedConfig.daily_start_time.split(':').slice(0, 2).join(':');
+    const dailyEndHHMM = schedConfig.daily_end_time.split(':').slice(0, 2).join(':');
+    // Use the raw date strings from config to avoid timezone round-trip bugs
+    const firstDayStart = makeTime(schedConfig.start_date, dailyStartHHMM);
+    const endDateTime = makeTime(schedConfig.end_date, dailyEndHHMM);
+
+    // Per-game venue trackers with occupied interval lists
+    const venueData = {};
     for (const game of games) {
         const cfg = configMap[game.id];
         const parallelCount = cfg.parallel_matches || 1;
         const venueNames = cfg.venue_names || [];
-        const firstDayStr = startDate.toISOString().split('T')[0];
-        const initialTime = new Date(`${firstDayStr}T${dailyStartHHMM}:00+06:00`);
-
-        venueCursors[game.id] = [];
+        venueData[game.id] = [];
         for (let v = 0; v < parallelCount; v++) {
-            venueCursors[game.id].push({
+            venueData[game.id].push({
                 venueName: venueNames[v] || `Venue ${v + 1}`,
-                cursor: new Date(initialTime)
+                occupied: [] // [{start: ms, end: ms}] sorted by start
             });
         }
     }
 
-    // 4. Serial assignment — process each game, assign matches sequentially
+    // ================================================================
+    // Phase 6: Assign matches with active conflict avoidance
+    // ================================================================
+    // For each match we try up to CANDIDATES_PER_VENUE time slots on
+    // each venue. If a slot has a player conflict, we skip ahead to
+    // the next free slot. We pick the slot with zero conflicts (if
+    // any), otherwise the slot with the minimum conflict weight.
+
+    const globalPlayerTimeline = {};
     const scheduledMatches = [];
     const slotsToInsert = [];
-    const globalPlayerTimeline = {};
-    const schedulingMode = schedConfig.scheduling_mode || 'serial';
+    const CANDIDATES_PER_VENUE = 15;
 
-    for (const game of sortedGames) {
-        const matches = allMatches[game.id] || [];
-        if (matches.length === 0) continue;
-
+    for (const { match, game } of matchQueue) {
         const cfg = configMap[game.id];
-        const matchDurationMs = cfg.match_duration * 60 * 1000;
-        const breakDurationMs = cfg.break_duration * 60 * 1000;
-        const venues = venueCursors[game.id];
+        const durationMs = cfg.match_duration * 60 * 1000;
+        const breakMs = cfg.break_duration * 60 * 1000;
+        const venues = venueData[game.id];
+        const pIds = getPlayerIds(match);
 
-        // Shuffle matches (random pairing order, but serial TIME assignment)
-        shuffleArray(matches);
-
-        let matchOrder = 0;
-
-        for (const match of matches) {
-            if (match.isBye) {
-                // BYEs get the earliest venue's current slot but don't advance cursor
-                const byeVenue = venues[0];
-                const byeStart = new Date(byeVenue.cursor);
-                const byeEnd = new Date(byeStart.getTime() + matchDurationMs);
-
-                const slot = {
-                    tournament_id: parseInt(tournamentId),
-                    game_id: game.id,
-                    slot_start: byeStart.toISOString(),
-                    slot_end: byeEnd.toISOString(),
-                    venue_name: byeVenue.venueName,
-                    capacity: 1,
-                    used: 1
-                };
-                slotsToInsert.push(slot);
-
-                scheduledMatches.push({
-                    tournament_id: parseInt(tournamentId),
-                    game_id: game.id,
-                    _slot_ref: slotsToInsert.length - 1,
-                    participant_a_user_id: match.a_user_id || null,
-                    participant_a_team_id: match.a_team_id || null,
-                    participant_b_user_id: null,
-                    participant_b_team_id: null,
-                    participant_a_label: match.a_label,
-                    participant_b_label: 'BYE',
-                    scheduled_start: byeStart.toISOString(),
-                    scheduled_end: byeEnd.toISOString(),
-                    venue_name: byeVenue.venueName,
-                    round_number: 1,
-                    round_label: 'Round 1',
-                    match_order: matchOrder++,
-                    status: 'SCHEDULED',
-                    conflict_type: null,
-                    conflict_player_ids: null,
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString()
-                });
-                continue;
-            }
-
-            // Find the venue with the EARLIEST cursor (serial fill)
-            let bestVenueIdx = 0;
-            let earliestTime = venues[0].cursor.getTime();
-            for (let v = 1; v < venues.length; v++) {
-                if (venues[v].cursor.getTime() < earliestTime) {
-                    earliestTime = venues[v].cursor.getTime();
-                    bestVenueIdx = v;
-                }
-            }
-
-            const venue = venues[bestVenueIdx];
-            const slotStart = new Date(venue.cursor);
-            const slotEnd = new Date(slotStart.getTime() + matchDurationMs);
-
-            // Check if slot fits within tournament dates
-            if (slotStart > endDate) {
-                // No more room — this match can't be scheduled
-                continue;
-            }
-
-            // Check daily end time
-            const dayStr = slotStart.toISOString().split('T')[0];
-            const dayEnd = new Date(`${dayStr}T${dailyEndHHMM}:00+06:00`);
-            if (slotEnd.getTime() > dayEnd.getTime()) {
-                // Advance to next day
-                const nextDay = advanceCursor(new Date(dayEnd.getTime() - 1), 0, 0);
-                if (!nextDay || nextDay > endDate) continue;
-                venue.cursor = nextDay;
-                // Re-attempt this match (push back to try again)
-                // For simplicity, just assign at next day start
-                const newStart = new Date(venue.cursor);
-                const newEnd = new Date(newStart.getTime() + matchDurationMs);
-
-                const slot = {
-                    tournament_id: parseInt(tournamentId),
-                    game_id: game.id,
-                    slot_start: newStart.toISOString(),
-                    slot_end: newEnd.toISOString(),
-                    venue_name: venue.venueName,
-                    capacity: 1,
-                    used: 1
-                };
-                slotsToInsert.push(slot);
-
-                // Check cross-sport conflict
-                const conflict = calculateConflictFromTimeline(
-                    newStart, newEnd, match, game.id, globalPlayerTimeline
-                );
-
-                scheduledMatches.push({
-                    tournament_id: parseInt(tournamentId),
-                    game_id: game.id,
-                    _slot_ref: slotsToInsert.length - 1,
-                    participant_a_user_id: match.a_user_id || null,
-                    participant_a_team_id: match.a_team_id || null,
-                    participant_b_user_id: match.b_user_id || null,
-                    participant_b_team_id: match.b_team_id || null,
-                    participant_a_label: match.a_label,
-                    participant_b_label: match.b_label,
-                    scheduled_start: newStart.toISOString(),
-                    scheduled_end: newEnd.toISOString(),
-                    venue_name: venue.venueName,
-                    round_number: 1,
-                    round_label: 'Round 1',
-                    match_order: matchOrder++,
-                    status: conflict.weight > 0 ? 'SCHEDULED_OVERLAP' : 'SCHEDULED',
-                    conflict_type: conflict.type || null,
-                    conflict_player_ids: conflict.playerIds || null,
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString()
-                });
-
-                // Update timeline
-                updatePlayerTimeline(globalPlayerTimeline, match, newStart, newEnd, game.id);
-
-                // Advance cursor
-                venue.cursor = advanceCursor(newStart, matchDurationMs, breakDurationMs) || new Date(endDate.getTime() + 1);
-                continue;
-            }
-
-            // Normal assignment at current cursor position
-            const slot = {
-                tournament_id: parseInt(tournamentId),
-                game_id: game.id,
-                slot_start: slotStart.toISOString(),
-                slot_end: slotEnd.toISOString(),
-                venue_name: venue.venueName,
-                capacity: 1,
-                used: 1
-            };
-            slotsToInsert.push(slot);
-
-            // Check cross-sport conflict
-            const conflict = calculateConflictFromTimeline(
-                slotStart, slotEnd, match, game.id, globalPlayerTimeline
+        // --- BYE handling (no venue blocking, no conflict possible) ---
+        if (match.isBye) {
+            const byeStart = findFreeSlot(
+                venues[0], firstDayStart, durationMs, breakMs,
+                dailyStartHHMM, dailyEndHHMM, endDateTime
             );
+            if (!byeStart) continue;
+            const byeEnd = new Date(byeStart.getTime() + durationMs);
 
+            slotsToInsert.push({
+                tournament_id: parseInt(tournamentId), game_id: game.id,
+                slot_start: byeStart.toISOString(), slot_end: byeEnd.toISOString(),
+                venue_name: venues[0].venueName, capacity: 1, used: 1
+            });
             scheduledMatches.push({
-                tournament_id: parseInt(tournamentId),
-                game_id: game.id,
-                _slot_ref: slotsToInsert.length - 1,
+                tournament_id: parseInt(tournamentId), game_id: game.id,
+                _slot_ref: slotsToInsert.length - 1, _playerIds: pIds,
                 participant_a_user_id: match.a_user_id || null,
                 participant_a_team_id: match.a_team_id || null,
-                participant_b_user_id: match.b_user_id || null,
-                participant_b_team_id: match.b_team_id || null,
-                participant_a_label: match.a_label,
-                participant_b_label: match.b_label,
-                scheduled_start: slotStart.toISOString(),
-                scheduled_end: slotEnd.toISOString(),
-                venue_name: venue.venueName,
-                round_number: 1,
-                round_label: 'Round 1',
-                match_order: matchOrder++,
-                status: conflict.weight > 0 ? 'SCHEDULED_OVERLAP' : 'SCHEDULED',
-                conflict_type: conflict.type || null,
-                conflict_player_ids: conflict.playerIds || null,
+                participant_b_user_id: null, participant_b_team_id: null,
+                participant_a_label: match.a_label, participant_b_label: 'BYE',
+                scheduled_start: byeStart.toISOString(),
+                scheduled_end: byeEnd.toISOString(),
+                venue_name: venues[0].venueName,
+                round_number: 1, round_label: 'Round 1',
+                match_order: scheduledMatches.length,
+                status: 'SCHEDULED',
+                conflict_type: null, conflict_player_ids: null,
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
             });
-
-            // Update player timeline
-            updatePlayerTimeline(globalPlayerTimeline, match, slotStart, slotEnd, game.id);
-
-            // Advance cursor to next serial slot
-            const nextCursor = advanceCursor(slotStart, matchDurationMs, breakDurationMs);
-            venue.cursor = nextCursor || new Date(endDate.getTime() + 1);
+            continue;
         }
+
+        // --- Regular match: search for the best slot ---
+        let bestCandidate = null;
+
+        for (let vi = 0; vi < venues.length; vi++) {
+            let searchFrom = new Date(firstDayStart);
+
+            for (let c = 0; c < CANDIDATES_PER_VENUE; c++) {
+                const slotStart = findFreeSlot(
+                    venues[vi], searchFrom, durationMs, breakMs,
+                    dailyStartHHMM, dailyEndHHMM, endDateTime
+                );
+                if (!slotStart) break;
+
+                const slotEnd = new Date(slotStart.getTime() + durationMs);
+
+                // Score this slot by checking player timeline conflicts
+                const conflict = calculateConflictFromTimeline(
+                    slotStart, slotEnd, match, game.id, globalPlayerTimeline
+                );
+
+                const candidate = {
+                    venueIdx: vi, venueName: venues[vi].venueName,
+                    start: slotStart, end: slotEnd, conflict
+                };
+
+                // Zero conflict → perfect, take it immediately
+                if (conflict.weight === 0) {
+                    bestCandidate = candidate;
+                    break;
+                }
+
+                // Track minimum-conflict slot as fallback
+                if (!bestCandidate ||
+                    conflict.weight < bestCandidate.conflict.weight ||
+                    (conflict.weight === bestCandidate.conflict.weight &&
+                     slotStart.getTime() < bestCandidate.start.getTime())) {
+                    bestCandidate = candidate;
+                }
+
+                // Advance search past this slot to try the next one
+                searchFrom = new Date(slotStart.getTime() + durationMs + breakMs);
+            }
+
+            // If we already found a perfect slot, stop searching venues
+            if (bestCandidate && bestCandidate.conflict.weight === 0) break;
+        }
+
+        if (!bestCandidate) continue; // No room at all
+
+        // --- Assign the match to the best slot ---
+        slotsToInsert.push({
+            tournament_id: parseInt(tournamentId), game_id: game.id,
+            slot_start: bestCandidate.start.toISOString(),
+            slot_end: bestCandidate.end.toISOString(),
+            venue_name: bestCandidate.venueName, capacity: 1, used: 1
+        });
+
+        scheduledMatches.push({
+            tournament_id: parseInt(tournamentId), game_id: game.id,
+            _slot_ref: slotsToInsert.length - 1, _playerIds: pIds,
+            participant_a_user_id: match.a_user_id || null,
+            participant_a_team_id: match.a_team_id || null,
+            participant_b_user_id: match.b_user_id || null,
+            participant_b_team_id: match.b_team_id || null,
+            participant_a_label: match.a_label,
+            participant_b_label: match.b_label,
+            scheduled_start: bestCandidate.start.toISOString(),
+            scheduled_end: bestCandidate.end.toISOString(),
+            venue_name: bestCandidate.venueName,
+            round_number: 1, round_label: 'Round 1',
+            match_order: scheduledMatches.length,
+            status: bestCandidate.conflict.weight > 0 ? 'SCHEDULED_OVERLAP' : 'SCHEDULED',
+            conflict_type: bestCandidate.conflict.type || null,
+            conflict_player_ids: bestCandidate.conflict.playerIds || null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        });
+
+        // Mark venue slot as occupied
+        venues[bestCandidate.venueIdx].occupied.push({
+            start: bestCandidate.start.getTime(),
+            end: bestCandidate.end.getTime()
+        });
+        venues[bestCandidate.venueIdx].occupied.sort((a, b) => a.start - b.start);
+
+        // Update global player timeline
+        updatePlayerTimeline(globalPlayerTimeline, match, bestCandidate.start, bestCandidate.end, game.id);
     }
 
-    // 5. Build day-by-day breakdown for preview
-    const dayBreakdown = buildDayBreakdown(scheduledMatches, games, configMap);
+    // ================================================================
+    // Phase 7: Post-optimization swap pass
+    // ================================================================
+    // For each remaining SCHEDULED_OVERLAP match, try swapping its
+    // time slot with a non-conflicting match of the same game. If the
+    // swap eliminates both matches' conflicts, apply it.
+    runSwapOptimization(scheduledMatches, slotsToInsert, globalPlayerTimeline);
 
-    // 6. Calculate report stats
+    // ================================================================
+    // Phase 8: Build report
+    // ================================================================
+    const dayBreakdown = buildDayBreakdown(scheduledMatches, games, configMap);
     const totalConflicts = scheduledMatches.filter(m => m.status === 'SCHEDULED_OVERLAP').length;
     const sameSportConflicts = scheduledMatches.filter(m =>
         m.status === 'SCHEDULED_OVERLAP' && m.conflict_type === 'SAME_SPORT'
@@ -436,9 +485,7 @@ async function runSchedulingAlgorithm(tournamentId, schedConfig, games, configMa
     const crossSportConflicts = scheduledMatches.filter(m =>
         m.status === 'SCHEDULED_OVERLAP' && m.conflict_type === 'CROSS_SPORT'
     ).length;
-
     const totalMatchesNeeded = Object.values(allMatches).reduce((sum, m) => sum + m.length, 0);
-    const unscheduled = totalMatchesNeeded - scheduledMatches.length;
 
     return {
         scheduledMatches,
@@ -450,7 +497,7 @@ async function runSchedulingAlgorithm(tournamentId, schedConfig, games, configMa
         report: {
             total_matches: scheduledMatches.length,
             total_matches_needed: totalMatchesNeeded,
-            unscheduled,
+            unscheduled: totalMatchesNeeded - scheduledMatches.length,
             total_conflicts: totalConflicts,
             same_sport_conflicts: sameSportConflicts,
             cross_sport_conflicts: crossSportConflicts,
@@ -464,6 +511,152 @@ async function runSchedulingAlgorithm(tournamentId, schedConfig, games, configMa
             }))
         }
     };
+}
+
+// ---- Swap Optimization Engine ----
+// Iteratively tries to swap conflicting matches with non-conflicting
+// ones of the same game to eliminate player timeline overlaps.
+function runSwapOptimization(scheduledMatches, slotsToInsert, globalTimeline) {
+    const MAX_PASSES = 3;
+
+    for (let pass = 0; pass < MAX_PASSES; pass++) {
+        let improved = false;
+
+        // Collect all currently conflicting matches
+        const conflicting = [];
+        scheduledMatches.forEach((m, i) => {
+            if (m.status === 'SCHEDULED_OVERLAP') conflicting.push({ m, i });
+        });
+
+        if (conflicting.length === 0) break; // Nothing to optimize
+
+        for (const { m: cm } of conflicting) {
+            // Find non-conflicting matches in the same game to try swapping
+            const candidates = [];
+            scheduledMatches.forEach((m, i) => {
+                if (m.game_id === cm.game_id &&
+                    m.status === 'SCHEDULED' &&
+                    m.participant_b_label !== 'BYE') {
+                    candidates.push({ m, i });
+                }
+            });
+
+            for (const { m: sm } of candidates) {
+                const cmPIds = cm._playerIds || [];
+                const smPIds = sm._playerIds || [];
+
+                // Build exclusion set: temporarily remove both matches
+                const exclude = [
+                    { startMs: new Date(cm.scheduled_start).getTime(), endMs: new Date(cm.scheduled_end).getTime(), gameId: cm.game_id, pIds: cmPIds },
+                    { startMs: new Date(sm.scheduled_start).getTime(), endMs: new Date(sm.scheduled_end).getTime(), gameId: sm.game_id, pIds: smPIds }
+                ];
+
+                // Would cm be conflict-free at sm's time slot?
+                const cmClean = !checkConflictExcluding(
+                    cmPIds, new Date(sm.scheduled_start), new Date(sm.scheduled_end),
+                    cm.game_id, globalTimeline, exclude
+                );
+
+                // Would sm be conflict-free at cm's time slot?
+                const smClean = !checkConflictExcluding(
+                    smPIds, new Date(cm.scheduled_start), new Date(cm.scheduled_end),
+                    sm.game_id, globalTimeline, exclude
+                );
+
+                if (cmClean && smClean) {
+                    // Swap improves things — apply it
+                    removeTimelineEntries(globalTimeline, cmPIds, new Date(cm.scheduled_start), new Date(cm.scheduled_end), cm.game_id);
+                    removeTimelineEntries(globalTimeline, smPIds, new Date(sm.scheduled_start), new Date(sm.scheduled_end), sm.game_id);
+
+                    // Swap time/venue
+                    const tmpStart = cm.scheduled_start;
+                    const tmpEnd = cm.scheduled_end;
+                    const tmpVenue = cm.venue_name;
+
+                    cm.scheduled_start = sm.scheduled_start;
+                    cm.scheduled_end = sm.scheduled_end;
+                    cm.venue_name = sm.venue_name;
+                    cm.status = 'SCHEDULED';
+                    cm.conflict_type = null;
+                    cm.conflict_player_ids = null;
+
+                    sm.scheduled_start = tmpStart;
+                    sm.scheduled_end = tmpEnd;
+                    sm.venue_name = tmpVenue;
+                    // sm stays SCHEDULED (verify it's still clean is guaranteed by smClean check)
+
+                    // Update slot references
+                    if (slotsToInsert[cm._slot_ref]) {
+                        slotsToInsert[cm._slot_ref].slot_start = cm.scheduled_start;
+                        slotsToInsert[cm._slot_ref].slot_end = cm.scheduled_end;
+                        slotsToInsert[cm._slot_ref].venue_name = cm.venue_name;
+                    }
+                    if (slotsToInsert[sm._slot_ref]) {
+                        slotsToInsert[sm._slot_ref].slot_start = sm.scheduled_start;
+                        slotsToInsert[sm._slot_ref].slot_end = sm.scheduled_end;
+                        slotsToInsert[sm._slot_ref].venue_name = sm.venue_name;
+                    }
+
+                    // Re-add timeline entries at new positions
+                    addTimelineEntries(globalTimeline, cmPIds, new Date(cm.scheduled_start), new Date(cm.scheduled_end), cm.game_id);
+                    addTimelineEntries(globalTimeline, smPIds, new Date(sm.scheduled_start), new Date(sm.scheduled_end), sm.game_id);
+
+                    improved = true;
+                    break; // Move to next conflicting match
+                }
+            }
+        }
+
+        if (!improved) break; // No more swaps possible
+    }
+}
+
+// Check if placing playerIds at [start, end] would cause a timeline
+// conflict, EXCLUDING the specified entries (used during swap simulation)
+function checkConflictExcluding(playerIds, start, end, gameId, globalTimeline, excludeEntries) {
+    const startMs = start.getTime();
+    const endMs = end.getTime();
+
+    for (const pid of playerIds) {
+        const timeline = globalTimeline[pid] || [];
+        for (const entry of timeline) {
+            // Skip excluded entries (the swapping matches themselves)
+            const isExcluded = excludeEntries.some(ex =>
+                ex.pIds.includes(pid) &&
+                Math.abs(entry.start.getTime() - ex.startMs) < 1000 &&
+                Math.abs(entry.end.getTime() - ex.endMs) < 1000 &&
+                entry.gameId === ex.gameId
+            );
+            if (isExcluded) continue;
+
+            if (startMs < entry.end.getTime() && endMs > entry.start.getTime()) {
+                return true; // Conflict found
+            }
+        }
+    }
+    return false;
+}
+
+// Remove specific timeline entries for players
+function removeTimelineEntries(timeline, playerIds, start, end, gameId) {
+    const startMs = start.getTime();
+    const endMs = end.getTime();
+    for (const pid of playerIds) {
+        if (!timeline[pid]) continue;
+        timeline[pid] = timeline[pid].filter(e =>
+            !(Math.abs(e.start.getTime() - startMs) < 1000 &&
+              Math.abs(e.end.getTime() - endMs) < 1000 &&
+              e.gameId === gameId)
+        );
+    }
+}
+
+// Add timeline entries for players
+function addTimelineEntries(timeline, playerIds, start, end, gameId) {
+    for (const pid of playerIds) {
+        if (!timeline[pid]) timeline[pid] = [];
+        timeline[pid].push({ start: new Date(start), end: new Date(end), gameId });
+    }
 }
 
 // ---- Preview endpoint (dry run) ----
@@ -482,7 +675,7 @@ const previewSchedule = async (req, res) => {
             success: true,
             preview: true,
             matches: result.scheduledMatches.map(m => {
-                const { _slot_ref, ...rest } = m;
+                const { _slot_ref, _playerIds, ...rest } = m;
                 return rest;
             }),
             dayBreakdown: result.dayBreakdown,
@@ -527,7 +720,7 @@ const shuffleAndSchedule = async (req, res) => {
 
         // Map slot refs to actual IDs
         const matchesToInsert = result.scheduledMatches.map(m => {
-            const { _slot_ref, ...rest } = m;
+            const { _slot_ref, _playerIds, ...rest } = m;
             rest.slot_id = insertedSlots[_slot_ref]?.id || null;
             return rest;
         });
