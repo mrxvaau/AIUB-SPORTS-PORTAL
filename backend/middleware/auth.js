@@ -8,8 +8,9 @@ const { supabase } = require('../config/supabase');
 const JWT_SECRET = process.env.JWT_SECRET;
 
 if (!JWT_SECRET) {
-    console.warn('⚠️  WARNING: JWT_SECRET not set in environment variables!');
-    console.warn('   Generate a secure secret: node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))"');
+    console.error('❌ FATAL: JWT_SECRET not set in environment variables!');
+    console.error('   Generate one: node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))"');
+    process.exit(1);
 }
 
 // Token expiration time

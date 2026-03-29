@@ -1600,7 +1600,7 @@
     <script src="js/auth-fetch.js"></script>
     <script>
         // Load API configuration with fallback
-        const API_URL = typeof API_CONFIG !== 'undefined' && API_CONFIG.API_BASE_URL ? API_CONFIG.API_BASE_URL : 'http://localhost:3000/api';
+        const API_URL = (typeof API_CONFIG !== 'undefined' && API_CONFIG.API_BASE_URL) ? API_CONFIG.API_BASE_URL : (window.API_URL || '/api');
 
         // Function to build API URL using the configuration
         function buildApiUrl(endpoint) {
@@ -4648,7 +4648,7 @@
     <script>
         (function () {
             const SCHED_API = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-                ? 'http://localhost:3000/api/admin' : '/api/admin';
+                ? ((typeof API_CONFIG !== 'undefined' && API_CONFIG.API_BASE_URL) ? API_CONFIG.API_BASE_URL + '/admin' : (window.API_URL || '/api') + '/admin') : '/api/admin';
 
             function getHeaders() {
                 const token = localStorage.getItem('jwtToken');

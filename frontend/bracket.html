@@ -584,6 +584,7 @@
         </div>
     </div>
 
+    <script src="api-config.js"></script>
     <script src="js/auth-fetch.js"></script>
     <script>
         let tournamentId = null;
@@ -593,7 +594,7 @@
         let gamesListCache = [];
 
         const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? `http://localhost:3000/api/admin`
+            ? ((typeof API_CONFIG !== 'undefined' && API_CONFIG.API_BASE_URL) ? API_CONFIG.API_BASE_URL + '/admin' : (window.API_URL || '/api') + '/admin')
             : `/api/admin`;
 
         function getAuthHeaders() {

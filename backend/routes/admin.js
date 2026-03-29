@@ -80,7 +80,8 @@ const { requireAdmin, requireAuth } = require('../middleware/auth');
 // Protected with requireAuth — anyone authenticated can check their admin status
 router.post('/check-admin', requireAuth, async (req, res) => {
     try {
-        const { email } = req.body;
+        // Use the verified email from JWT token, NOT the untrusted request body
+        const email = req.user.email || req.body.email;
 
         if (!email) {
             return res.status(400).json({
@@ -89,7 +90,7 @@ router.post('/check-admin', requireAuth, async (req, res) => {
             });
         }
 
-        // Extract student ID from email
+        // Extract student ID from verified email
         const studentId = email.split('@')[0];
 
         // Check if user exists in users table and has admin roles
@@ -147,7 +148,7 @@ router.post('/check-admin', requireAuth, async (req, res) => {
         console.error('Check admin error:', error);
         res.status(500).json({
             success: false,
-            message: error.message
+            message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message
         });
     }
 });

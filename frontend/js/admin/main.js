@@ -9,7 +9,7 @@ let currentSection = 'existing-tournaments';
 // API URL from configuration
 const API_URL = typeof API_CONFIG !== 'undefined' && API_CONFIG.API_BASE_URL
     ? API_CONFIG.API_BASE_URL
-    : 'http://localhost:3000/api';
+    : (window.API_URL || '/api');
 
 /**
  * Initialize the admin dashboard

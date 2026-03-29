@@ -571,7 +571,7 @@
 
             // Check completeness via server
             try {
-                const API_URL = typeof API_CONFIG !== 'undefined' ? API_CONFIG.API_BASE_URL : 'http://localhost:3000/api';
+                const API_URL = (typeof API_CONFIG !== 'undefined' && API_CONFIG.API_BASE_URL) ? API_CONFIG.API_BASE_URL : (window.API_URL || '/api');
                 const r = await authFetch(`${API_URL}/user/profile/${studentId}`);
                 const d = await r.json();
                 if (d.success && d.user && d.user.profile_completed === true) {
@@ -698,7 +698,7 @@
             submitBtnText.innerHTML = '<span class="spinner"></span> Saving...';
 
             try {
-                const API_URL = typeof API_CONFIG !== 'undefined' ? API_CONFIG.API_BASE_URL : 'http://localhost:3000/api';
+                const API_URL = (typeof API_CONFIG !== 'undefined' && API_CONFIG.API_BASE_URL) ? API_CONFIG.API_BASE_URL : (window.API_URL || '/api');
                 const r = await authFetch(`${API_URL}/user/profile-setup`, {
                     method: 'PUT',
                     headers: {

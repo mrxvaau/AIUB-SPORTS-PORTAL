@@ -1341,6 +1341,7 @@
         </div>
     </div>
 
+    <script src="api-config.js"></script>
     <script src="js/auth-fetch.js"></script>
     <script>
         // ============================================================
@@ -1354,7 +1355,7 @@
         let gameColorMap = {}; // gameId -> color index
 
         const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? `http://localhost:3000/api/admin`
+            ? ((typeof API_CONFIG !== 'undefined' && API_CONFIG.API_BASE_URL) ? API_CONFIG.API_BASE_URL + '/admin' : (window.API_URL || '/api') + '/admin')
             : `/api/admin`;
 
         function getAuthHeaders() {
@@ -1391,6 +1392,11 @@
                 const res = await fetch(`${API_BASE}/scheduling/configs/${tournamentId}`, {
                     headers: getAuthHeaders()
                 });
+
+                if (!res.ok) {
+                    throw new Error(`Server returned ${res.status} ${res.statusText}. Check that the backend is running and API_BASE (${API_BASE}) is correct.`);
+                }
+
                 const data = await res.json();
 
                 if (!data.success) throw new Error(data.message);

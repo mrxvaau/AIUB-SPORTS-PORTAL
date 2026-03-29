@@ -51,5 +51,5 @@ function getApiUrl() {
     if (typeof API_CONFIG !== 'undefined' && API_CONFIG.API_BASE_URL) {
         return API_CONFIG.API_BASE_URL;
     }
-    return 'http://localhost:3000/api';
+    return window.API_URL || '/api';
 }

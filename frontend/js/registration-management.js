@@ -40,7 +40,7 @@ async function loadRegistrationManagementNested() {
             </div>
         `;
 
-        const API_URL = window.API_URL || 'http://localhost:3000/api';
+    const API_URL = window.API_URL || '/api';
         const userEmail = localStorage.getItem('userEmail');
 
 
@@ -267,7 +267,7 @@ function toggleTournamentGames(tournamentId) {
 }
 
 async function manageGameRegistrations(gameId, gameName) {
-    const API_URL = window.API_URL || 'http://localhost:3000/api';
+    const API_URL = window.API_URL || '/api';
     const userEmail = localStorage.getItem('userEmail');
 
     // Create modal HTML structure
@@ -610,7 +610,7 @@ window.filterRegistrations = function () {
 
 // Update payment status
 window.updatePayment = async function (registrationId, status) {
-    const API_URL = window.API_URL || 'http://localhost:3000/api';
+    const API_URL = window.API_URL || '/api';
     const userEmail = localStorage.getItem('userEmail');
 
     if (!registrationId) {
@@ -658,7 +658,7 @@ window.updatePayment = async function (registrationId, status) {
 
 // Update team member payment status (robust)
 window.updateTeamMemberPayment = async function (memberId, status) {
-    const API_URL = window.API_URL || 'http://localhost:3000/api';
+    const API_URL = window.API_URL || '/api';
     const userEmail = localStorage.getItem('userEmail');
 
     if (!confirm('Are you sure you want to update payment status? This will create a registration record if one does not exist.')) {
@@ -702,7 +702,7 @@ window.updateTeamMemberPayment = async function (memberId, status) {
 
 // Update member status
 window.updateMemberStatus = async function (memberId, status) {
-    const API_URL = window.API_URL || 'http://localhost:3000/api';
+    const API_URL = window.API_URL || '/api';
     const userEmail = localStorage.getItem('userEmail');
 
     try {
@@ -746,7 +746,7 @@ window.removeMember = async function (memberId, memberName) {
         return;
     }
 
-    const API_URL = window.API_URL || 'http://localhost:3000/api';
+    const API_URL = window.API_URL || '/api';
     const userEmail = localStorage.getItem('userEmail');
 
     try {
@@ -784,7 +784,7 @@ window.removeMember = async function (memberId, memberName) {
 
 // Confirm Registration (Cash Override)
 window.confirmRegistration = async function (registrationId, teamId) {
-    const API_URL = window.API_URL || 'http://localhost:3000/api';
+    const API_URL = window.API_URL || '/api';
     const userEmail = localStorage.getItem('userEmail');
 
     let message = 'Are you sure you want to confirm this registration? This will mark it as PAID (Cash).';
@@ -870,7 +870,7 @@ window.confirmAllPending = async function() {
 
     if (!confirm(msg)) return;
 
-    const API_URL = window.API_URL || 'http://localhost:3000/api';
+    const API_URL = window.API_URL || '/api';
     const userEmail = localStorage.getItem('userEmail');
     let successCount = 0;
     let failCount = 0;
