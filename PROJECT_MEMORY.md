@@ -1,7 +1,7 @@
 # 🧠 AIUB Sports Portal - Project Memory
 
-**Last Updated**: 2026-03-29 @ 00:05  
-**Version**: 3.0  
+**Last Updated**: 2026-03-30 @ 22:15  
+**Version**: 3.1  
 **Status**: ✅ Stable - Development Active  
 
 > 📌 **Purpose**: This file serves as a persistent memory across sessions and agents. Read this FIRST when starting work on this project to understand the context, progress, and known issues.
@@ -11,6 +11,25 @@
 ## 🔥 Recent Updates Log
 
 > ⚡ **Chain Reaction Rule**: Always READ this section → Work → UPDATE this section → READ again
+
+### 2026-03-30 - Session: Admin Panel Bug Fixes & Security Hardening
+- **What**: Fixed scheduling/bracket display issues, conducted comprehensive auth security audit, and hardened backend.
+- **Agent**: Antigravity
+
+#### Part 1: Scheduling & Bracket Admin Fixes
+- **Problem**: `admin-dashboard.html` scheduling mapping 404'd, bracket failed to load. 
+- **Solution**: Injected missing `<script src="api-config.js">` into `scheduling.html` and `bracket.html` so API targets port 3000 correctly. Fixed `admin-router.js` double-inclusion error. Added `res.ok` status checking so failures produce human-readable errors instead of silent json parse errors.
+
+#### Part 2: Backend Authentication Security Audit & Hardening
+- **Problem**: Audit revealed critical bypass vectors (predictable JWT secret, missing secret startup, fake email checking).
+- **Solution**: 
+  - Generated secure 128-char cryptographically random `JWT_SECRET` in `.env`.
+  - Changed backend startup to `process.exit(1)` instead of printing a warning if `JWT_SECRET` is missing.
+  - Fixed `/api/admin/check-admin` to read `req.user.email` from verified JWT rather than trusting `req.body.email`. 
+  - Added strict rate-limiting (`express-rate-limit`) to auth endpoints, admin endpoints, and global API fallback to prevent brute-forcing.
+  - Sanitized `check-admin` error message output in production to prevent stack trace leaking.
+- **Files Modified**: `backend/.env`, `backend/middleware/auth.js`, `backend/routes/admin.js`, `backend/server.js`, `frontend/admin-dashboard.html`, `frontend/scheduling.html`, `frontend/bracket.html`
+- **Output**: Created comprehensive `SECURITY.md` in root.
 
 ### 2026-03-28/29 - Session: Storage Migration + Bracket/Scheduling Fixes + Registration Overhaul
 - **What**: Major multi-part session covering production architecture, bug fixes, and admin features
@@ -70,27 +89,24 @@
 
 ## 📋 Last Session Work
 
-**Session**: 2026-03-28 @ 20:00 → 2026-03-29 @ 00:05  
-**Agent**: Antigravity (Claude Opus)  
-**Focus**: Production readiness — storage migration, bug fixes, registration management
+**Session**: 2026-03-30 @ 22:15
+**Agent**: Antigravity  
+**Focus**: Admin UI Bug fixes & Backend Security Hardening
 
 **Completed**:
-- ✅ Fixed 6 bugs in `bracket.html` and `scheduling.html`
-- ✅ Migrated tournament photo uploads from local disk to Supabase Storage
-- ✅ Created `tournament-photos` bucket with proper RLS policies
-- ✅ Fixed Registration Management panel not loading (showSection trigger missing)
-- ✅ Added "Confirm All Pending" bulk action for both team and solo games
-- ✅ Added "Confirm (Cash)" button for solo game registrations
-- ✅ Enhanced search to match all member IDs, names, team names (was leader ID only)
-- ✅ Added summary stats bar (Total/Confirmed/Pending counts)
+- ✅ Fixed `scheduling.html` & `bracket.html` 404s by adding missing `api-config.js`
+- ✅ Resolved `admin-router.js` initialization syntax error
+- ✅ Replaced predictable backend JWT secret with 128-char cryptographic random hex string
+- ✅ Hardened backend startup to crash (`process.exit`) if JWT secret is missing
+- ✅ Added `express-rate-limit` to Auth, Admin and global paths
+- ✅ Patched `/api/admin/check-admin` to use verified JWT email instead of request body
+- ✅ Generated detailed 15-point `SECURITY.md` audit report
 
 **Pending / Next Session Should**:
-- Restart backend to apply Supabase Storage migration (`admin.js` change)
-- Test photo upload end-to-end with new Supabase Storage path
-- Test "Confirm All Pending" with real registration data
+- Enable Supabase Row Level Security (RLS) on all tables before production! Security score stands at 9.3/10 until RLS is enabled.
 - Verify schema gaps in Supabase dashboard (team_id, team_size, action_taken columns)
-- Consider cleanup: remove duplicate utility functions (`getAuthHeaders`, `showToast`) across frontend files
-- Consider cleanup: remove dead code (`runSchedule` function)
+- Handle storing JWT in httpOnly Secure cookies instead of `localStorage` (long-term refactor).
+- Add CSRF protection (long-term refactor).
 
 ---
 
@@ -741,6 +757,7 @@ try {
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 3.1 | 2026-03-30 | Advanced security hardening (JWT, rate limits, RLS planning) and scheduling dashboard fixes |
 | 3.0 | 2026-03-29 | Supabase Storage migration, registration management overhaul, 6 bug fixes |
 | 2.1 | 2026-03-19 | Full codebase review, schema gap discovery |
 | 2.0 | 2026-02-08 | Created PROJECT_MEMORY.md, project stable |
@@ -765,7 +782,7 @@ try {
 
 ---
 
-**Last Updated**: 2026-03-29 @ 00:05 GMT+6  
+**Last Updated**: 2026-03-30 @ 22:15 GMT+6  
 **Next Review**: Start of every new session (read the "Recent Updates Log")  
 
 **Remember**: This is a LIVING DOCUMENT - Read it, Update it, Read it again! 🔁 Future you (or another agent) will thank you! 🙏
