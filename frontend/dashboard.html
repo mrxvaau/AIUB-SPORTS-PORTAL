@@ -2753,9 +2753,24 @@
             }
         }
 
-        // Check authentication
+        // Check authentication (cross-browser safe)
         window.addEventListener('DOMContentLoaded', () => {
-            if (localStorage.getItem('isAuthenticated') !== 'true') {
+            // Safe reads — some browsers (Opera, Safari ITP, Firefox strict) block
+            // or sandbox localStorage, causing it to throw or return null silently
+            let isAuthenticated = false;
+            let hasToken = false;
+            try { isAuthenticated = localStorage.getItem('isAuthenticated') === 'true'; } catch (e) {}
+            try { hasToken = !!(localStorage.getItem('jwtToken') || localStorage.getItem('msAccessToken')); } catch (e) {}
+
+            // If coming fresh from a login redirect, trust the session for a moment
+            // to avoid bouncing back before localStorage has settled
+            let comingFromLogin = false;
+            try {
+                comingFromLogin = sessionStorage.getItem('redirectingToDashboard') === 'true';
+                sessionStorage.removeItem('redirectingToDashboard');
+            } catch (e) {}
+
+            if (!isAuthenticated && !comingFromLogin) {
                 window.location.href = 'login.html';
                 return;
             }
@@ -2766,10 +2781,12 @@
             loadUserSchedule(); // Load real schedule data
 
             // Check if this is first login after profile completion
-            const justCompleted = sessionStorage.getItem('profileJustCompleted');
+            let justCompleted = false;
+            try { justCompleted = sessionStorage.getItem('profileJustCompleted'); } catch (e) {}
             if (justCompleted) {
-                sessionStorage.removeItem('profileJustCompleted');
-                const userName = localStorage.getItem('userName') || 'Player';
+                try { sessionStorage.removeItem('profileJustCompleted'); } catch (e) {}
+                let userName = 'Player';
+                try { userName = localStorage.getItem('userName') || 'Player'; } catch (e) {}
                 document.getElementById('welcomeName').textContent = userName;
                 document.getElementById('welcomeScreen').style.display = 'flex';
 

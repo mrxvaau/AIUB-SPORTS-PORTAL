@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -267,12 +267,34 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            if (localStorage.getItem('isAuthenticated') === 'true') window.location.href = 'dashboard.html';
+            // Safe storage read — some browsers throw or return null when
+            // localStorage is blocked by privacy settings (Opera, Safari ITP, Firefox strict)
+            let isAuthenticated = false;
+            try { isAuthenticated = localStorage.getItem('isAuthenticated') === 'true'; } catch (e) {}
+
+            // Only redirect to dashboard if BOTH isAuthenticated AND jwtToken exist
+            // This prevents a half-written storage state from causing a loop
+            if (isAuthenticated) {
+                let hasToken = false;
+                try { hasToken = !!(localStorage.getItem('jwtToken') || localStorage.getItem('msAccessToken')); } catch (e) {}
+
+                if (hasToken) {
+                    // Guard: mark that we're redirecting so dashboard won't bounce back
+                    try { sessionStorage.setItem('redirectingToDashboard', 'true'); } catch (e) {}
+                    window.location.href = 'dashboard.html';
+                    return;
+                } else {
+                    // Token missing — clear stale auth flag to fix broken state
+                    try { localStorage.removeItem('isAuthenticated'); } catch (e) {}
+                }
+            }
+
             const urlParams = new URLSearchParams(window.location.search);
             const error = urlParams.get('error');
             const errorDescription = urlParams.get('error_description');
             if (error) showAlert(`Authentication failed: ${errorDescription || error}`, 'error');
         });
+
     </script>
 </body>
 

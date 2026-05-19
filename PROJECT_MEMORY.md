@@ -31,6 +31,17 @@
 - **Files Modified**: `backend/.env`, `backend/middleware/auth.js`, `backend/routes/admin.js`, `backend/server.js`, `frontend/admin-dashboard.html`, `frontend/scheduling.html`, `frontend/bracket.html`
 - **Output**: Created comprehensive `SECURITY.md` in root.
 
+### 2026-05-19 - Session: Cross-Browser Auth Loop Fix
+- **What**: Fixed infinite login ↔ dashboard redirect loop in Opera and other privacy-hardened browsers
+- **Agent**: Antigravity (Claude Sonnet)
+- **Root Cause**: `localStorage` silently returns `null` or throws in Opera/Firefox strict/Safari ITP when privacy settings sandbox storage. This caused `dashboard.html` to see no auth token and redirect back to `login.html`, which saw `isAuthenticated` and redirected back to dashboard — infinite loop.
+- **Fix**:
+  - `js/auth-fetch.js`: Added `safeGetItem()` / `safeRemoveItem()` wrappers (try-catch), `redirectToLogin()` guard (won't redirect if already on login page), fallback to `msAccessToken` if `jwtToken` missing
+  - `login.html`: Checks BOTH `isAuthenticated` AND token before redirecting; clears stale auth flag if token missing; sets `sessionStorage.redirectingToDashboard` guard before redirect
+  - `dashboard.html`: Consumes `redirectingToDashboard` sessionStorage flag — trusts fresh arrival from login even if localStorage hasn't settled; all storage calls wrapped in try-catch
+- **Files Modified**: `frontend/js/auth-fetch.js`, `frontend/login.html`, `frontend/dashboard.html`
+- **Backend restart required**: NO
+
 ### 2026-03-28/29 - Session: Storage Migration + Bracket/Scheduling Fixes + Registration Overhaul
 - **What**: Major multi-part session covering production architecture, bug fixes, and admin features
 - **Agent**: Antigravity (Claude Opus)
@@ -110,7 +121,7 @@
 
 ---
 
-## � How to Use This Memory (Chain Reaction Cycle)
+## 🏛️ How to Use This Memory (Chain Reaction Cycle)
 
 ### 1️⃣ START OF SESSION → READ
 **ALWAYS read this file first before doing ANY work:**
@@ -139,7 +150,7 @@
 
 ---
 
-## �📊 Quick Project Overview
+## 📊 Quick Project Overview
 
 **AIUB Sports Portal** is a full-stack web application for managing sports tournaments at American International University-Bangladesh (AIUB). Students can register for tournaments, create/join teams, and manage their sports participation.
 
@@ -361,92 +372,69 @@ curl http://localhost:3000/api/health
 
 ### Recent Bug Fixes (from conversation history)
 
-#### 1. ✅ FIXED: Cancel Registration Button Disappearing
+#### 1. ✅ FIXED: Cross-Browser Auth Loop
+**Problem**: Infinite login loop in Opera/Firefox/Safari due to storage sandboxing.
+**Solution**: Implemented `safeGetItem`/`safeRemoveItem` and sessionStorage redirect guards.
+**Files Modified**: `frontend/js/auth-fetch.js`, `frontend/login.html`, `frontend/dashboard.html`
+
+#### 2. ✅ FIXED: Cancel Registration Button Disappearing
 **Problem**: After editing tournament details in admin panel, the "Cancel Registration" button would disappear for already-registered users.
-
 **Root Cause**: Tournament edits caused game IDs to change, breaking the registration state tracking.
-
 **Solution**: Implemented proper state management to preserve registrations across tournament updates.
-
 **Files Modified**: 
 - `frontend/registration.html`
 - Admin dashboard game editing logic
 
----
-
-#### 2. ✅ FIXED: Cart Integration Issues
+#### 3. ✅ FIXED: Cart Integration Issues
 **Problem**: Cart functionality wasn't properly integrated with registration/cancellation flow.
-
 **Root Cause**: Separate development of cart and registration systems caused sync issues.
-
 **Solution**: 
 - Unified cart operations with registration state
 - Ensured cart updates on register/cancel actions
 - Added proper cart state validation
-
 **Files Modified**:
 - `backend/controllers/cartController.js`
 - `frontend/registration.html`
 
----
-
-#### 3. ✅ FIXED: Team Name Validation Missing
+#### 4. ✅ FIXED: Team Name Validation Missing
 **Problem**: Team modal didn't validate team name in real-time.
-
 **Root Cause**: Inline validation only implemented for student ID search, not team name.
-
 **Solution**: 
 - Added real-time team name uniqueness validation
 - Disabled submit button until valid unique name entered
 - Added visual feedback for invalid/duplicate names
-
 **Files Modified**:
 - `frontend/registration.html` (team modal logic)
 
----
-
-#### 4. ✅ FIXED: Modal State Persistence
+#### 5. ✅ FIXED: Modal State Persistence
 **Problem**: After canceling team creation, modal would reopen with stale data.
-
 **Root Cause**: Modal state not properly reset on cancel/close.
-
 **Solution**:
 - Reset all modal fields on cancel
 - Clear team member slots
 - Reset validation states
 - Prevent stale data from showing
-
 **Files Modified**:
 - `frontend/registration.html` (modal reset logic)
 
----
-
-#### 5. ✅ FIXED: Game ID Stability on Tournament Edit
+#### 6. ✅ FIXED: Game ID Stability on Tournament Edit
 **Problem**: Editing tournament games caused existing game IDs to shift, breaking registrations.
-
 **Root Cause**: Admin panel re-created games instead of updating them.
-
 **Solution**:
 - Implemented proper UPDATE logic for existing games
 - Only DELETE removed games
 - Only INSERT new games
 - Preserve game IDs for unchanged games
-
 **Files Modified**:
 - `backend/routes/admin.js` (tournament update endpoint)
 
----
-
-#### 6. ✅ FIXED: Profile Setup Page CSS Not Rendering
+#### 7. ✅ FIXED: Profile Setup Page CSS Not Rendering
 **Problem**: Profile setup page displayed completely unstyled - CSS shown as text on page.
-
 **Root Cause**: `</style>` tag closed prematurely on line 43, but CSS rules continued outside the style block from lines 49-277.
-
 **Solution**:
 - Removed early closing `</style>` tag on line 43
 - Moved closing tag to line 277 (after all CSS rules)
 - Moved content-hiding script to proper location
-
 **Files Modified**:
 - `frontend/profile-setup.html` (lines 35-277)
 
@@ -532,6 +520,16 @@ curl http://localhost:3000/api/health
 ---
 
 ## 📝 Recent Development Sessions
+
+### Session: 2026-05-19 (Conversation ID: ...)
+**Focus**: Cross-browser auth fix  
+**Agent**: Antigravity  
+**Status**: ✅ Completed
+
+**Work Done**:
+- Fixed auth loop in privacy-hardened browsers.
+
+---
 
 ### Session: 2026-02-06 to 2026-02-08 (Conversation ID: 8ed7ac26...)
 **Focus**: Fixing Registration Bugs  
@@ -757,6 +755,7 @@ try {
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 3.1 | 2026-05-19 | Cross-browser auth loop fix |
 | 3.1 | 2026-03-30 | Advanced security hardening (JWT, rate limits, RLS planning) and scheduling dashboard fixes |
 | 3.0 | 2026-03-29 | Supabase Storage migration, registration management overhaul, 6 bug fixes |
 | 2.1 | 2026-03-19 | Full codebase review, schema gap discovery |
@@ -782,7 +781,7 @@ try {
 
 ---
 
-**Last Updated**: 2026-03-30 @ 22:15 GMT+6  
+**Last Updated**: 2026-05-19 @ 14:52 GMT+6  
 **Next Review**: Start of every new session (read the "Recent Updates Log")  
 
 **Remember**: This is a LIVING DOCUMENT - Read it, Update it, Read it again! 🔁 Future you (or another agent) will thank you! 🙏
