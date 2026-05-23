@@ -1,0 +1,1785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AIUB Office of Sports</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+  <style>
+    /* CSS Variables */
+    :root {
+      --navy: #003366;
+      --navy-dark: #002244;
+      --navy-light: #004080;
+      --white: #FFFFFF;
+      --off-white: #F5F6F8;
+      --red: #CC0000;
+      --red-hover: #AA0000;
+      --gold: #B8960C;
+      --text-dark: #1A1A2E;
+      --text-muted: #6B7280;
+      --border: #E2E6EA;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      font-weight: 400;
+      color: var(--text-dark);
+      background-color: var(--off-white);
+      line-height: 1.5;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+    }
+
+    h1, h2, h3, h4, h5, h6, .playfair {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    ul {
+      list-style: none;
+    }
+
+    button {
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      border: none;
+      background: none;
+      transition: all 0.2s ease;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* 1. TOP BAR */
+    .top-bar {
+      height: 36px;
+      background-color: var(--navy-dark);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 24px;
+      font-size: 11px;
+    }
+    .top-bar-left {
+      color: rgba(255, 255, 255, 0.6);
+    }
+    .top-bar-right {
+      display: flex;
+      gap: 16px;
+    }
+    .top-bar-right a {
+      color: rgba(255, 255, 255, 0.6);
+      transition: color 0.2s;
+    }
+    .top-bar-right a:hover {
+      color: var(--white);
+    }
+
+    /* 2. STICKY NAV */
+    .sticky-nav {
+      position: sticky;
+      top: 0;
+      height: 64px;
+      background-color: var(--navy);
+      z-index: 100;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 0 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .nav-logo-area {
+      justify-self: start;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .logo-circle {
+      width: 36px;
+      height: 36px;
+      background-color: var(--red);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: var(--white);
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+    }
+    .logo-title {
+      font-size: 18px;
+      color: var(--white);
+      line-height: 1.2;
+    }
+    .logo-subtitle {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+    .nav-links {
+      justify-self: center;
+      display: flex;
+      gap: 24px;
+    }
+    .nav-links a {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 13px;
+      padding: 22px 0;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .nav-links a:hover, .nav-links a.active {
+      color: var(--white);
+      border-bottom-color: var(--red);
+    }
+    .nav-right-area {
+      justify-self: end;
+      display: flex;
+      align-items: center;
+    }
+    .student-portal-btn {
+      background-color: var(--red);
+      color: var(--white);
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .student-portal-btn:hover {
+      background-color: var(--red-hover);
+    }
+    .mobile-menu-btn {
+      display: none;
+      color: var(--white);
+      font-size: 24px;
+    }
+
+    /* 3. HERO */
+    .hero {
+      min-height: 480px;
+      background-color: var(--navy);
+      position: relative;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+    .hero-bg-pattern {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 48px 24px;
+    }
+    .hero-left {
+      width: 55%;
+      padding-right: 32px;
+    }
+    .hero-right {
+      width: 45%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0.08;
+    }
+    .hero-eyebrow {
+      color: var(--red);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-bottom: 16px;
+      display: block;
+      font-weight: 500;
+    }
+    .hero-title {
+      color: var(--white);
+      font-size: 52px;
+      line-height: 1.1;
+      margin-bottom: 24px;
+    }
+    .hero-title span {
+      color: var(--gold);
+      font-style: italic;
+      display: block;
+    }
+    .hero-subtitle {
+      color: rgba(255, 255, 255, 0.55);
+      font-size: 15px;
+      line-height: 1.7;
+      max-width: 420px;
+      margin-bottom: 40px;
+    }
+    .hero-stats {
+      display: flex;
+      gap: 32px;
+      margin-bottom: 40px;
+    }
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+    }
+    .stat-number {
+      color: var(--white);
+      font-size: 32px;
+    }
+    .stat-label {
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+    }
+    .btn-primary {
+      background-color: var(--red);
+      color: var(--white);
+      padding: 12px 24px;
+      border-radius: 4px;
+      font-weight: 500;
+      font-size: 14px;
+    }
+    .btn-primary:hover {
+      background-color: var(--red-hover);
+    }
+    .btn-ghost {
+      background-color: transparent;
+      color: var(--white);
+      border: 1px solid var(--white);
+      padding: 12px 24px;
+      border-radius: 4px;
+      font-weight: 500;
+      font-size: 14px;
+    }
+    .btn-ghost:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* 4. NEWS TICKER */
+    .news-ticker {
+      height: 40px;
+      background-color: var(--red);
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+    .ticker-badge {
+      background-color: var(--red);
+      color: var(--white);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 0 16px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      border-left: 3px solid rgba(255,255,255,0.3);
+      position: relative;
+      z-index: 2;
+      font-weight: 500;
+    }
+    .ticker-content {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      position: relative;
+      height: 100%;
+      display: flex;
+      align-items: center;
+    }
+    .ticker-scroll {
+      display: inline-block;
+      color: var(--white);
+      font-size: 12px;
+      animation: scrollTicker 30s linear infinite;
+      padding-left: 100%;
+    }
+    .ticker-scroll span {
+      margin: 0 16px;
+    }
+    @keyframes scrollTicker {
+      0% { transform: translate3d(0, 0, 0); }
+      100% { transform: translate3d(-100%, 0, 0); }
+    }
+
+    /* 5. TAB SECTION */
+    .tab-section {
+      background-color: var(--off-white);
+      padding: 64px 0;
+      min-height: 600px;
+    }
+    .tab-bar {
+      background-color: var(--white);
+      border-bottom: 2px solid var(--border);
+      display: flex;
+      margin-bottom: 32px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .tab-bar::-webkit-scrollbar {
+      display: none;
+    }
+    .tab-btn {
+      padding: 14px 20px;
+      font-size: 13px;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      font-weight: 500;
+    }
+    .tab-btn:hover {
+      color: var(--navy);
+      background-color: rgba(0,0,0,0.02);
+    }
+    .tab-btn.active {
+      color: var(--navy);
+      border-bottom-color: var(--red);
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Tab 1: Latest News */
+    .archive-notice {
+      background-color: #EBF0F8;
+      border-left: 3px solid var(--navy);
+      padding: 16px;
+      font-size: 12px;
+      color: var(--navy);
+      margin-bottom: 32px;
+    }
+    .featured-card {
+      display: flex;
+      background-color: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 32px;
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    .featured-card:hover {
+      box-shadow: 0 4px 16px rgba(0,51,102,0.10);
+      border-color: var(--navy);
+    }
+    .featured-image {
+      width: 200px;
+      min-height: 160px;
+      background-color: var(--navy);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 48px;
+    }
+    .featured-content {
+      padding: 24px;
+      flex: 1;
+    }
+    .featured-badge {
+      color: var(--red);
+      font-size: 11px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .featured-title {
+      font-size: 22px;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+    .featured-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    .featured-excerpt {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .post-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 24px;
+    }
+    .post-card {
+      background-color: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    .post-card:hover {
+      box-shadow: 0 4px 16px rgba(0,51,102,0.10);
+      border-color: var(--navy);
+    }
+    .post-image {
+      height: 120px;
+      background-color: var(--navy);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 32px;
+    }
+    .post-content {
+      padding: 16px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .post-sport {
+      color: var(--red);
+      font-size: 10px;
+      text-transform: uppercase;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    .post-title {
+      font-size: 15px;
+      color: var(--text-dark);
+      margin-bottom: 12px;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .post-meta {
+      margin-top: auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .post-date {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .post-file {
+      background-color: var(--off-white);
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 10px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Tab 2: Upcoming Events */
+    .event-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .event-card {
+      display: flex;
+      background-color: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    .event-card:hover {
+      box-shadow: 0 4px 16px rgba(0,51,102,0.10);
+      border-color: var(--navy);
+    }
+    .event-date-box {
+      width: 60px;
+      height: 60px;
+      background-color: var(--navy);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: var(--white);
+      flex-shrink: 0;
+    }
+    .event-day {
+      font-size: 24px;
+      line-height: 1;
+    }
+    .event-month {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .event-details {
+      padding: 12px 16px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .event-title {
+      font-size: 15px;
+      color: var(--text-dark);
+      margin-bottom: 4px;
+    }
+    .event-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      gap: 12px;
+    }
+    .event-status-wrap {
+      padding: 16px;
+      display: flex;
+      align-items: center;
+    }
+    .event-status {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 12px;
+      border-radius: 12px;
+    }
+    .status-live { background-color: var(--red); color: var(--white); }
+    .status-upcoming { background-color: var(--navy); color: var(--white); }
+    .status-completed { background-color: var(--border); color: var(--text-muted); }
+
+    /* Tab 3: Recent Winners */
+    .winners-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 24px;
+    }
+    .winner-card {
+      background-color: var(--white);
+      border: 1px solid var(--border);
+      border-top: 3px solid transparent;
+      border-radius: 8px;
+      padding: 24px;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .winner-card:hover {
+      border-top-color: var(--navy);
+      box-shadow: 0 4px 16px rgba(0,51,102,0.10);
+    }
+    .winner-icon {
+      font-size: 40px;
+      margin-bottom: 16px;
+    }
+    .winner-name {
+      font-size: 15px;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+    }
+    .winner-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .winner-year {
+      background-color: var(--gold);
+      color: var(--white);
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      display: inline-block;
+    }
+
+    /* Tab 4: Achievements */
+    .achievements-section {
+      margin-bottom: 40px;
+    }
+    .achievements-header {
+      font-size: 20px;
+      color: var(--navy);
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+    .achievement-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .achievement-card {
+      background-color: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: box-shadow 0.2s;
+    }
+    .achievement-card:hover {
+      box-shadow: 0 4px 16px rgba(0,51,102,0.10);
+    }
+    .achievement-icon {
+      width: 40px;
+      height: 40px;
+      background-color: var(--navy);
+      color: var(--white);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 4px;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .achievement-content {
+      flex: 1;
+    }
+    .achievement-title {
+      font-size: 14px;
+      color: var(--text-dark);
+      margin-bottom: 4px;
+    }
+    .achievement-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .achievement-badge {
+      font-size: 10px;
+      color: var(--white);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+    .badge-national { background-color: var(--red); }
+    .badge-international { background-color: var(--navy); }
+
+    /* Tab 5: Sport Rules */
+    .rules-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .rule-accordion {
+      background-color: var(--white);
+      border: 1px solid var(--border);
+      border-left: 3px solid transparent;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .rule-header {
+      display: flex;
+      align-items: center;
+      padding: 16px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .rule-header:hover {
+      background-color: var(--off-white);
+    }
+    .rule-accordion.open {
+      border-left-color: var(--red);
+    }
+    .rule-icon {
+      margin-right: 12px;
+      color: var(--navy);
+      display: flex;
+      font-size: 18px;
+    }
+    .rule-title {
+      font-size: 14px;
+      color: var(--text-dark);
+      flex: 1;
+    }
+    .rule-chevron {
+      color: var(--text-muted);
+      transition: transform 0.3s;
+      display: flex;
+    }
+    .rule-accordion.open .rule-chevron {
+      transform: rotate(180deg);
+    }
+    .rule-body {
+      padding: 0 16px 16px 44px;
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.8;
+      display: none;
+    }
+    .rule-accordion.open .rule-body {
+      display: block;
+    }
+    .rule-body ul {
+      list-style: disc;
+      margin-left: 20px;
+      margin-top: 8px;
+    }
+    .rule-body li {
+      margin-bottom: 4px;
+    }
+
+    /* 6. QUICK LINKS STRIP */
+    .quick-links {
+      background-color: var(--navy);
+      padding: 32px 0;
+    }
+    .quick-links-grid {
+      display: flex;
+      gap: 16px;
+    }
+    .quick-link-card {
+      flex: 1;
+      background-color: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      color: var(--white);
+      transition: background-color 0.2s;
+    }
+    .quick-link-card:hover {
+      background-color: var(--navy-light);
+    }
+    .quick-link-icon {
+      font-size: 24px;
+      margin-bottom: 12px;
+    }
+    .quick-link-label {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    /* 7. FOOTER */
+    .footer {
+      background-color: var(--navy-dark);
+      padding: 48px 0 24px;
+    }
+    .footer-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .footer-links {
+      display: flex;
+      gap: 24px;
+    }
+    .footer-links a {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 13px;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover {
+      color: var(--white);
+    }
+    .footer-social {
+      display: flex;
+      gap: 16px;
+    }
+    .footer-social a {
+      color: rgba(255, 255, 255, 0.7);
+      transition: color 0.2s;
+      display: flex;
+      font-size: 20px;
+    }
+    .footer-social a:hover {
+      color: var(--white);
+    }
+    .footer-bottom {
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 24px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+    .admin-link {
+      color: rgba(255, 255, 255, 0.2);
+      font-size: 10px;
+      transition: color 0.2s;
+    }
+    .admin-link:hover {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    /* 8. ADMIN PANEL */
+    .admin-panel {
+      display: none;
+      background-color: var(--off-white);
+      padding: 64px 0;
+      border-top: 4px solid var(--navy);
+    }
+    .admin-header {
+      font-size: 22px;
+      color: var(--navy);
+      margin-bottom: 32px;
+    }
+    .admin-grid {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 32px;
+    }
+    .admin-card {
+      background-color: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-label {
+      display: block;
+      font-size: 13px;
+      color: var(--text-dark);
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    .form-control {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--navy);
+    }
+    textarea.form-control {
+      min-height: 100px;
+      resize: vertical;
+    }
+    .tag-selector {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .tag-btn {
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      font-size: 12px;
+      color: var(--text-muted);
+      background: none;
+    }
+    .tag-btn.selected {
+      background-color: var(--navy);
+      color: var(--white);
+      border-color: var(--navy);
+    }
+    .toggle-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      cursor: pointer;
+    }
+    .toggle-switch {
+      position: relative;
+      width: 40px;
+      height: 20px;
+      background-color: var(--border);
+      border-radius: 10px;
+      transition: background-color 0.2s;
+    }
+    .toggle-switch.on {
+      background-color: var(--red);
+    }
+    .toggle-knob {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      background-color: var(--white);
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .toggle-switch.on .toggle-knob {
+      transform: translateX(20px);
+    }
+    .admin-table-wrap {
+      overflow-x: auto;
+    }
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .admin-table th {
+      text-align: left;
+      padding: 12px;
+      border-bottom: 2px solid var(--border);
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .admin-table td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-dark);
+    }
+    .admin-table tr.archived {
+      opacity: 0.5;
+    }
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+    .status-dot.live { background-color: #10B981; }
+    .status-dot.archived { background-color: #6B7280; }
+    .action-btn {
+      color: var(--navy);
+      font-size: 12px;
+      text-decoration: underline;
+      margin-right: 8px;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sticky-nav {
+        grid-template-columns: 1fr auto;
+      }
+      .hero-content {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .hero-left, .hero-right {
+        width: 100%;
+        padding-right: 0;
+      }
+      .hero-right {
+        display: none;
+      }
+      .hero-title {
+        font-size: 40px;
+      }
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 64px;
+        left: 0;
+        width: 100%;
+        background-color: var(--navy);
+        flex-direction: column;
+        gap: 0;
+        padding: 16px 24px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      }
+      .nav-links.open {
+        display: flex;
+      }
+      .nav-links a {
+        padding: 12px 0;
+      }
+      .mobile-menu-btn {
+        display: block;
+      }
+      .nav-right-area {
+        display: none;
+      }
+      .post-grid {
+        grid-template-columns: 1fr;
+      }
+      .featured-card {
+        flex-direction: column;
+      }
+      .featured-image {
+        width: 100%;
+      }
+      .quick-links-grid {
+        flex-wrap: wrap;
+      }
+      .quick-link-card {
+        min-width: 40%;
+      }
+      .admin-grid {
+        grid-template-columns: 1fr;
+      }
+      .tab-bar {
+        padding-bottom: 8px;
+      }
+      .footer-top {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. TOP BAR -->
+  <div class="top-bar">
+    <div class="top-bar-left">
+      American International University–Bangladesh
+    </div>
+    <div class="top-bar-right">
+      <a href="#">aiub.edu</a>
+      <a href="#">Contact Us</a>
+      <a href="#">Web Mail</a>
+    </div>
+  </div>
+
+  <!-- 2. STICKY NAV -->
+  <nav class="sticky-nav">
+    <div class="nav-logo-area">
+      <div class="logo-circle">OFS</div>
+      <div class="logo-text">
+        <div class="logo-title playfair">Office of Sports</div>
+        <div class="logo-subtitle">American International University–Bangladesh</div>
+      </div>
+    </div>
+    
+    <div class="nav-links" id="navLinks">
+      <a href="#home" class="active">Home</a>
+      <a href="#news">News</a>
+      <a href="#events">Events</a>
+      <a href="#winners">Winners</a>
+      <a href="#achievements">Achievements</a>
+      <a href="#rules">Rules</a>
+      <a href="#contact">Contact</a>
+    </div>
+    
+    <div class="nav-right-area">
+      <button class="student-portal-btn">Student Portal &rarr;</button>
+    </div>
+    <button class="mobile-menu-btn" id="mobileMenuBtn">
+      <i class="ti ti-menu-2"></i>
+    </button>
+  </nav>
+
+  <!-- 3. HERO -->
+  <section id="home" class="hero">
+    <svg class="hero-bg-pattern" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="diagonal-lines" width="40" height="40" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <line x1="0" y1="0" x2="0" y2="40" stroke="rgba(255,255,255,0.03)" stroke-width="2"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#diagonal-lines)" />
+    </svg>
+    <div class="hero-content">
+      <div class="hero-left">
+        <span class="hero-eyebrow">AIUB &middot; OFFICE OF SPORTS</span>
+        <h1 class="hero-title playfair">
+          Where Champions<br>
+          <span style="color: #FFD700;">Are Made</span>
+        </h1>
+        <p class="hero-subtitle">
+          Promoting athletic excellence, sportsmanship and a culture of healthy competition across AIUB since 1994.
+        </p>
+        <div class="hero-stats">
+          <div class="stat-item">
+            <span class="stat-number playfair">12+</span>
+            <span class="stat-label">Sports</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number playfair">800+</span>
+            <span class="stat-label">Athletes</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number playfair">47</span>
+            <span class="stat-label">Championships</span>
+          </div>
+        </div>
+        <div class="hero-actions">
+          <button class="btn-primary" onclick="triggerTab('events')">View Events &rarr;</button>
+          <button class="btn-ghost" onclick="triggerTab('rules')">Sport Rules</button>
+        </div>
+      </div>
+      <div class="hero-right">
+        <svg width="320" height="320" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round" style="color: white; width: 100%; height: 100%;">
+          <path d="M16 4a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+          <path d="M12 19l3 1.5l2 -5.5l-4.5 -3l-1.5 5"></path>
+          <path d="M7 10l5 2l2 -2.5"></path>
+          <path d="M12 12l-2.5 4.5l-3.5 -1.5"></path>
+          <path d="M15 11l-2 -3.5l-4 1.5"></path>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. NEWS TICKER -->
+  <div class="news-ticker">
+    <div class="ticker-badge">LATEST</div>
+    <div class="ticker-content">
+      <div class="ticker-scroll">
+        <span>AIUB Cricket Team Wins Inter-University Championship 2026</span>
+        <span>&middot;</span>
+        <span>Football Summer League 2026 — Registrations Now Open</span>
+        <span>&middot;</span>
+        <span>Badminton Mixed Doubles Draw Released</span>
+        <span>&middot;</span>
+        <span>3 AIUB Students Selected for National Swimming Squad</span>
+        <span>&middot;</span>
+        <span>Outdoor Tennis Courts Reopened After Resurfacing</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. TAB SECTION -->
+  <section id="tabs-section" class="tab-section">
+    <div class="container">
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab('news')">LATEST NEWS</button>
+        <button class="tab-btn" onclick="switchTab('events')">UPCOMING EVENTS</button>
+        <button class="tab-btn" onclick="switchTab('winners')">RECENT WINNERS</button>
+        <button class="tab-btn" onclick="switchTab('achievements')">ACHIEVEMENTS</button>
+        <button class="tab-btn" onclick="switchTab('rules')">SPORT RULES</button>
+      </div>
+
+      <!-- TAB 1: LATEST NEWS -->
+      <div id="tab-news" class="tab-content active">
+        <div class="archive-notice">
+          Posts older than 40 days are automatically archived. Showing last 40 days.
+        </div>
+        
+        <div id="featured-post-container">
+          <!-- Featured post will be injected here via JS -->
+        </div>
+
+        <div class="post-grid" id="news-grid">
+          <!-- News posts will be injected here via JS -->
+        </div>
+      </div>
+
+      <!-- TAB 2: UPCOMING EVENTS -->
+      <div id="tab-events" class="tab-content">
+        <div class="event-list">
+          <div class="event-card">
+            <div class="event-date-box">
+              <span class="event-day playfair">18</span>
+              <span class="event-month">May</span>
+            </div>
+            <div class="event-details">
+              <h3 class="event-title playfair">Inter-University Cricket Final</h3>
+              <div class="event-meta">
+                <span><i class="ti ti-map-pin" style="font-size: 14px; vertical-align: text-bottom;"></i> Savar Cricket Ground</span>
+                <span><i class="ti ti-clock" style="font-size: 14px; vertical-align: text-bottom;"></i> 10:00 AM</span>
+                <span style="color: var(--red);">Cricket</span>
+              </div>
+            </div>
+            <div class="event-status-wrap">
+              <span class="event-status status-live">Live Today</span>
+            </div>
+          </div>
+          
+          <div class="event-card">
+            <div class="event-date-box">
+              <span class="event-day playfair">25</span>
+              <span class="event-month">May</span>
+            </div>
+            <div class="event-details">
+              <h3 class="event-title playfair">Badminton Championship</h3>
+              <div class="event-meta">
+                <span><i class="ti ti-map-pin" style="font-size: 14px; vertical-align: text-bottom;"></i> AIUB Gymnasium</span>
+                <span><i class="ti ti-clock" style="font-size: 14px; vertical-align: text-bottom;"></i> 09:00 AM</span>
+                <span style="color: var(--red);">Badminton</span>
+              </div>
+            </div>
+            <div class="event-status-wrap">
+              <span class="event-status status-upcoming">Upcoming</span>
+            </div>
+          </div>
+
+          <div class="event-card">
+            <div class="event-date-box">
+              <span class="event-day playfair">02</span>
+              <span class="event-month">Jun</span>
+            </div>
+            <div class="event-details">
+              <h3 class="event-title playfair">Swimming Tryouts</h3>
+              <div class="event-meta">
+                <span><i class="ti ti-map-pin" style="font-size: 14px; vertical-align: text-bottom;"></i> AIUB Pool</span>
+                <span><i class="ti ti-clock" style="font-size: 14px; vertical-align: text-bottom;"></i> 03:00 PM</span>
+                <span style="color: var(--red);">Swimming</span>
+              </div>
+            </div>
+            <div class="event-status-wrap">
+              <span class="event-status status-upcoming">Upcoming</span>
+            </div>
+          </div>
+
+          <div class="event-card" style="opacity: 0.7;">
+            <div class="event-date-box" style="background-color: var(--border); color: var(--text-muted);">
+              <span class="event-day playfair">10</span>
+              <span class="event-month">May</span>
+            </div>
+            <div class="event-details">
+              <h3 class="event-title playfair">Football Summer League Qualifiers</h3>
+              <div class="event-meta">
+                <span><i class="ti ti-map-pin" style="font-size: 14px; vertical-align: text-bottom;"></i> Main Field</span>
+                <span><i class="ti ti-clock" style="font-size: 14px; vertical-align: text-bottom;"></i> 04:00 PM</span>
+                <span style="color: var(--red);">Football</span>
+              </div>
+            </div>
+            <div class="event-status-wrap">
+              <span class="event-status status-completed">Completed</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: RECENT WINNERS -->
+      <div id="tab-winners" class="tab-content">
+        <div class="winners-grid">
+          <div class="winner-card">
+            <div class="winner-icon">🏏</div>
+            <h3 class="winner-name playfair">AIUB Men's Team</h3>
+            <p class="winner-desc">Cricket Inter-University</p>
+            <span class="winner-year">2026</span>
+          </div>
+          <div class="winner-card">
+            <div class="winner-icon">🏸</div>
+            <h3 class="winner-name playfair">Sarah Rahman</h3>
+            <p class="winner-desc">Badminton Singles</p>
+            <span class="winner-year">2026</span>
+          </div>
+          <div class="winner-card">
+            <div class="winner-icon">🏊‍♂️</div>
+            <h3 class="winner-name playfair">Touhid Islam</h3>
+            <p class="winner-desc">100m Freestyle</p>
+            <span class="winner-year">2026</span>
+          </div>
+          <div class="winner-card">
+            <div class="winner-icon">⚽</div>
+            <h3 class="winner-name playfair">FC Falcons</h3>
+            <p class="winner-desc">Intra-Department Football</p>
+            <span class="winner-year">2025</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: ACHIEVEMENTS -->
+      <div id="tab-achievements" class="tab-content">
+        <div class="achievements-section">
+          <h2 class="achievements-header playfair">National</h2>
+          <div class="achievement-list">
+            <div class="achievement-card">
+              <div class="achievement-icon"><i class="ti ti-trophy"></i></div>
+              <div class="achievement-content">
+                <h3 class="achievement-title playfair">National University Games Champions</h3>
+                <p class="achievement-desc">Secured 1st place overall in the 2025 National University Games, winning 15 gold medals.</p>
+              </div>
+              <span class="achievement-badge badge-national">1st Rank</span>
+            </div>
+            <div class="achievement-card">
+              <div class="achievement-icon"><i class="ti ti-medal"></i></div>
+              <div class="achievement-content">
+                <h3 class="achievement-title playfair">Inter-University Cricket Tournament</h3>
+                <p class="achievement-desc">Champions in the national level tournament hosted by BCB.</p>
+              </div>
+              <span class="achievement-badge badge-national">Winner</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="achievements-section">
+          <h2 class="achievements-header playfair">International</h2>
+          <div class="achievement-list">
+            <div class="achievement-card">
+              <div class="achievement-icon"><i class="ti ti-world"></i></div>
+              <div class="achievement-content">
+                <h3 class="achievement-title playfair">Asian University Chess Championship</h3>
+                <p class="achievement-desc">AIUB representative secured the 3rd position in the rapid chess category.</p>
+              </div>
+              <span class="achievement-badge badge-international">Bronze</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 5: SPORT RULES -->
+      <div id="tab-rules" class="tab-content">
+        <div class="rules-list">
+          <!-- Rules will be injected via JS -->
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 6. QUICK LINKS STRIP -->
+  <section class="quick-links">
+    <div class="container">
+      <div class="quick-links-grid">
+        <a href="#" class="quick-link-card">
+          <i class="ti ti-clipboard-text quick-link-icon"></i>
+          <span class="quick-link-label">Register for Event</span>
+        </a>
+        <a href="#" class="quick-link-card">
+          <i class="ti ti-calendar-event quick-link-icon"></i>
+          <span class="quick-link-label">View Schedule</span>
+        </a>
+        <a href="#contact" class="quick-link-card">
+          <i class="ti ti-messages quick-link-icon"></i>
+          <span class="quick-link-label">Contact Office</span>
+        </a>
+        <a href="#" class="quick-link-card">
+          <i class="ti ti-download quick-link-icon"></i>
+          <span class="quick-link-label">Download Rules</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. FOOTER -->
+  <footer id="contact" class="footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-logo">
+          <div class="logo-circle" style="width: 32px; height: 32px; font-size: 12px;">OFS</div>
+          <div class="playfair" style="color: var(--white); font-size: 16px;">Office of Sports</div>
+        </div>
+        <div class="footer-links">
+          <a href="#">Privacy</a>
+          <a href="#">Contact</a>
+          <a href="#">aiub.edu</a>
+        </div>
+        <div class="footer-social">
+          <a href="#"><i class="ti ti-brand-facebook"></i></a>
+          <a href="#"><i class="ti ti-brand-x"></i></a>
+          <a href="#"><i class="ti ti-brand-instagram"></i></a>
+          <a href="#"><i class="ti ti-brand-youtube"></i></a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div>&copy; 2026 Office of Sports, AIUB. All rights reserved.</div>
+        <div>sports@aiub.edu</div>
+        <a href="#admin-panel" class="admin-link">Admin</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- 8. ADMIN PANEL -->
+  <section id="admin-panel" class="admin-panel">
+    <div class="container">
+      <h2 class="admin-header playfair">Content Management — Office of Sports</h2>
+      
+      <div class="admin-grid">
+        <!-- Form -->
+        <div class="admin-card">
+          <h3 class="playfair" style="margin-bottom: 24px; font-size: 18px;">Create New Post</h3>
+          <form id="adminForm" onsubmit="handleFormSubmit(event)">
+            <div class="form-group">
+              <label class="form-label">Title</label>
+              <input type="text" id="postTitle" class="form-control" required placeholder="Enter post title">
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Description</label>
+              <textarea id="postDesc" class="form-control" required placeholder="Enter post details"></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Sport Tags</label>
+              <div class="tag-selector" id="tagSelector">
+                <!-- Tags generated by JS -->
+              </div>
+              <input type="hidden" id="postTags" value="">
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Event Date (Optional)</label>
+              <input type="date" id="postDate" class="form-control">
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">File Upload</label>
+              <input type="file" id="postFile" class="form-control" accept="image/*,.pdf,.doc,.docx,.zip">
+            </div>
+            
+            <div class="toggle-group" onclick="toggleSwitch('featuredToggle')">
+              <div class="toggle-switch" id="featuredToggle">
+                <div class="toggle-knob"></div>
+              </div>
+              <span class="form-label" style="margin:0;">Mark as Featured</span>
+              <input type="hidden" id="postFeatured" value="false">
+            </div>
+            
+            <div class="toggle-group" onclick="toggleSwitch('publishToggle')">
+              <div class="toggle-switch on" id="publishToggle">
+                <div class="toggle-knob"></div>
+              </div>
+              <span class="form-label" style="margin:0;">Publish immediately</span>
+            </div>
+            
+            <button type="submit" class="btn-primary" style="width: 100%; margin-top: 16px;">Publish Post &rarr;</button>
+          </form>
+          <!-- PHASE 2: form onsubmit → supabase.from('posts').insert({...}) -->
+        </div>
+
+        <!-- Table -->
+        <div class="admin-card">
+          <h3 class="playfair" style="margin-bottom: 24px; font-size: 18px;">Manage Posts</h3>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Status</th>
+                  <th>Featured</th>
+                  <th>Title</th>
+                  <th>Sport</th>
+                  <th>Date Posted</th>
+                  <th>Days Left</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="adminTableBody">
+                <!-- Rows injected by JS -->
+              </tbody>
+            </table>
+            <!-- PHASE 2: replace hardcoded rows with supabase.from('posts').select('*') -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCRIPTS -->
+  <script>
+    // HARDCODED SAMPLE DATA
+    const posts = [
+      { id:1, title:"AIUB Cricket Team Wins Inter-University Championship 2026", description:"In a thrilling final at Savar Cricket Ground, AIUB defeated NSU by 6 wickets.", sport:"Cricket", date:"2026-05-18", featured:true, file:null, daysAgo:2 },
+      { id:2, title:"Football Summer League 2026 — Registrations Now Open", description:"Register your 7-a-side team before June 10. Limited slots available.", sport:"Football", date:"2026-05-15", featured:false, file:"registration_form.pdf", daysAgo:5 },
+      { id:3, title:"Badminton Mixed Doubles Draw Released", description:"See your matchups for the May 25 championship at the Gymnasium.", sport:"Badminton", date:"2026-05-13", featured:false, file:"draw_sheet.pdf", daysAgo:7 },
+      { id:4, title:"3 AIUB Students Selected for National Swimming Squad", description:"Congratulations to Rahin, Sadia and Touhid — selected for the national team.", sport:"Swimming", date:"2026-05-10", featured:false, file:null, daysAgo:10 },
+      { id:5, title:"Outdoor Tennis Courts Reopened After Resurfacing", description:"All 4 courts are back in service. Booking opens from May 22.", sport:"Tennis", date:"2026-05-08", featured:false, file:null, daysAgo:12 },
+      { id:6, title:"Annual Sports Day 2025 — Photo Gallery Now Available", description:"Relive the highlights. Gallery and results from last year's sports day.", sport:"Athletics", date:"2026-04-01", featured:false, file:"gallery.zip", daysAgo:49 }
+    ];
+
+    const sportTags = ['Cricket', 'Football', 'Badminton', 'Volleyball', 'Swimming', 'Athletics', 'Tennis', 'Chess', 'General'];
+
+    const sportRules = [
+      { sport: "Cricket", icon: "ti-cricket", rules: ["Standard ICC T20 rules apply.", "Teams must report 30 mins prior to the toss.", "Spikes are not allowed on the artificial pitch."] },
+      { sport: "Football", icon: "ti-ball-football", rules: ["7-a-side matches, 20 mins per half.", "No offside rule.", "Rolling substitutions allowed with referee permission."] },
+      { sport: "Badminton", icon: "ti-ball-tennis", rules: ["BWF scoring system (best of 3 games, 21 points).", "Non-marking shoes are mandatory in the Gymnasium.", "Players must bring their own rackets; shuttles provided."] },
+      { sport: "Volleyball", icon: "ti-ball-volleyball", rules: ["Best of 3 sets, 25 points per set.", "Maximum 6 players on court per team.", "Net touch is strictly prohibited."] },
+      { sport: "Tennis", icon: "ti-ball-tennis", rules: ["Best of 3 tie-break sets.", "Proper tennis attire and non-marking shoes required.", "Matches self-umpired until semi-finals."] },
+      { sport: "Swimming", icon: "ti-swimming", rules: ["FINA rules apply for all strokes.", "Proper swim caps and goggles are mandatory.", "False start results in immediate disqualification."] },
+      { sport: "Chess", icon: "ti-chess", rules: ["FIDE rapid chess rules apply.", "15 minutes + 10 seconds increment per move.", "Mobile phones must be switched off."] }
+    ];
+
+    // INITIALIZATION
+    document.addEventListener('DOMContentLoaded', () => {
+      renderPosts();
+      renderAdminTable();
+      renderAdminTags();
+      renderRules();
+      setupMobileMenu();
+      setupNavLinks();
+      setupScrollSpy();
+      checkHash();
+    });
+
+    // PHASE 2: replace with -> supabase.from('posts').select('*')
+    // DATA RENDERING
+    function renderPosts() {
+      const newsGrid = document.getElementById('news-grid');
+      const featuredContainer = document.getElementById('featured-post-container');
+      
+      newsGrid.innerHTML = '';
+      featuredContainer.innerHTML = '';
+
+      // Filter active posts (<= 40 days)
+      const activePosts = posts.filter(p => p.daysAgo <= 40);
+      
+      let featuredRendered = false;
+
+      activePosts.forEach(post => {
+        const sportEmoji = getSportEmoji(post.sport);
+        
+        if (post.featured && !featuredRendered) {
+          // Render Featured
+          featuredContainer.innerHTML = \`
+            <div class="featured-card">
+              <div class="featured-image">\${sportEmoji}</div>
+              <div class="featured-content">
+                <div class="featured-badge">⭐ Featured</div>
+                <h3 class="featured-title playfair">\${post.title}</h3>
+                <div class="featured-meta">\${post.sport} &middot; \${post.date}</div>
+                <p class="featured-excerpt">\${post.description}</p>
+              </div>
+            </div>
+          \`;
+          featuredRendered = true;
+        } else {
+          // Render Normal
+          const fileBadge = post.file ? \`<div class="post-file"><i class="ti ti-paperclip"></i> File attached</div>\` : '';
+          
+          newsGrid.innerHTML += \`
+            <div class="post-card">
+              <div class="post-image">\${sportEmoji}</div>
+              <div class="post-content">
+                <span class="post-sport">\${post.sport}</span>
+                <h3 class="post-title playfair">\${post.title}</h3>
+                <div class="post-meta">
+                  <span class="post-date">\${post.date}</span>
+                  \${fileBadge}
+                </div>
+              </div>
+            </div>
+          \`;
+        }
+      });
+    }
+
+    function renderAdminTable() {
+      const tbody = document.getElementById('adminTableBody');
+      tbody.innerHTML = '';
+
+      posts.forEach(post => {
+        const isArchived = post.daysAgo > 40;
+        const statusHtml = isArchived 
+          ? \`<span class="status-dot archived"></span> Archived\` 
+          : \`<span class="status-dot live"></span> Live\`;
+        const featuredHtml = post.featured ? 'Yes' : '-';
+        const daysLeft = isArchived ? '-' : (40 - post.daysAgo);
+
+        tbody.innerHTML += \`
+          <tr class="\${isArchived ? 'archived' : ''}">
+            <td>\${statusHtml}</td>
+            <td>\${featuredHtml}</td>
+            <td style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="\${post.title}">\${post.title}</td>
+            <td>\${post.sport}</td>
+            <td>\${post.date}</td>
+            <td>\${daysLeft}</td>
+            <td>
+              <button class="action-btn">Edit</button>
+              <button class="action-btn">Archive</button>
+            </td>
+          </tr>
+        \`;
+      });
+    }
+
+    function renderAdminTags() {
+      const container = document.getElementById('tagSelector');
+      container.innerHTML = sportTags.map(tag => 
+        \`<button type="button" class="tag-btn" onclick="toggleTag(this, '\${tag}')">\${tag}</button>\`
+      ).join('');
+    }
+
+    function renderRules() {
+      const container = document.querySelector('.rules-list');
+      container.innerHTML = sportRules.map(sport => \`
+        <div class="rule-accordion" onclick="toggleAccordion(this)">
+          <div class="rule-header">
+            <i class="ti \${sport.icon} rule-icon"></i>
+            <span class="rule-title playfair">\${sport.sport}</span>
+            <i class="ti ti-chevron-down rule-chevron"></i>
+          </div>
+          <div class="rule-body">
+            <ul>
+              \${sport.rules.map(r => \`<li>\${r}</li>\`).join('')}
+            </ul>
+          </div>
+        </div>
+      \`).join('');
+    }
+
+    // UI INTERACTIONS
+    function switchTab(tabId) {
+      // Update Tab buttons
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      const activeTabBtn = document.querySelector(\`.tab-btn[onclick="switchTab('\${tabId}')"]\`);
+      if(activeTabBtn) activeTabBtn.classList.add('active');
+      
+      // Update content
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      const tabContent = document.getElementById('tab-' + tabId);
+      if(tabContent) tabContent.classList.add('active');
+    }
+
+    function triggerTab(tabId) {
+      switchTab(tabId);
+      document.getElementById('tabs-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function toggleAccordion(element) {
+      const isOpen = element.classList.contains('open');
+      document.querySelectorAll('.rule-accordion').forEach(acc => acc.classList.remove('open'));
+      if (!isOpen) {
+        element.classList.add('open');
+      }
+    }
+
+    function toggleTag(btn, tag) {
+      btn.classList.toggle('selected');
+      const selectedTags = Array.from(document.querySelectorAll('.tag-btn.selected')).map(b => b.innerText);
+      document.getElementById('postTags').value = selectedTags.join(',');
+    }
+
+    function toggleSwitch(id) {
+      const el = document.getElementById(id);
+      el.classList.toggle('on');
+      if(id === 'featuredToggle') {
+        document.getElementById('postFeatured').value = el.classList.contains('on');
+      }
+    }
+
+    function setupMobileMenu() {
+      const btn = document.getElementById('mobileMenuBtn');
+      const links = document.getElementById('navLinks');
+      btn.addEventListener('click', () => {
+        links.classList.toggle('open');
+      });
+      // Close menu on link click
+      links.querySelectorAll('a').forEach(a => {
+        a.addEventListener('click', () => {
+          links.classList.remove('open');
+        });
+      });
+    }
+
+    function setupNavLinks() {
+      document.querySelectorAll('.nav-links a').forEach(link => {
+        link.addEventListener('click', function(e) {
+          const href = this.getAttribute('href');
+          const tabIds = ['#news', '#events', '#winners', '#achievements', '#rules'];
+          if (tabIds.includes(href)) {
+            e.preventDefault();
+            triggerTab(href.substring(1));
+            
+            // Manually set active class for nav link
+            document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
+            this.classList.add('active');
+          }
+        });
+      });
+    }
+
+    // Hash routing for Admin Panel
+    window.addEventListener('hashchange', checkHash);
+    
+    function checkHash() {
+      const adminPanel = document.getElementById('admin-panel');
+      if (window.location.hash === '#admin-panel') {
+        adminPanel.style.display = 'block';
+        adminPanel.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        adminPanel.style.display = 'none';
+      }
+    }
+
+    // Form Submission (Phase 1 Simulation)
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      
+      const title = document.getElementById('postTitle').value;
+      const desc = document.getElementById('postDesc').value;
+      const tags = document.getElementById('postTags').value || 'General';
+      const isFeatured = document.getElementById('postFeatured').value === 'true';
+      const dateVal = document.getElementById('postDate').value || new Date().toISOString().split('T')[0];
+      
+      // PHASE 2: supabase.from('posts').insert({...})
+      
+      // Simulate adding to array
+      const newPost = {
+        id: posts.length + 1,
+        title: title,
+        description: desc,
+        sport: tags.split(',')[0], // just take first for UI
+        date: dateVal,
+        featured: isFeatured,
+        file: null,
+        daysAgo: 0
+      };
+      
+      posts.unshift(newPost);
+      
+      // Re-render
+      renderPosts();
+      renderAdminTable();
+      
+      // Reset form
+      e.target.reset();
+      document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('selected'));
+      document.getElementById('postTags').value = '';
+      document.getElementById('featuredToggle').classList.remove('on');
+      document.getElementById('postFeatured').value = 'false';
+      
+      alert('Post published successfully! (Simulation)');
+    }
+
+    // ScrollSpy for Nav Links
+    function setupScrollSpy() {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.id;
+            const navLinks = document.querySelectorAll('.nav-links a');
+            
+            if (id === 'home' || id === 'contact') {
+              navLinks.forEach(l => l.classList.remove('active'));
+              const link = document.querySelector(\`.nav-links a[href="#\${id}"]\`);
+              if (link) link.classList.add('active');
+            } else if (id === 'tabs-section') {
+               const activeTabContent = document.querySelector('.tab-content.active');
+               if (activeTabContent) {
+                 const tabId = activeTabContent.id.replace('tab-', '');
+                 navLinks.forEach(l => l.classList.remove('active'));
+                 const link = document.querySelector(\`.nav-links a[href="#\${tabId}"]\`);
+                 if (link) link.classList.add('active');
+               }
+            }
+          }
+        });
+      }, { threshold: 0.3 });
+
+      document.querySelectorAll('#home, #tabs-section, #contact').forEach(sec => observer.observe(sec));
+    }
+
+    // Helper
+    function getSportEmoji(sport) {
+      const map = {
+        'Cricket': '🏏', 'Football': '⚽', 'Badminton': '🏸',
+        'Volleyball': '🏐', 'Swimming': '🏊‍♂️', 'Athletics': '🏃‍♂️',
+        'Tennis': '🎾', 'Chess': '♟️', 'General': '🏅'
+      };
+      return map[sport] || '🏆';
+    }
+  </script>
+</body>
+</html>

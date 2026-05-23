@@ -1216,29 +1216,27 @@
                     </div>
                 </button>
             </div>
-            <button class="sidebar-btn" onclick="navigateTo('/messages')">
+            <button class="sidebar-btn" onclick="showSection('admin-messages-section')">
                 <div class="sidebar-btn-content">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
-                    <span>Messages</span>
+                    <span>Messages <span id="admin-msg-badge" style="display:none;background:#dc2626;color:#fff;border-radius:99px;padding:1px 7px;font-size:10px;font-weight:700;margin-left:4px;">0</span></span>
                 </div>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"
-                    height="16">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
-            <button class="sidebar-btn" onclick="navigateTo('/bugs')">
+            <button class="sidebar-btn" onclick="showSection('admin-bugs-section')">
                 <div class="sidebar-btn-content">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span>Bug Report</span>
+                    <span>Bug Reports <span id="admin-bug-badge" style="display:none;background:#dc2626;color:#fff;border-radius:99px;padding:1px 7px;font-size:10px;font-weight:700;margin-left:4px;">0</span></span>
                 </div>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"
-                    height="16">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
@@ -1280,28 +1278,134 @@
                 </div>
             </div>
 
-            <!-- Messages Placeholder -->
-            <div id="messages-placeholder" class="content-section">
-                <div class="player-card">
-                    <div class="card-header">
-                        <h2>Messages</h2>
-                    </div>
-                    <div class="warning-box">
-                        <p>This panel is under development. Will be fixed soon.</p>
-                    </div>
+            <!-- ===== ADMIN: USER MESSAGES ===== -->
+            <div id="admin-messages-section" class="content-section">
+              <div class="player-card">
+                <div class="card-header">
+                  <h2>📬 User Messages</h2>
+                  <div style="display:flex;gap:8px;align-items:center;">
+                    <select id="msg-status-filter" onchange="adminLoadMessages()" style="padding:6px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:13px;">
+                      <option value="">All Statuses</option>
+                      <option value="unread">Unread</option>
+                      <option value="read">Read</option>
+                      <option value="replied">Replied</option>
+                      <option value="closed">Closed</option>
+                    </select>
+                    <button class="save-btn" onclick="adminLoadMessages()" style="font-size:12px;padding:6px 14px;">↻ Refresh</button>
+                  </div>
                 </div>
+                <div id="admin-msg-loading" style="text-align:center;padding:32px;color:#6b7280;font-size:13px;">Loading messages…</div>
+                <div id="admin-msg-table-wrap" style="overflow-x:auto;display:none;">
+                  <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                    <thead>
+                      <tr style="border-bottom:2px solid #e5e7eb;">
+                        <th style="text-align:left;padding:10px 12px;color:#6b7280;font-weight:500;">Status</th>
+                        <th style="text-align:left;padding:10px 12px;color:#6b7280;font-weight:500;">From</th>
+                        <th style="text-align:left;padding:10px 12px;color:#6b7280;font-weight:500;">Subject</th>
+                        <th style="text-align:left;padding:10px 12px;color:#6b7280;font-weight:500;">Date</th>
+                        <th style="text-align:left;padding:10px 12px;color:#6b7280;font-weight:500;">File</th>
+                        <th style="text-align:left;padding:10px 12px;color:#6b7280;font-weight:500;">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="admin-msg-tbody"></tbody>
+                  </table>
+                </div>
+              </div>
+              <!-- Reply modal -->
+              <div id="msg-reply-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:none;align-items:center;justify-content:center;">
+                <div style="background:#fff;border-radius:12px;padding:28px;width:520px;max-width:95%;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+                  <h3 style="font-size:16px;font-weight:700;color:#1e3a8a;margin-bottom:6px;">Reply to Message</h3>
+                  <p id="msg-reply-subject" style="font-size:12px;color:#6b7280;margin-bottom:16px;"></p>
+                  <div id="msg-reply-body-preview" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px;font-size:13px;color:#374151;margin-bottom:16px;max-height:120px;overflow:auto;"></div>
+                  <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Your Reply</label>
+                  <textarea id="msg-reply-text" rows="4" placeholder="Type your reply…" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;resize:vertical;font-family:inherit;outline:none;"></textarea>
+                  <input type="hidden" id="msg-reply-id">
+                  <div style="display:flex;gap:8px;margin-top:14px;">
+                    <button onclick="adminSendReply()" style="background:#1e3a8a;color:#fff;padding:9px 20px;border-radius:7px;font-size:13px;font-weight:600;border:none;cursor:pointer;">Send Reply</button>
+                    <button onclick="closeMsgReplyModal()" style="background:#f3f4f6;color:#374151;padding:9px 20px;border-radius:7px;font-size:13px;font-weight:600;border:none;cursor:pointer;">Cancel</button>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <!-- Bug Report Placeholder -->
-            <div id="bug-report-placeholder" class="content-section">
-                <div class="player-card">
-                    <div class="card-header">
-                        <h2>Bug Report</h2>
-                    </div>
-                    <div class="warning-box">
-                        <p>This panel is under development. Will be fixed soon.</p>
-                    </div>
+            <!-- ===== ADMIN: BUG REPORTS ===== -->
+            <div id="admin-bugs-section" class="content-section">
+              <div class="player-card">
+                <div class="card-header">
+                  <h2>🐛 Bug Reports</h2>
+                  <div style="display:flex;gap:8px;align-items:center;">
+                    <select id="bug-status-filter" onchange="adminLoadBugs()" style="padding:6px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:13px;">
+                      <option value="">All Statuses</option>
+                      <option value="open">Open</option>
+                      <option value="in_progress">In Progress</option>
+                      <option value="resolved">Resolved</option>
+                      <option value="wont_fix">Won't Fix</option>
+                    </select>
+                    <select id="bug-severity-filter" onchange="adminLoadBugs()" style="padding:6px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:13px;">
+                      <option value="">All Severities</option>
+                      <option value="critical">🔴 Critical</option>
+                      <option value="high">🟠 High</option>
+                      <option value="medium">🟡 Medium</option>
+                      <option value="low">🟢 Low</option>
+                    </select>
+                    <button class="save-btn" onclick="adminLoadBugs()" style="font-size:12px;padding:6px 14px;">↻ Refresh</button>
+                  </div>
                 </div>
+                <div id="admin-bug-loading" style="text-align:center;padding:32px;color:#6b7280;font-size:13px;">Loading bug reports…</div>
+                <div id="admin-bug-table-wrap" style="overflow-x:auto;display:none;">
+                  <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                    <thead>
+                      <tr style="border-bottom:2px solid #e5e7eb;">
+                        <th style="text-align:left;padding:10px 12px;color:#6b7280;font-weight:500;">Status</th>
+                        <th style="text-align:left;padding:10px 12px;color:#6b7280;font-weight:500;">Sev.</th>
+                        <th style="text-align:left;padding:10px 12px;color:#6b7280;font-weight:500;">Category</th>
+                        <th style="text-align:left;padding:10px 12px;color:#6b7280;font-weight:500;">Title</th>
+                        <th style="text-align:left;padding:10px 12px;color:#6b7280;font-weight:500;">From</th>
+                        <th style="text-align:left;padding:10px 12px;color:#6b7280;font-weight:500;">Date</th>
+                        <th style="text-align:left;padding:10px 12px;color:#6b7280;font-weight:500;">File</th>
+                        <th style="text-align:left;padding:10px 12px;color:#6b7280;font-weight:500;">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="admin-bug-tbody"></tbody>
+                  </table>
+                </div>
+              </div>
+              <!-- Bug detail/notes modal -->
+              <div id="bug-notes-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+                <div style="background:#fff;border-radius:12px;padding:28px;width:560px;max-width:95%;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+                  <h3 style="font-size:16px;font-weight:700;color:#1e3a8a;margin-bottom:4px;">Bug Report Detail</h3>
+                  <p id="bug-modal-title" style="font-size:13px;font-weight:600;color:#374151;margin-bottom:8px;"></p>
+                  <div id="bug-modal-desc" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px;font-size:13px;color:#374151;margin-bottom:8px;max-height:100px;overflow:auto;"></div>
+                  <div id="bug-modal-steps" style="display:none;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px;font-size:12px;color:#92400e;margin-bottom:12px;"></div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+                    <div>
+                      <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">Update Status</label>
+                      <select id="bug-modal-status" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;">
+                        <option value="open">Open</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="resolved">Resolved</option>
+                        <option value="wont_fix">Won't Fix</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">Update Severity</label>
+                      <select id="bug-modal-severity" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;">
+                        <option value="low">🟢 Low</option>
+                        <option value="medium">🟡 Medium</option>
+                        <option value="high">🟠 High</option>
+                        <option value="critical">🔴 Critical</option>
+                      </select>
+                    </div>
+                  </div>
+                  <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">Admin Notes</label>
+                  <textarea id="bug-modal-notes" rows="3" placeholder="Internal notes visible to the reporter…" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;resize:vertical;font-family:inherit;outline:none;"></textarea>
+                  <input type="hidden" id="bug-modal-id">
+                  <div style="display:flex;gap:8px;margin-top:14px;">
+                    <button onclick="adminSaveBugUpdate()" style="background:#1e3a8a;color:#fff;padding:9px 20px;border-radius:7px;font-size:13px;font-weight:600;border:none;cursor:pointer;">Save Changes</button>
+                    <button onclick="closeBugModal()" style="background:#f3f4f6;color:#374151;padding:9px 20px;border-radius:7px;font-size:13px;font-weight:600;border:none;cursor:pointer;">Close</button>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- Database Placeholder -->
@@ -1394,16 +1498,81 @@
                 </div>
             </div>
 
-            <!-- Content Management Placeholder -->
+            <!-- Content Management — OFS Posts (Supabase-wired) -->
             <div id="content-management-placeholder" class="content-section">
-                <div class="player-card">
-                    <div class="card-header">
-                        <h2>Content Management</h2>
-                    </div>
-                    <div class="warning-box">
-                        <p>This panel is under development. Will be fixed soon.</p>
-                    </div>
+              <div class="player-card">
+                <div class="card-header">
+                  <h2>Content Management — Office of Sports</h2>
+                  <button class="save-btn" onclick="ofsLoadPosts()" style="font-size:12px;padding:6px 14px;">↻ Refresh</button>
                 </div>
+
+                <!-- Alert -->
+                <div id="ofs-alert" class="hidden" style="margin-bottom:16px;"></div>
+
+                <!-- CREATE / EDIT FORM -->
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:20px;margin-bottom:24px;">
+                  <h3 id="ofs-form-title" style="font-size:15px;font-weight:600;margin-bottom:16px;color:#1e3a8a;">Create New Post</h3>
+                  <form id="ofsPostForm" onsubmit="ofsSavePost(event)">
+                    <input type="hidden" id="ofsEditId" value="">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+                      <div class="field" style="grid-column:1/-1;">
+                        <label>Title *</label>
+                        <input type="text" id="ofsTitle" required placeholder="Post headline">
+                      </div>
+                      <div class="field" style="grid-column:1/-1;">
+                        <label>Description *</label>
+                        <textarea id="ofsDesc" required placeholder="Post body / details" style="width:100%;min-height:80px;padding:8px 10px;border-radius:9px;border:1px solid #e5e7eb;font-size:13px;background:#f9fafb;resize:vertical;font-family:inherit;"></textarea>
+                      </div>
+                      <div class="field">
+                        <label>Sport Tag</label>
+                        <div class="pill-group" id="ofs-tag-group"></div>
+                        <input type="hidden" id="ofsSport" value="General">
+                      </div>
+                      <div class="field">
+                        <label>Event Date (optional)</label>
+                        <input type="date" id="ofsEventDate">
+                      </div>
+                      <div class="field">
+                        <label>File name (optional)</label>
+                        <input type="text" id="ofsFileName" placeholder="e.g. draw_sheet.pdf">
+                        <small>File storage coming in Phase 3</small>
+                      </div>
+                      <div class="field" style="display:flex;gap:24px;align-items:center;padding-top:18px;">
+                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
+                          <input type="checkbox" id="ofsFeatured" style="width:16px;height:16px;"> Mark as Featured
+                        </label>
+                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
+                          <input type="checkbox" id="ofsPublished" checked style="width:16px;height:16px;"> Publish immediately
+                        </label>
+                      </div>
+                    </div>
+                    <div style="display:flex;gap:8px;">
+                      <button type="submit" class="save-btn" id="ofs-submit-btn">Publish Post →</button>
+                      <button type="button" class="cancel-btn" onclick="ofsResetForm()">Cancel</button>
+                    </div>
+                  </form>
+                </div>
+
+                <!-- POSTS TABLE -->
+                <h3 style="font-size:15px;font-weight:600;margin-bottom:12px;color:#1e3a8a;">All Posts</h3>
+                <div id="ofs-table-loading" style="text-align:center;padding:32px;color:#6b7280;font-size:13px;">Loading posts…</div>
+                <div id="ofs-table-wrap" style="overflow-x:auto;display:none;">
+                  <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                    <thead>
+                      <tr style="border-bottom:2px solid #e5e7eb;">
+                        <th style="text-align:left;padding:10px 12px;color:#6b7280;font-weight:500;">Status</th>
+                        <th style="text-align:left;padding:10px 12px;color:#6b7280;font-weight:500;">⭐</th>
+                        <th style="text-align:left;padding:10px 12px;color:#6b7280;font-weight:500;">Title</th>
+                        <th style="text-align:left;padding:10px 12px;color:#6b7280;font-weight:500;">Sport</th>
+                        <th style="text-align:left;padding:10px 12px;color:#6b7280;font-weight:500;">Posted</th>
+                        <th style="text-align:left;padding:10px 12px;color:#6b7280;font-weight:500;">Days Left</th>
+                        <th style="text-align:left;padding:10px 12px;color:#6b7280;font-weight:500;">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="ofs-tbody"></tbody>
+                  </table>
+                </div>
+              </div>
             </div>
 
             <!-- Analytics & Reporting -->
@@ -1598,6 +1767,9 @@
     <script src="js/tunnel-config.js"></script>
     <script src="api-config.js"></script>
     <script src="js/auth-fetch.js"></script>
+    <!-- Supabase CDN + shared client for OFS Content Management -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-client.js"></script>
     <script>
         // Load API configuration with fallback
         const API_URL = (typeof API_CONFIG !== 'undefined' && API_CONFIG.API_BASE_URL) ? API_CONFIG.API_BASE_URL : (window.API_URL || '/api');
@@ -4761,6 +4933,379 @@
             }
         })();
     </script>
+
+    <!-- ═══════════════════════════════════════════════════════
+         OFS CONTENT MANAGEMENT — Supabase-wired (ofs_posts)
+         ═══════════════════════════════════════════════════════ -->
+    <script>
+    (function() {
+      'use strict';
+
+      const OFS_ARCHIVE_DAYS = 40;
+      const OFS_SPORTS = ['Cricket','Football','Badminton','Volleyball','Swimming','Athletics','Tennis','Chess','General'];
+
+      // ── helpers ──────────────────────────────────────────────────
+      function ofsDaysAgo(dateStr) {
+        return Math.floor((Date.now() - new Date(dateStr)) / 86400000);
+      }
+      function ofsAlert(msg, type) {
+        const el = document.getElementById('ofs-alert');
+        if (!el) return;
+        el.className = type === 'error' ? 'alert alert-error' : 'alert alert-success';
+        el.textContent = msg;
+        el.classList.remove('hidden');
+        setTimeout(() => el.classList.add('hidden'), 4000);
+      }
+
+      // ── tag pills ────────────────────────────────────────────────
+      function ofsRenderTags(selected) {
+        const grp = document.getElementById('ofs-tag-group');
+        if (!grp) return;
+        grp.innerHTML = OFS_SPORTS.map(s => {
+          const active = s === (selected || 'General') ? 'active' : '';
+          return `<label class="pill-check ${active}" onclick="ofsSelectTag(this,'${s}')">
+            <input type="radio" style="display:none"> <span class="dot"></span> ${s}
+          </label>`;
+        }).join('');
+        document.getElementById('ofsSport').value = selected || 'General';
+      }
+      window.ofsSelectTag = function(el, sport) {
+        document.querySelectorAll('#ofs-tag-group .pill-check').forEach(p => p.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById('ofsSport').value = sport;
+      };
+
+      // ── load posts ───────────────────────────────────────────────
+      window.ofsLoadPosts = async function() {
+        const loading = document.getElementById('ofs-table-loading');
+        const wrap    = document.getElementById('ofs-table-wrap');
+        if (loading) loading.style.display = 'block';
+        if (wrap)    wrap.style.display = 'none';
+        try {
+          const { data, error } = await db
+            .from('ofs_posts')
+            .select('*')
+            .order('created_at', { ascending: false });
+          if (error) throw error;
+          ofsRenderTable(data || []);
+        } catch(err) {
+          ofsAlert('Failed to load posts: ' + err.message, 'error');
+        } finally {
+          if (loading) loading.style.display = 'none';
+          if (wrap)    wrap.style.display = 'block';
+        }
+      };
+
+      // ── render table ─────────────────────────────────────────────
+      function ofsRenderTable(posts) {
+        const tbody = document.getElementById('ofs-tbody');
+        if (!tbody) return;
+        if (!posts.length) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#9ca3af;padding:24px">No posts yet. Create your first post above.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = posts.map(p => {
+          const age      = ofsDaysAgo(p.created_at);
+          const archived = age > OFS_ARCHIVE_DAYS || !p.published;
+          const daysLeft = archived ? '-' : (OFS_ARCHIVE_DAYS - age);
+          const dateStr  = new Date(p.created_at).toLocaleDateString('en-GB');
+          const dot = !p.published
+            ? `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f59e0b;margin-right:6px;"></span>Draft`
+            : archived
+              ? `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#9ca3af;margin-right:6px;"></span>Archived`
+              : `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;margin-right:6px;"></span>Live`;
+          return `<tr style="border-bottom:1px solid #f3f4f6;${archived?'opacity:0.65':''}">
+            <td style="padding:10px 12px;white-space:nowrap">${dot}</td>
+            <td style="padding:10px 12px">${p.featured ? '⭐' : ''}</td>
+            <td style="padding:10px 12px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.title}">${p.title}</td>
+            <td style="padding:10px 12px">${p.sport}</td>
+            <td style="padding:10px 12px;white-space:nowrap">${dateStr}</td>
+            <td style="padding:10px 12px">${daysLeft}</td>
+            <td style="padding:10px 12px;white-space:nowrap;display:flex;gap:6px">
+              <button class="edit-btn" style="font-size:11px;padding:4px 10px" onclick="ofsEditPost(${p.id})">Edit</button>
+              <button class="edit-btn" style="font-size:11px;padding:4px 10px" onclick="ofsTogglePublish(${p.id},${p.published})">${p.published ? 'Archive' : 'Restore'}</button>
+              <button class="edit-btn" style="font-size:11px;padding:4px 10px;color:#dc2626;border-color:#fca5a5" onclick="ofsDeletePost(${p.id})">Delete</button>
+            </td>
+          </tr>`;
+        }).join('');
+      }
+
+      // ── save (insert / update) ───────────────────────────────────
+      window.ofsSavePost = async function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('ofs-submit-btn');
+        btn.disabled = true; btn.textContent = 'Saving…';
+        const editId = document.getElementById('ofsEditId').value;
+        const payload = {
+          title:       document.getElementById('ofsTitle').value.trim(),
+          description: document.getElementById('ofsDesc').value.trim(),
+          sport:       document.getElementById('ofsSport').value || 'General',
+          event_date:  document.getElementById('ofsEventDate').value || null,
+          file_name:   document.getElementById('ofsFileName').value.trim() || null,
+          featured:    document.getElementById('ofsFeatured').checked,
+          published:   document.getElementById('ofsPublished').checked,
+        };
+        try {
+          let error;
+          if (editId) {
+            ({ error } = await db.from('ofs_posts').update(payload).eq('id', parseInt(editId)));
+            if (!error) ofsAlert('Post updated!', 'success');
+          } else {
+            ({ error } = await db.from('ofs_posts').insert(payload));
+            if (!error) ofsAlert('Post published!', 'success');
+          }
+          if (error) throw error;
+          ofsResetForm();
+          await ofsLoadPosts();
+        } catch(err) {
+          ofsAlert('Error: ' + err.message, 'error');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = editId ? 'Update Post →' : 'Publish Post →';
+        }
+      };
+
+      // ── edit ─────────────────────────────────────────────────────
+      window.ofsEditPost = async function(id) {
+        const { data, error } = await db.from('ofs_posts').select('*').eq('id', id).single();
+        if (error || !data) { ofsAlert('Could not load post.', 'error'); return; }
+        document.getElementById('ofsEditId').value    = data.id;
+        document.getElementById('ofsTitle').value     = data.title;
+        document.getElementById('ofsDesc').value      = data.description;
+        document.getElementById('ofsEventDate').value = data.event_date || '';
+        document.getElementById('ofsFileName').value  = data.file_name || '';
+        document.getElementById('ofsFeatured').checked  = data.featured;
+        document.getElementById('ofsPublished').checked = data.published;
+        ofsRenderTags(data.sport);
+        document.getElementById('ofs-form-title').textContent = 'Edit Post';
+        document.getElementById('ofs-submit-btn').textContent = 'Update Post →';
+        document.getElementById('ofsPostForm').scrollIntoView({ behavior:'smooth' });
+      };
+
+      // ── archive / restore ────────────────────────────────────────
+      window.ofsTogglePublish = async function(id, current) {
+        const { error } = await db.from('ofs_posts').update({ published: !current }).eq('id', id);
+        if (error) { ofsAlert('Error: ' + error.message, 'error'); return; }
+        ofsAlert(current ? 'Post archived.' : 'Post restored.', 'success');
+        await ofsLoadPosts();
+      };
+
+      // ── delete ───────────────────────────────────────────────────
+      window.ofsDeletePost = async function(id) {
+        if (!confirm('Delete this post permanently?')) return;
+        const { error } = await db.from('ofs_posts').delete().eq('id', id);
+        if (error) { ofsAlert('Error: ' + error.message, 'error'); return; }
+        ofsAlert('Post deleted.', 'success');
+        if (document.getElementById('ofsEditId').value == id) ofsResetForm();
+        await ofsLoadPosts();
+      };
+
+      // ── reset form ───────────────────────────────────────────────
+      window.ofsResetForm = function() {
+        document.getElementById('ofsPostForm').reset();
+        document.getElementById('ofsEditId').value = '';
+        document.getElementById('ofs-form-title').textContent = 'Create New Post';
+        document.getElementById('ofs-submit-btn').textContent = 'Publish Post →';
+        document.getElementById('ofsPublished').checked = true;
+        ofsRenderTags('General');
+      };
+
+      // ── hook into showSection ────────────────────────────────────
+      const _origShowSection = window.showSection;
+      window.showSection = function(sectionId) {
+        if (_origShowSection) _origShowSection(sectionId);
+        if (sectionId === 'content-management-placeholder') {
+          ofsRenderTags('General');
+          ofsLoadPosts();
+        }
+      };
+
+    })();
+    </script>
+
+    <!-- ===== ADMIN: MESSAGES & BUG REPORTS JS ===== -->
+    <script>
+    /* ── color helpers ── */
+    const _msgStatusColor = { unread:'#3b82f6', read:'#6b7280', replied:'#059669', closed:'#9ca3af' };
+    const _bugStatusColor = { open:'#dc2626', in_progress:'#d97706', resolved:'#059669', wont_fix:'#6b7280' };
+    const _bugSevColor    = { low:'#059669', medium:'#d97706', high:'#ea580c', critical:'#dc2626' };
+    const _bugSevEmoji    = { low:'🟢', medium:'🟡', high:'🟠', critical:'🔴' };
+
+    function _badge(label, color) {
+      return `<span style="display:inline-block;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:600;background:${color}22;color:${color};">${label}</span>`;
+    }
+    function _td(content) {
+      return `<td style="padding:10px 12px;border-bottom:1px solid #f3f4f6;vertical-align:middle;">${content}</td>`;
+    }
+
+    /* ── attachment link ── */
+    function _attachLink(url, name) {
+      if (!url) return '—';
+      // base64 data-url
+      if (url.startsWith('data:')) {
+        return `<a href="${url}" download="${name||'attachment'}" style="color:#1e3a8a;font-size:12px;text-decoration:underline;">📎 ${name||'View'}</a>`;
+      }
+      return `<a href="${url}" target="_blank" style="color:#1e3a8a;font-size:12px;text-decoration:underline;">📎 ${name||'View'}</a>`;
+    }
+
+    /* ── update sidebar unread badges ── */
+    async function _updateAdminBadges() {
+      if (!window.db) return;
+      const [{ count: mc }, { count: bc }] = await Promise.all([
+        window.db.from('user_messages').select('*', { count: 'exact', head: true }).eq('status', 'unread'),
+        window.db.from('bug_reports').select('*', { count: 'exact', head: true }).eq('status', 'open')
+      ]);
+      const mb = document.getElementById('admin-msg-badge');
+      const bb = document.getElementById('admin-bug-badge');
+      if (mb) { mb.textContent = mc||0; mb.style.display = (mc > 0) ? 'inline' : 'none'; }
+      if (bb) { bb.textContent = bc||0; bb.style.display = (bc > 0) ? 'inline' : 'none'; }
+    }
+
+    /* ── LOAD MESSAGES ── */
+    async function adminLoadMessages() {
+      const loading = document.getElementById('admin-msg-loading');
+      const wrap    = document.getElementById('admin-msg-table-wrap');
+      const tbody   = document.getElementById('admin-msg-tbody');
+      if (!window.db || !tbody) return;
+      if (loading) loading.style.display = 'block';
+      if (wrap)    wrap.style.display = 'none';
+
+      const statusFilter = document.getElementById('msg-status-filter')?.value || '';
+      let q = window.db.from('user_messages')
+        .select('id,student_id,full_name,email,subject,message,status,admin_reply,attachment_url,attachment_name,created_at')
+        .order('created_at', { ascending: false })
+        .limit(100);
+      if (statusFilter) q = q.eq('status', statusFilter);
+
+      const { data, error } = await q;
+      if (loading) loading.style.display = 'none';
+      if (error) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#dc2626;padding:20px;">Error: ${error.message}</td></tr>`; if(wrap) wrap.style.display='block'; return; }
+      if (!data || data.length === 0) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#9ca3af;padding:24px;">No messages found.</td></tr>`; if(wrap) wrap.style.display='block'; return; }
+
+      tbody.innerHTML = data.map(m => `<tr style="transition:background 0.15s;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''">
+        ${_td(_badge(m.status, _msgStatusColor[m.status]||'#6b7280'))}
+        ${_td(`<div style="font-weight:600;font-size:13px;">${m.full_name}</div><div style="font-size:11px;color:#9ca3af;">${m.email}</div>${m.student_id ? `<div style="font-size:10px;color:#c4b5fd;">ID: ${m.student_id}</div>` : ''}`)}
+        ${_td(`<span title="${m.message}" style="max-width:220px;display:inline-block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.subject}</span>`)}
+        ${_td(`<span style="font-size:11px;color:#6b7280;">${new Date(m.created_at).toLocaleString()}</span>`)}
+        ${_td(_attachLink(m.attachment_url, m.attachment_name))}
+        ${_td(`<button onclick="openMsgReplyModal(${m.id},'${encodeURIComponent(m.subject)}','${encodeURIComponent(m.message)}','${encodeURIComponent(m.admin_reply||'')}')" style="background:#1e3a8a;color:#fff;padding:4px 10px;border-radius:5px;font-size:12px;border:none;cursor:pointer;margin-right:4px;">Reply</button>
+          <select onchange="adminUpdateMsgStatus(${m.id},this.value)" style="padding:4px 6px;border:1px solid #e5e7eb;border-radius:5px;font-size:11px;">
+            <option value="unread" ${m.status==='unread'?'selected':''}>Unread</option>
+            <option value="read" ${m.status==='read'?'selected':''}>Read</option>
+            <option value="replied" ${m.status==='replied'?'selected':''}>Replied</option>
+            <option value="closed" ${m.status==='closed'?'selected':''}>Closed</option>
+          </select>`)}
+      </tr>`).join('');
+      if (wrap) wrap.style.display = 'block';
+      _updateAdminBadges();
+    }
+
+    /* ── UPDATE MESSAGE STATUS ── */
+    async function adminUpdateMsgStatus(id, status) {
+      if (!window.db) return;
+      await window.db.from('user_messages').update({ status }).eq('id', id);
+      _updateAdminBadges();
+    }
+
+    /* ── REPLY MODAL ── */
+    function openMsgReplyModal(id, subjectEnc, bodyEnc, existingReplyEnc) {
+      document.getElementById('msg-reply-id').value = id;
+      document.getElementById('msg-reply-subject').textContent = 'Subject: ' + decodeURIComponent(subjectEnc);
+      document.getElementById('msg-reply-body-preview').textContent = decodeURIComponent(bodyEnc);
+      document.getElementById('msg-reply-text').value = decodeURIComponent(existingReplyEnc);
+      const modal = document.getElementById('msg-reply-modal');
+      modal.style.display = 'flex';
+    }
+    function closeMsgReplyModal() { document.getElementById('msg-reply-modal').style.display = 'none'; }
+    async function adminSendReply() {
+      const id    = document.getElementById('msg-reply-id').value;
+      const reply = document.getElementById('msg-reply-text').value.trim();
+      if (!reply) { alert('Please type a reply.'); return; }
+      const { error } = await window.db.from('user_messages').update({ admin_reply: reply, status: 'replied' }).eq('id', id);
+      if (error) { alert('Error: ' + error.message); return; }
+      closeMsgReplyModal();
+      adminLoadMessages();
+    }
+
+    /* ── LOAD BUG REPORTS ── */
+    async function adminLoadBugs() {
+      const loading = document.getElementById('admin-bug-loading');
+      const wrap    = document.getElementById('admin-bug-table-wrap');
+      const tbody   = document.getElementById('admin-bug-tbody');
+      if (!window.db || !tbody) return;
+      if (loading) loading.style.display = 'block';
+      if (wrap)    wrap.style.display = 'none';
+
+      const statusFilter   = document.getElementById('bug-status-filter')?.value   || '';
+      const severityFilter = document.getElementById('bug-severity-filter')?.value  || '';
+      let q = window.db.from('bug_reports')
+        .select('id,student_id,full_name,email,category,severity,title,description,steps_to_repro,status,admin_notes,attachment_url,attachment_name,created_at')
+        .order('created_at', { ascending: false })
+        .limit(100);
+      if (statusFilter)   q = q.eq('status', statusFilter);
+      if (severityFilter) q = q.eq('severity', severityFilter);
+
+      const { data, error } = await q;
+      if (loading) loading.style.display = 'none';
+      if (error) { tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#dc2626;padding:20px;">Error: ${error.message}</td></tr>`; if(wrap) wrap.style.display='block'; return; }
+      if (!data || data.length === 0) { tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#9ca3af;padding:24px;">No bug reports found.</td></tr>`; if(wrap) wrap.style.display='block'; return; }
+
+      tbody.innerHTML = data.map(b => `<tr onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''">
+        ${_td(_badge(b.status.replace('_',' '), _bugStatusColor[b.status]||'#6b7280'))}
+        ${_td(`<span style="font-size:15px;">${_bugSevEmoji[b.severity]||''}</span>`)}
+        ${_td(`<span style="font-size:12px;background:#f3f4f6;padding:2px 8px;border-radius:5px;">${b.category}</span>`)}
+        ${_td(`<span style="font-weight:600;font-size:13px;max-width:200px;display:inline-block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${b.title}">${b.title}</span>`)}
+        ${_td(`<div style="font-weight:600;font-size:12px;">${b.full_name}</div><div style="font-size:11px;color:#9ca3af;">${b.email}</div>`)}
+        ${_td(`<span style="font-size:11px;color:#6b7280;">${new Date(b.created_at).toLocaleString()}</span>`)}
+        ${_td(_attachLink(b.attachment_url, b.attachment_name))}
+        ${_td(`<button onclick="openBugModal(${b.id},'${encodeURIComponent(b.title)}','${encodeURIComponent(b.description)}','${encodeURIComponent(b.steps_to_repro||'')}','${b.status}','${b.severity}','${encodeURIComponent(b.admin_notes||'')}')" style="background:#1e3a8a;color:#fff;padding:4px 10px;border-radius:5px;font-size:12px;border:none;cursor:pointer;">Manage</button>`)}
+      </tr>`).join('');
+      if (wrap) wrap.style.display = 'block';
+      _updateAdminBadges();
+    }
+
+    /* ── BUG DETAIL MODAL ── */
+    function openBugModal(id, titleEnc, descEnc, stepsEnc, status, severity, notesEnc) {
+      document.getElementById('bug-modal-id').value = id;
+      document.getElementById('bug-modal-title').textContent = decodeURIComponent(titleEnc);
+      document.getElementById('bug-modal-desc').textContent  = decodeURIComponent(descEnc);
+      const stepsEl = document.getElementById('bug-modal-steps');
+      const steps   = decodeURIComponent(stepsEnc);
+      if (steps) { stepsEl.style.display = 'block'; stepsEl.innerHTML = '<strong>Steps:</strong> ' + steps; }
+      else        { stepsEl.style.display = 'none'; }
+      document.getElementById('bug-modal-status').value   = status;
+      document.getElementById('bug-modal-severity').value = severity;
+      document.getElementById('bug-modal-notes').value    = decodeURIComponent(notesEnc);
+      const modal = document.getElementById('bug-notes-modal');
+      modal.style.display = 'flex';
+    }
+    function closeBugModal() { document.getElementById('bug-notes-modal').style.display = 'none'; }
+    async function adminSaveBugUpdate() {
+      const id       = document.getElementById('bug-modal-id').value;
+      const status   = document.getElementById('bug-modal-status').value;
+      const severity = document.getElementById('bug-modal-severity').value;
+      const notes    = document.getElementById('bug-modal-notes').value.trim();
+      const { error } = await window.db.from('bug_reports').update({ status, severity, admin_notes: notes }).eq('id', id);
+      if (error) { alert('Error: ' + error.message); return; }
+      closeBugModal();
+      adminLoadBugs();
+    }
+
+    /* ── Hook into existing showSection (IIFE — no hoisting, safe chain) ── */
+    (function() {
+      var _adminOrig = window.showSection;
+      window.showSection = function(sectionId) {
+        if (_adminOrig) _adminOrig(sectionId);
+        if (sectionId === 'admin-messages-section') adminLoadMessages();
+        if (sectionId === 'admin-bugs-section')     adminLoadBugs();
+      };
+    })();
+
+    /* ── Load badges on page load ── */
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(_updateAdminBadges, 1500); // wait for db init
+    });
+    </script>
 </body>
 
-</html>
+</html>
