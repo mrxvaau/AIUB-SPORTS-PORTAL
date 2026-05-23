@@ -776,13 +776,15 @@ document.addEventListener('click', function(e) {
     if (stored) document.documentElement.setAttribute('data-theme', stored);
 })();
 
-window.onload = function() {
+// Run immediately — this script is loaded dynamically AFTER DOM is ready,
+// so window.onload has already fired. We just call loadTournaments() directly.
+(function bootstrap() {
     if (localStorage.getItem('isAuthenticated') !== 'true') {
         window.location.href = 'login.html';
         return;
     }
     loadTournaments();
-};
+})();
 
 window.addEventListener('pageshow', function(event) {
     if (event.persisted && localStorage.getItem('isAuthenticated') === 'true') {
