@@ -1277,6 +1277,27 @@ body {
   display: flex !important;
 }
 
+/* modal-backdrop — used by confirmModal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+
+.modal-backdrop.active {
+  display: flex;
+}
+
+/* Force-hide confirmModal on load */
+#confirmModal { display: none; }
+#confirmModal.active { display: flex; }
+
 .modal:not(.modal-backdrop > .modal),
 .notification-modal,
 .cart-modal,

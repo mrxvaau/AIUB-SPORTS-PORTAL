@@ -1,81 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tournament Registration – AIUB Sports Portal</title>
-    <meta name="description" content="Register for AIUB Sports Portal tournaments. Browse active tournaments and sign up for your sport.">
-    <link rel="icon" type="image/svg+xml" href="images/logo.svg">
-
-    <!-- Shared + page CSS -->
-    <link rel="stylesheet" href="css/registration.css">
+    <meta http-equiv="refresh" content="0; url=dashboard.html">
+    <title>Redirecting...</title>
+    <script>window.location.replace('dashboard.html');</script>
 </head>
-
 <body>
-
-    <!-- ── Header (injected) ───────────────────────────────── -->
-    <div id="reg-header-container"></div>
-
-    <!-- ── Toast notifications ────────────────────────────── -->
-    <div id="toastContainer" class="toast-container"></div>
-
-    <!-- ── Main content ───────────────────────────────────── -->
-    <div class="container">
-        <div id="loading" class="loading-with-animation">
-            <div class="loading-spinner"></div>
-            <h3>Loading Tournaments</h3>
-            <p>Searching for active tournaments...</p>
-        </div>
-        <div id="noTournaments" class="no-tournaments" style="display:none;">
-            <h2>No Active Tournaments</h2>
-            <p>Check back later for upcoming events!</p>
-        </div>
-        <div id="tournamentsContainer"></div>
-    </div>
-
-    <!-- ── Modals (injected) ──────────────────────────────── -->
-    <div id="reg-modals-container"></div>
-
-    <!-- ── Scripts ────────────────────────────────────────── -->
-    <script src="js/tunnel-config.js"></script>
-    <script src="api-config.js"></script>
-    <script src="js/auth-fetch.js"></script>
-
-    <script>
-        // Load partials before registration logic runs
-        (function loadPartials() {
-            var partials = [
-                { containerId: 'reg-header-container', url: 'partials/reg-header.html' },
-                { containerId: 'reg-modals-container', url:  'partials/reg-modals.html' }
-            ];
-            var loaded = 0;
-            partials.forEach(function(p) {
-                fetch(p.url)
-                    .then(function(r) { return r.text(); })
-                    .then(function(html) {
-                        document.getElementById(p.containerId).innerHTML = html;
-                        loaded++;
-                        if (loaded === partials.length) {
-                            // All partials ready — load main component
-                            var script = document.createElement('script');
-                            script.src = 'js/components/registration-page.js';
-                            document.body.appendChild(script);
-                        }
-                    })
-                    .catch(function(err) {
-                        console.error('Failed to load partial:', p.url, err);
-                        loaded++;
-                        if (loaded === partials.length) {
-                            var script = document.createElement('script');
-                            script.src = 'js/components/registration-page.js';
-                            document.body.appendChild(script);
-                        }
-                    });
-            });
-        })();
-    </script>
-
+    <p>Redirecting to <a href="dashboard.html">dashboard</a>...</p>
 </body>
-
 </html>

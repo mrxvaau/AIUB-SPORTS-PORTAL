@@ -1,9 +1,26 @@
 <!-- ======================================================
      PARTIAL: Modals
-     Contains: Notifications modal, Cart modal,
+     Contains: Confirm modal, Notifications modal, Cart modal,
                bKash payment modal, Team registration modal,
                Replace Member modal, Tournament modal
      ====================================================== -->
+
+<!-- Confirm Modal -->
+<div id="confirmModal" class="modal-backdrop">
+    <div class="modal" style="max-width:480px;">
+        <div class="modal-header" style="background:#1976d2;padding:18px 20px;display:flex;justify-content:space-between;align-items:center;">
+            <div class="modal-title" id="confirmModalTitle" style="font-size:17px;font-weight:600;color:white;">Confirmation</div>
+            <button class="modal-close" type="button" onclick="closeConfirmModal()" style="background:rgba(255,255,255,.15);border:none;color:white;font-size:20px;width:28px;height:28px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;">&times;</button>
+        </div>
+        <div class="modal-body" style="padding:20px;">
+            <p id="confirmModalMessage" style="white-space:pre-line;">Are you sure you want to proceed?</p>
+        </div>
+        <div class="modal-footer" style="padding:14px 20px;background:#f9fafb;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;gap:10px;">
+            <button class="btn-cancel" type="button" onclick="closeConfirmModal()">Cancel</button>
+            <button class="btn-confirm" type="button" id="confirmModalConfirmBtn" style="background:#1976d2;">Confirm</button>
+        </div>
+    </div>
+</div>
 
 <!-- Notifications Modal -->
 <div id="notificationsModal" class="notification-modal">
