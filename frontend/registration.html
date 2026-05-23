@@ -1,12 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0; url=dashboard.html">
-    <title>Redirecting...</title>
-    <script>window.location.replace('dashboard.html');</script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tournament Registration – AIUB Sports Portal</title>
+    <meta name="description" content="Register for AIUB Sports Portal tournaments. Browse active tournaments and sign up for your sport.">
+    <link rel="icon" type="image/svg+xml" href="images/logo.svg">
+
+    <!-- Page CSS — dark/light theme via CSS variables -->
+    <link rel="stylesheet" href="css/registration.css">
 </head>
+
 <body>
-    <p>Redirecting to <a href="dashboard.html">dashboard</a>...</p>
+
+    <!-- ── Header injected from partial ───────────────────── -->
+    <div id="reg-header-container"></div>
+
+    <!-- ── Toast notifications ────────────────────────────── -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- ── Main content ───────────────────────────────────── -->
+    <div class="container">
+        <div id="loading" class="loading-with-animation">
+            <div class="loading-spinner"></div>
+            <h3>Loading Tournaments</h3>
+            <p>Searching for active tournaments...</p>
+        </div>
+        <div id="noTournaments" class="no-tournaments" style="display:none;">
+            <h2>No Active Tournaments</h2>
+            <p>Check back later for upcoming events!</p>
+        </div>
+        <div id="tournamentsContainer"></div>
+    </div>
+
+    <!-- ── Modals injected from partial ───────────────────── -->
+    <div id="reg-modals-container"></div>
+
+    <!-- ── Scripts ────────────────────────────────────────── -->
+    <script src="js/tunnel-config.js"></script>
+    <script src="api-config.js"></script>
+    <script src="js/auth-fetch.js"></script>
+
+    <script>
+        /* Load reg-header + reg-modals partials first,
+           then dynamically inject registration-page.js so
+           all DOM IDs are available before the JS runs.    */
+        (function loadPartials() {
+            var partials = [
+                { id: 'reg-header-container', url: 'partials/reg-header.html' },
+                { id: 'reg-modals-container', url: 'partials/reg-modals.html' }
+            ];
+            var loaded = 0;
+
+            function onAllLoaded() {
+                var s = document.createElement('script');
+                s.src = 'js/components/registration-page.js';
+                document.body.appendChild(s);
+            }
+
+            partials.forEach(function (p) {
+                fetch(p.url)
+                    .then(function (r) { return r.text(); })
+                    .then(function (html) {
+                        document.getElementById(p.id).innerHTML = html;
+                        if (++loaded === partials.length) onAllLoaded();
+                    })
+                    .catch(function (err) {
+                        console.error('[reg] failed to load partial:', p.url, err);
+                        if (++loaded === partials.length) onAllLoaded();
+                    });
+            });
+        })();
+    </script>
+
 </body>
+
 </html>
