@@ -1,0 +1,152 @@
+<!-- ======================================================
+     PARTIAL: Modals
+     Contains: Notifications modal, Cart modal,
+               bKash payment modal, Team registration modal,
+               Replace Member modal, Tournament modal
+     ====================================================== -->
+
+<!-- Notifications Modal -->
+<div id="notificationsModal" class="notification-modal">
+    <div class="notification-modal-content">
+        <div class="notification-modal-header">
+            <span>Notifications</span>
+            <button class="notification-modal-close" onclick="closeNotificationsModal()">&times;</button>
+        </div>
+        <div class="notification-list" id="notificationList">
+            <p>Loading notifications...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Cart Modal -->
+<div id="cartModal" class="cart-modal">
+    <div class="cart-modal-content">
+        <div class="cart-modal-header">
+            <span>Your Cart</span>
+            <button class="cart-modal-close" onclick="closeCartModal()">&times;</button>
+        </div>
+        <div id="cartItemsList">
+            <p>Loading cart items...</p>
+        </div>
+    </div>
+</div>
+
+<!-- bKash Modal -->
+<div id="bkashModal" class="modal">
+    <div class="modal-content" style="max-width: 400px; background: #e2136e; color: white;">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <img src="https://logos-download.com/wp-content/uploads/2022/01/BKash_Logo_icon.png" alt="bKash"
+                style="height: 60px; background: white; padding: 5px; border-radius: 8px;">
+            <h2 style="margin-top: 10px; font-size: 20px;">Merchant Payment</h2>
+        </div>
+        <div style="background: white; padding: 20px; border-radius: 8px; color: #333;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                <span style="color: #666;">Merchant:</span>
+                <span style="font-weight: 600;">AIUB Sports Portal</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-weight: 700; font-size: 18px;">
+                <span>Total Amount:</span>
+                <span>৳<span id="bkashAmount">0</span></span>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-size: 12px; color: #666; margin-bottom: 4px;">Your bKash Account Number</label>
+                <input type="text" id="bkashNumber" placeholder="01XXXXXXXXX"
+                    style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 12px; color: #666; margin-bottom: 4px;">PIN</label>
+                <input type="password" id="bkashPin" placeholder="XXXX"
+                    style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="closeBkashModal()"
+                    style="flex: 1; padding: 10px; background: #eee; border: none; border-radius: 4px; cursor: pointer; color: #333; font-weight: 600;">Cancel</button>
+                <button class="save-btn" onclick="processCheckout()"
+                    style="flex: 1; padding: 10px; background: #e2136e; border: none; border-radius: 4px; cursor: pointer; color: white; font-weight: 600;">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Team Registration Modal -->
+<div id="teamModal" class="team-modal">
+    <div class="team-modal-content">
+        <div class="team-modal-header">
+            <div>
+                <span>Create Team for <span id="modalGameName"></span></span>
+                <div class="team-modal-subtitle" style="font-size: 14px; font-weight: 400; color: #666; margin-top: 5px;"></div>
+            </div>
+            <button class="team-modal-close" onclick="closeTeamModal()">&times;</button>
+        </div>
+        <div class="team-modal-body">
+            <div class="team-form-group">
+                <label class="team-form-label">Team Name</label>
+                <input type="text" id="teamName" class="team-form-input" placeholder="Enter team name" required>
+                <span id="teamNameError" style="display: none; color: #dc2626; font-size: 13px; margin-top: 5px;">⚠️ Team name is required</span>
+            </div>
+            <div class="team-members-container">
+                <h3>Team Members</h3>
+                <div id="teamMembersList"></div>
+                <p class="team-required-msg" style="margin-top: 15px; padding: 12px; background: #fef3c7; border-radius: 6px; color: #92400e; font-size: 14px;"></p>
+            </div>
+        </div>
+        <div class="team-modal-buttons">
+            <button class="btn-cancel" onclick="closeTeamModal()">Cancel</button>
+            <button class="btn-confirm" onclick="createTeam()">Create Team &amp; Register</button>
+        </div>
+    </div>
+</div>
+
+<!-- Replace Member Modal -->
+<div id="replaceMemberModal" class="modal-backdrop" style="display: none; visibility: hidden;">
+    <div class="modal" style="max-width: 450px;">
+        <div class="modal-header" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;">
+            <div class="modal-title">🔄 Replace Team Member</div>
+            <button class="modal-close" type="button" onclick="closeReplaceMemberModal()" style="color: white;">&times;</button>
+        </div>
+        <div class="modal-body" style="padding: 20px;">
+            <div id="currentMemberInfo" style="background: #fef3c7; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
+                <p style="margin: 0; font-size: 14px; color: #92400e;">
+                    <strong>Replacing:</strong> <span id="currentMemberName">Loading...</span>
+                </p>
+            </div>
+            <div class="field" style="margin-bottom: 15px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">New Member's Student ID:</label>
+                <input type="text" id="newMemberStudentId" placeholder="e.g., 23-54919-3"
+                    style="width: 100%; padding: 12px; border: 2px solid #d1d5db; border-radius: 8px; font-size: 15px; transition: border-color 0.2s;"
+                    onfocus="this.style.borderColor='#f59e0b'" onblur="this.style.borderColor='#d1d5db'">
+                <p id="newMemberInfo" style="margin-top: 10px; padding: 10px; background: #ecfdf5; border-radius: 6px; color: #065f46; display: none;"></p>
+                <p id="newMemberError" style="margin-top: 10px; padding: 10px; background: #fef2f2; border-radius: 6px; color: #dc2626; display: none;"></p>
+            </div>
+            <div id="replaceConfirmation" style="background: #fff7ed; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b; display: none;">
+                <p style="margin: 0; font-size: 14px; color: #9a3412;">
+                    ⚠️ <strong>Are you sure?</strong><br>
+                    <span id="confirmationText">This will remove the current member and invite the new member.</span>
+                </p>
+            </div>
+        </div>
+        <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end; padding: 15px 20px; background: #f9fafb; border-top: 1px solid #e5e7eb;">
+            <button class="btn secondary" type="button" onclick="closeReplaceMemberModal()"
+                style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                Cancel
+            </button>
+            <button class="btn primary" type="button" id="confirmReplaceBtn" onclick="confirmReplaceMember()"
+                style="padding: 10px 20px; background: #f59e0b; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                🔄 Replace Member
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Tournament Registration Modal -->
+<div id="tournamentModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">Tournament Registration</div>
+        <div id="modalBody">
+            <p>Loading tournaments...</p>
+        </div>
+        <div class="modal-buttons">
+            <button class="btn-cancel" onclick="closeTournamentModal()">Close</button>
+        </div>
+    </div>
+</div>

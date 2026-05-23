@@ -1505,246 +1505,41 @@
         <div class="bg-blob bg-blob-3"></div>
     </div>
 
-    <!-- Header -->
-    <div class="header">
-        <div class="header-left">
-            <div class="logo-container">
-                <img src="images/logo.svg" alt="AIUB Logo" class="logo-img">
-                <div class="logo-text">
-                    <h1>AIUB</h1>
-                    <p>SPORTS PORTAL</p>
-                </div>
-            </div>
-            <div class="nav-links">
-                <a href="registration.html" class="nav-link">
-                    <span>⚡ Registration</span>
-                </a>
-            </div>
-        </div>
-        <div class="header-right">
-            <!-- Profile name chip (top navbar) -->
-            <div class="nav-avatar-chip">
-                <span class="nav-avatar-name" id="navAvatarName">Welcome</span>
-            </div>
-            <div class="icon-btn" id="adminBtn" style="display: none;" onclick="goToAdmin()">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-            </div>
-            <div class="icon-btn" onclick="openNotificationsModal()">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-                <span class="notification-badge" id="notificationCount">0</span>
-            </div>
-            <div class="icon-btn" onclick="openCartModal()">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                <span class="notification-badge" id="cartItemCount">0</span>
-            </div>
-            <div class="icon-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-            </div>
-            <button class="theme-toggle-btn" onclick="(function(){var h=document.documentElement;var t=h.getAttribute('data-theme')==='light'?'dark':'light';h.setAttribute('data-theme',t);try{localStorage.setItem('dashboardTheme',t)}catch(e){}})()" title="Toggle theme">
-                <svg class="theme-toggle-moon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
-                <svg class="theme-toggle-sun" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-            </button>
-            <div class="icon-btn logout-btn" onclick="logout()">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-            </div>
-        </div>
-    </div>
+    <!-- Partials are fetched at runtime by load-partials.js -->
+    <div id="partial-header"></div>
+    <div id="partial-modals"></div>
 
-    <!-- Notifications Modal -->
-    <div id="notificationsModal" class="notification-modal">
-        <div class="notification-modal-content">
-            <div class="notification-modal-header">
-                <span>Notifications</span>
-                <button class="notification-modal-close" onclick="closeNotificationsModal()">&times;</button>
-            </div>
-            <div class="notification-list" id="notificationList">
-                <p>Loading notifications...</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Cart Modal -->
-    <div id="cartModal" class="cart-modal">
-        <div class="cart-modal-content">
-            <div class="cart-modal-header">
-                <span>Your Cart</span>
-                <button class="cart-modal-close" onclick="closeCartModal()">&times;</button>
-            </div>
-            <div id="cartItemsList">
-                <p>Loading cart items...</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Container -->
+    <!-- Main Layout -->
     <div class="main-container">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <!-- Sidebar user profile card -->
-            <div id="sidebarUserCard">
-                <img id="sidebarUserPhoto" src="images/logo.svg" alt="Profile">
-                <div id="sidebarUserName">Loading...</div>
-                <div id="sidebarUserRole">Student</div>
-            </div>
-            <button class="sidebar-btn" onclick="showSection('homeSection')">
-                <div class="sidebar-btn-content">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                    </svg>
-                    <span>Dashboard</span>
-                </div>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"
-                    height="16">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-            </button>
-            <button class="sidebar-btn" onclick="window.location.href='registration.html'">
-                <div class="sidebar-btn-content">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                    </svg>
-                    <span>Registration</span>
-                </div>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"
-                    height="16">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-            </button>
-            <button class="sidebar-btn" onclick="showSection('notificationSection')">
-                <div class="sidebar-btn-content">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                    </svg>
-                    <span>Notifications</span>
-                </div>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"
-                    height="16">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-            </button>
-            <button class="sidebar-btn" onclick="showSection('paymentSection')" style="cursor: pointer;">
-                <div class="sidebar-btn-content">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                    </svg>
-                    <span>Payment</span>
-                </div>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"
-                    height="16">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </button>
-            <button class="sidebar-btn" onclick="showSection('featuredSection')">
-                <div class="sidebar-btn-content">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                    </svg>
-                    <span>Featured</span>
-                </div>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"
-                    height="16">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-            </button>
-            <button class="sidebar-btn" onclick="showSection('messageSection')">
-                <div class="sidebar-btn-content">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
-                    </svg>
-                    <span>Messages</span>
-                </div>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"
-                    height="16">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-            </button>
-            <button class="sidebar-btn" onclick="showSection('reportSection')">
-                <div class="sidebar-btn-content">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>Bug Report</span>
-                </div>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"
-                    height="16">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-            </button>
-            <button class="sidebar-btn" onclick="showSection('leaderboardSection')" style="background: #065f46;">
-                <div class="sidebar-btn-content">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                    </svg>
-                    <span>Leaderboard</span>
-                </div>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"
-                    height="16">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </button>
-        </div>
+        <div id="partial-sidebar"></div>
 
-        <!-- Content -->
         <div class="content">
-            <!-- Home Section -->
+
+            <!-- ===== HOME SECTION ===== -->
             <div id="homeSection" class="content-section">
-                <!-- Announcement -->
                 <div class="announcement">
-                    <p>Dear Students & Faculty members, Welcome to the new AIUB Sports Portal. This platform is designed
-                        to
-                        make your sports activities easier to access, manage, and enjoy. Stay updated, stay connected,
-                        and
-                        be a part of AIUB's growing sports community.</p>
+                    <p>Dear Students &amp; Faculty members, Welcome to the new AIUB Sports Portal. This platform is
+                        designed to make your sports activities easier to access, manage, and enjoy. Stay updated,
+                        stay connected, and be a part of AIUB's growing sports community.</p>
                 </div>
 
-                <!-- Alert Box -->
                 <div id="alertBox" class="hidden"></div>
 
-                <!-- Player Info Card -->
                 <div class="player-card">
                     <div class="card-header">
                         <span></span>
                         <div id="editButtons">
                             <button class="edit-btn" onclick="enableEdit()">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                 </svg>
                                 Edit Profile
                             </button>
                         </div>
                         <div id="saveButtons" class="hidden">
                             <button class="save-btn" onclick="saveProfile()">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M5 13l4 4L19 7" />
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                 </svg>
                                 Save
                             </button>
@@ -1753,46 +1548,35 @@
                     </div>
 
                     <div class="player-info-grid">
-                        <!-- Left Column -->
                         <div class="info-field">
-                            <label class="info-label">Player Name <span id="nameBadge"
-                                    class="editable-badge">EDITABLE</span></label>
+                            <label class="info-label">Player Name <span id="nameBadge" class="editable-badge">EDITABLE</span></label>
                             <input type="text" id="fullName" class="info-input" disabled>
-                            <div id="nameWarning" class="hidden"
-                                style="margin-top: 4px; font-size: 12px; color: #dc2626;">
-                            </div>
+                            <div id="nameWarning" class="hidden" style="margin-top:4px;font-size:12px;color:#dc2626;"></div>
                         </div>
-
                         <div class="info-field">
                             <label class="info-label">Program <span class="locked-badge">LOCKED</span></label>
                             <input type="text" id="programLevel" class="info-input" disabled>
                         </div>
-
                         <div class="info-field">
                             <label class="info-label">Player ID <span class="locked-badge">LOCKED</span></label>
                             <input type="text" id="studentId" class="info-input" disabled>
                         </div>
-
                         <div class="info-field">
                             <label class="info-label">Department <span class="locked-badge">LOCKED</span></label>
                             <input type="text" id="department" class="info-input" disabled>
                         </div>
-
                         <div class="info-field">
                             <label class="info-label">Player Email <span class="locked-badge">LOCKED</span></label>
                             <input type="text" id="email" class="info-input" disabled>
                         </div>
-
                         <div class="info-field">
                             <label class="info-label">Number <span class="editable-badge">EDITABLE</span></label>
                             <input type="text" id="phoneNumber" class="info-input" disabled>
                         </div>
-
                         <div class="info-field">
                             <label class="info-label">Gender <span class="locked-badge">LOCKED</span></label>
                             <input type="text" id="gender" class="info-input" disabled>
                         </div>
-
                         <div class="info-field">
                             <label class="info-label">Blood Group <span class="editable-badge">EDITABLE</span></label>
                             <select id="bloodGroup" class="info-input" disabled>
@@ -1810,2500 +1594,222 @@
                     </div>
                 </div>
 
-                <!-- Registration Message -->
                 <div id="registrationMessage" class="warning-box">
                     <p>Loading available tournaments...</p>
                 </div>
 
-                <!-- Action Button -->
                 <div class="action-button">
-                    <button id="registerBtn" class="disabled-btn" onclick="goToRegistration()" disabled>Registration is
-                        closed</button>
+                    <button id="registerBtn" class="disabled-btn" onclick="goToRegistration()" disabled>
+                        Registration is closed
+                    </button>
                 </div>
 
-                <!-- Game Schedule -->
-                <div class="schedule-card" style="margin-top: 20px;">
-                    <div class="schedule-header">
-                        <h2>Game Schedule</h2>
-                    </div>
+                <div class="schedule-card" style="margin-top:20px;">
+                    <div class="schedule-header"><h2>Game Schedule</h2></div>
                     <div class="schedule-body">
                         <div id="scheduleContentHome">
-                            <div style="text-align:center; padding:20px; color:#6b7280;">Loading schedule...</div>
+                            <div style="text-align:center;padding:20px;color:#6b7280;">Loading schedule...</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Registration Section -->
+            <!-- ===== REGISTRATION SECTION ===== -->
             <div id="registrationSection" class="content-section" style="display:none;">
-                <h2 style="margin-bottom: 20px; font-size: 24px; color: #1e3a8a;">Tournament Registration</h2>
-
-
-                <div id="registrationContent">
-                    <!-- Dynamic Content -->
-                </div>
-
-                <!-- Game Schedule (Moved) -->
-                <div class="schedule-card" style="margin-top: 20px; margin-bottom: 20px;">
-                    <div class="schedule-header">
-                        <h2>Game Schedule</h2>
-                    </div>
+                <h2 style="margin-bottom:20px;font-size:24px;color:#1e3a8a;">Tournament Registration</h2>
+                <div id="registrationContent"></div>
+                <div class="schedule-card" style="margin-top:20px;margin-bottom:20px;">
+                    <div class="schedule-header"><h2>Game Schedule</h2></div>
                     <div class="schedule-body">
                         <div id="scheduleContent">
-                            <div style="text-align:center; padding:20px; color:#6b7280;">Loading schedule...</div>
+                            <div style="text-align:center;padding:20px;color:#6b7280;">Loading schedule...</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Payment Section -->
+            <!-- ===== PAYMENT SECTION ===== -->
             <div id="paymentSection" class="content-section" style="display:none;">
-                <h2 style="margin-bottom: 20px; font-size: 24px; color: #1e3a8a;">Payment History</h2>
-                <div id="paymentContent">
-                    <!-- Dynamic Content -->
-                </div>
+                <h2 style="margin-bottom:20px;font-size:24px;color:#1e3a8a;">Payment History</h2>
+                <div id="paymentContent"></div>
             </div>
 
-            <!-- Notification Section -->
+            <!-- ===== NOTIFICATION SECTION ===== -->
             <div id="notificationSection" class="content-section" style="display:none;">
-                <h2 style="margin-bottom: 20px; font-size: 24px; color: #1e3a8a;">Notifications</h2>
-                <div id="notificationContent" class="notification-list">
-                    <!-- Dynamic Content -->
-                </div>
+                <h2 style="margin-bottom:20px;font-size:24px;color:#1e3a8a;">Notifications</h2>
+                <div id="notificationContent" class="notification-list"></div>
             </div>
 
-            <!-- Placeholders -->
-            <div id="featuredSection" class="content-section" style="display:none; text-align: center; padding: 50px;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="none" viewBox="0 0 24 24"
-                    stroke="#d1d5db">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+            <!-- ===== FEATURED PLACEHOLDER ===== -->
+            <div id="featuredSection" class="content-section" style="display:none;text-align:center;padding:50px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="none" viewBox="0 0 24 24" stroke="#d1d5db">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                 </svg>
-                <h3 style="margin-top: 20px; color: #6b7280;">Featured Content</h3>
-                <p style="color: #9ca3af;">Coming Soon...</p>
+                <h3 style="margin-top:20px;color:#6b7280;">Featured Content</h3>
+                <p style="color:#9ca3af;">Coming Soon...</p>
             </div>
 
             <!-- ===== MESSAGE SECTION ===== -->
             <div id="messageSection" class="content-section" style="display:none;">
-              <div style="max-width:680px;">
-                <h2 style="font-size:22px;font-weight:700;color:#1e3a8a;margin-bottom:6px;">📬 Send a Message</h2>
-                <p style="color:#6b7280;font-size:13px;margin-bottom:24px;">Have a question, suggestion, or need help? Send us a message and we'll get back to you.</p>
-
-                <div id="msg-toast" style="display:none;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:13px;font-weight:500;"></div>
-
-                <form id="msgForm" onsubmit="submitMessage(event)" style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:16px;">
-                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-                    <div>
-                      <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">Full Name *</label>
-                      <input id="msg-name" type="text" required placeholder="Your full name"
-                        style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;" />
+                <div style="max-width:680px;">
+                    <h2 style="font-size:22px;font-weight:700;color:#1e3a8a;margin-bottom:6px;">&#128236; Send a Message</h2>
+                    <p style="color:#6b7280;font-size:13px;margin-bottom:24px;">Have a question, suggestion, or need help? Send us a message and we'll get back to you.</p>
+                    <div id="msg-toast" style="display:none;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:13px;font-weight:500;"></div>
+                    <form id="msgForm" onsubmit="submitMessage(event)" style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:16px;">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                            <div>
+                                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">Full Name *</label>
+                                <input id="msg-name" type="text" required placeholder="Your full name" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;" />
+                            </div>
+                            <div>
+                                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">Email *</label>
+                                <input id="msg-email" type="email" required placeholder="your@email.com" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;" />
+                            </div>
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">Subject *</label>
+                            <input id="msg-subject" type="text" required placeholder="Brief subject of your message" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;" />
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">Message *</label>
+                            <textarea id="msg-body" required rows="5" placeholder="Type your message here..." style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;resize:vertical;font-family:inherit;"></textarea>
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">Attachment <span style="font-weight:400;color:#9ca3af;">(optional &middot; image or PDF &middot; max 10 MB)</span></label>
+                            <input id="msg-file" type="file" accept="image/*,.pdf" style="width:100%;padding:8px 12px;border:1px dashed #d1d5db;border-radius:8px;font-size:12px;background:#f9fafb;cursor:pointer;" onchange="validateFile(this,'msg-file-info')" />
+                            <p id="msg-file-info" style="font-size:11px;color:#6b7280;margin-top:4px;"></p>
+                        </div>
+                        <button type="submit" id="msg-submit-btn" style="background:#1e3a8a;color:#fff;padding:11px 24px;border-radius:8px;font-size:14px;font-weight:600;border:none;cursor:pointer;align-self:flex-start;transition:background 0.2s;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#1e3a8a'">
+                            Send Message &rarr;
+                        </button>
+                    </form>
+                    <div style="margin-top:28px;">
+                        <h3 style="font-size:16px;font-weight:600;color:#1e3a8a;margin-bottom:12px;">My Submitted Messages</h3>
+                        <div id="my-messages-list" style="display:flex;flex-direction:column;gap:10px;">
+                            <p style="color:#9ca3af;font-size:13px;">Loading...</p>
+                        </div>
                     </div>
-                    <div>
-                      <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">Email *</label>
-                      <input id="msg-email" type="email" required placeholder="your@email.com"
-                        style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;" />
-                    </div>
-                  </div>
-                  <div>
-                    <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">Subject *</label>
-                    <input id="msg-subject" type="text" required placeholder="Brief subject of your message"
-                      style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;" />
-                  </div>
-                  <div>
-                    <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">Message *</label>
-                    <textarea id="msg-body" required rows="5" placeholder="Type your message here..."
-                      style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;resize:vertical;font-family:inherit;"></textarea>
-                  </div>
-                  <div>
-                    <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">Attachment <span style="font-weight:400;color:#9ca3af;">(optional · image or PDF · max 10 MB)</span></label>
-                    <input id="msg-file" type="file" accept="image/*,.pdf"
-                      style="width:100%;padding:8px 12px;border:1px dashed #d1d5db;border-radius:8px;font-size:12px;background:#f9fafb;cursor:pointer;"
-                      onchange="validateFile(this,'msg-file-info')" />
-                    <p id="msg-file-info" style="font-size:11px;color:#6b7280;margin-top:4px;"></p>
-                  </div>
-                  <button type="submit" id="msg-submit-btn"
-                    style="background:#1e3a8a;color:#fff;padding:11px 24px;border-radius:8px;font-size:14px;font-weight:600;border:none;cursor:pointer;align-self:flex-start;transition:background 0.2s;"
-                    onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#1e3a8a'">
-                    Send Message →
-                  </button>
-                </form>
-
-                <!-- My previous messages -->
-                <div style="margin-top:28px;">
-                  <h3 style="font-size:16px;font-weight:600;color:#1e3a8a;margin-bottom:12px;">My Submitted Messages</h3>
-                  <div id="my-messages-list" style="display:flex;flex-direction:column;gap:10px;">
-                    <p style="color:#9ca3af;font-size:13px;">Loading...</p>
-                  </div>
                 </div>
-              </div>
             </div>
 
             <!-- ===== BUG REPORT SECTION ===== -->
             <div id="reportSection" class="content-section" style="display:none;">
-              <div style="max-width:680px;">
-                <h2 style="font-size:22px;font-weight:700;color:#1e3a8a;margin-bottom:6px;">🐛 Report a Bug / Issue</h2>
-                <p style="color:#6b7280;font-size:13px;margin-bottom:24px;">Found something broken? Help us fix it by filling out this report. Screenshots are very helpful!</p>
-
-                <div id="bug-toast" style="display:none;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:13px;font-weight:500;"></div>
-
-                <form id="bugForm" onsubmit="submitBugReport(event)" style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:16px;">
-                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-                    <div>
-                      <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">Full Name *</label>
-                      <input id="bug-name" type="text" required placeholder="Your full name"
-                        style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;" />
+                <div style="max-width:680px;">
+                    <h2 style="font-size:22px;font-weight:700;color:#1e3a8a;margin-bottom:6px;">&#128027; Report a Bug / Issue</h2>
+                    <p style="color:#6b7280;font-size:13px;margin-bottom:24px;">Found something broken? Help us fix it by filling out this report. Screenshots are very helpful!</p>
+                    <div id="bug-toast" style="display:none;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:13px;font-weight:500;"></div>
+                    <form id="bugForm" onsubmit="submitBugReport(event)" style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:16px;">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                            <div>
+                                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">Full Name *</label>
+                                <input id="bug-name" type="text" required placeholder="Your full name" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;" />
+                            </div>
+                            <div>
+                                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">Email *</label>
+                                <input id="bug-email" type="email" required placeholder="your@email.com" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;" />
+                            </div>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                            <div>
+                                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">Category *</label>
+                                <select id="bug-category" required style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;background:#fff;">
+                                    <option value="">Select category...</option>
+                                    <option value="ui">UI / Display Issue</option>
+                                    <option value="login">Login / Auth</option>
+                                    <option value="registration">Registration</option>
+                                    <option value="payment">Payment</option>
+                                    <option value="performance">Performance / Speed</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">Severity *</label>
+                                <select id="bug-severity" required style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;background:#fff;">
+                                    <option value="">Select severity...</option>
+                                    <option value="low">&#128994; Low &mdash; Minor cosmetic issue</option>
+                                    <option value="medium">&#128993; Medium &mdash; Feature partially broken</option>
+                                    <option value="high">&#128992; High &mdash; Feature completely broken</option>
+                                    <option value="critical">&#128308; Critical &mdash; App unusable</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">Bug Title *</label>
+                            <input id="bug-title" type="text" required placeholder="Short description of the bug" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;" />
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">Description *</label>
+                            <textarea id="bug-desc" required rows="4" placeholder="Describe the issue in detail..." style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;resize:vertical;font-family:inherit;"></textarea>
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">Steps to Reproduce <span style="font-weight:400;color:#9ca3af;">(optional)</span></label>
+                            <textarea id="bug-steps" rows="3" placeholder="1. Go to...&#10;2. Click on...&#10;3. See error" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;resize:vertical;font-family:inherit;"></textarea>
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">Screenshot / Attachment <span style="font-weight:400;color:#9ca3af;">(optional &middot; image or PDF &middot; max 10 MB)</span></label>
+                            <input id="bug-file" type="file" accept="image/*,.pdf" style="width:100%;padding:8px 12px;border:1px dashed #d1d5db;border-radius:8px;font-size:12px;background:#f9fafb;cursor:pointer;" onchange="validateFile(this,'bug-file-info')" />
+                            <p id="bug-file-info" style="font-size:11px;color:#6b7280;margin-top:4px;"></p>
+                        </div>
+                        <button type="submit" id="bug-submit-btn" style="background:#dc2626;color:#fff;padding:11px 24px;border-radius:8px;font-size:14px;font-weight:600;border:none;cursor:pointer;align-self:flex-start;transition:background 0.2s;" onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">
+                            Submit Bug Report &rarr;
+                        </button>
+                    </form>
+                    <div style="margin-top:28px;">
+                        <h3 style="font-size:16px;font-weight:600;color:#1e3a8a;margin-bottom:12px;">My Submitted Reports</h3>
+                        <div id="my-bugs-list" style="display:flex;flex-direction:column;gap:10px;">
+                            <p style="color:#9ca3af;font-size:13px;">Loading...</p>
+                        </div>
                     </div>
-                    <div>
-                      <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">Email *</label>
-                      <input id="bug-email" type="email" required placeholder="your@email.com"
-                        style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;" />
-                    </div>
-                  </div>
-                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-                    <div>
-                      <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">Category *</label>
-                      <select id="bug-category" required style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;background:#fff;">
-                        <option value="">Select category...</option>
-                        <option value="ui">UI / Display Issue</option>
-                        <option value="login">Login / Auth</option>
-                        <option value="registration">Registration</option>
-                        <option value="payment">Payment</option>
-                        <option value="performance">Performance / Speed</option>
-                        <option value="other">Other</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">Severity *</label>
-                      <select id="bug-severity" required style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;background:#fff;">
-                        <option value="">Select severity...</option>
-                        <option value="low">🟢 Low — Minor cosmetic issue</option>
-                        <option value="medium">🟡 Medium — Feature partially broken</option>
-                        <option value="high">🟠 High — Feature completely broken</option>
-                        <option value="critical">🔴 Critical — App unusable</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div>
-                    <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">Bug Title *</label>
-                    <input id="bug-title" type="text" required placeholder="Short description of the bug"
-                      style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;" />
-                  </div>
-                  <div>
-                    <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">Description *</label>
-                    <textarea id="bug-desc" required rows="4" placeholder="Describe the issue in detail..."
-                      style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;resize:vertical;font-family:inherit;"></textarea>
-                  </div>
-                  <div>
-                    <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">Steps to Reproduce <span style="font-weight:400;color:#9ca3af;">(optional)</span></label>
-                    <textarea id="bug-steps" rows="3" placeholder="1. Go to...&#10;2. Click on...&#10;3. See error"
-                      style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;resize:vertical;font-family:inherit;"></textarea>
-                  </div>
-                  <div>
-                    <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">Screenshot / Attachment <span style="font-weight:400;color:#9ca3af;">(optional · image or PDF · max 10 MB)</span></label>
-                    <input id="bug-file" type="file" accept="image/*,.pdf"
-                      style="width:100%;padding:8px 12px;border:1px dashed #d1d5db;border-radius:8px;font-size:12px;background:#f9fafb;cursor:pointer;"
-                      onchange="validateFile(this,'bug-file-info')" />
-                    <p id="bug-file-info" style="font-size:11px;color:#6b7280;margin-top:4px;"></p>
-                  </div>
-                  <button type="submit" id="bug-submit-btn"
-                    style="background:#dc2626;color:#fff;padding:11px 24px;border-radius:8px;font-size:14px;font-weight:600;border:none;cursor:pointer;align-self:flex-start;transition:background 0.2s;"
-                    onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">
-                    Submit Bug Report →
-                  </button>
-                </form>
-
-                <!-- My previous reports -->
-                <div style="margin-top:28px;">
-                  <h3 style="font-size:16px;font-weight:600;color:#1e3a8a;margin-bottom:12px;">My Submitted Reports</h3>
-                  <div id="my-bugs-list" style="display:flex;flex-direction:column;gap:10px;">
-                    <p style="color:#9ca3af;font-size:13px;">Loading...</p>
-                  </div>
                 </div>
-              </div>
             </div>
 
-            <!-- Leaderboard Section -->
+            <!-- ===== LEADERBOARD SECTION ===== -->
             <div id="leaderboardSection" class="content-section" style="display:none;">
-                <h2 style="margin-bottom: 20px; font-size: 24px; color: #1e3a8a;">Match Results & Leaderboard</h2>
+                <h2 style="margin-bottom:20px;font-size:24px;color:#1e3a8a;">Match Results &amp; Leaderboard</h2>
                 <div id="leaderboardContent">
-                    <div style="text-align:center; padding:40px; color:#6b7280;">
+                    <div style="text-align:center;padding:40px;color:#6b7280;">
                         <div class="spinner"></div>
                         <p>Loading match results...</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Tournament Registration Modal -->
-            <div id="tournamentModal" class="modal hidden">
-                <div class="modal-content">
-                    <div class="modal-header">Tournament Registration</div>
-                    <div id="modalBody">
-                        <p>Loading tournaments...</p>
-                    </div>
-                    <div class="modal-buttons">
-                        <button class="btn-cancel" onclick="closeTournamentModal()">Close</button>
-                    </div>
-                </div>
-            </div>
-
-
-        </div>
-    </div>
+        </div><!-- /.content -->
+    </div><!-- /.main-container -->
 
     <!-- Welcome Screen -->
     <div id="welcomeScreen" class="welcome-overlay">
         <div class="welcome-content">
-            <div class="welcome-icon">🎉</div>
+            <div class="welcome-icon">&#127881;</div>
             <div class="welcome-title">Welcome!</div>
             <div class="welcome-message" id="welcomeName"></div>
         </div>
     </div>
 
+    <!-- =======================================================
+         Scripts — load order matters:
+         1. Tunnel / API config
+         2. Auth fetch helper
+         3. Partial loader (injects header, sidebar, modals)
+         4. Feature components (one file per feature area)
+         5. App bootstrap (last — registers DOMContentLoaded)
+         ======================================================= -->
     <script src="js/tunnel-config.js"></script>
     <script src="api-config.js"></script>
     <script src="js/auth-fetch.js"></script>
-    <script>
-        const API_URL = (typeof API_CONFIG !== 'undefined' && API_CONFIG.API_BASE_URL) ? API_CONFIG.API_BASE_URL : (window.API_URL || '/api');
-        let currentUser = null;
-        let originalData = null;
-        let isEditing = false;
 
-        // Load user profile
-        async function loadProfile() {
-            try {
-                const studentId = localStorage.getItem('studentId');
-                const email = localStorage.getItem('userEmail');
+    <script src="js/components/load-partials.js"></script>
 
-                if (!studentId || !email) {
-                    window.location.href = 'login.html';
-                    return;
-                }
+    <script src="js/components/profile.js"></script>
+    <script src="js/components/notifications.js"></script>
+    <script src="js/components/cart.js"></script>
+    <script src="js/components/registration.js"></script>
+    <script src="js/components/payment.js"></script>
+    <script src="js/components/schedule.js"></script>
+    <script src="js/components/leaderboard.js"></script>
+    <script src="js/components/messaging.js"></script>
 
-                // Check if admin
-                try {
-                    const adminCheck = await authFetch(`${API_URL}/admin/check-admin`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ email })
-                    });
-                    const adminData = await adminCheck.json();
-                    console.log('Admin check result:', adminData);
+    <script src="js/components/app.js"></script>
 
-                    if (adminData.success && adminData.isAdmin === true) {
-                        console.log('User is admin!');
-                        document.getElementById('adminBtn').style.display = 'block';
-                        localStorage.setItem('isAdmin', 'true');
-                        localStorage.setItem('adminRole', adminData.role || 'ADMIN');
-                    } else {
-                        console.log('User is not an admin or admin check failed');
-                        document.getElementById('adminBtn').style.display = 'none';
-                        localStorage.removeItem('isAdmin');
-                        localStorage.removeItem('adminRole');
-                    }
-                } catch (err) {
-                    console.log('Admin check failed:', err);
-                    document.getElementById('adminBtn').style.display = 'none';
-                    localStorage.removeItem('isAdmin');
-                    localStorage.removeItem('adminRole');
-                }
-
-                // Use the new dashboard endpoint for profile data
-                const response = await authFetch(`${API_URL}/dashboard/profile/${studentId}`);
-                const data = await response.json();
-
-                if (data.success && data.profile) {
-                    currentUser = data.profile;
-                    originalData = { ...data.profile };
-                    displayProfile(data.profile);
-
-                    // Update navbar avatar chip & sidebar user card
-                    updateUserPhotoUI(data.profile);
-                }
-            } catch (error) {
-                console.error('Error loading profile:', error);
-                showAlert('Error loading profile', 'error');
-            }
-        }
-
-        // Display profile data
-        function displayProfile(user) {
-            document.getElementById('studentId').value = user.student_id || '';
-            document.getElementById('email').value = user.email || '';
-            document.getElementById('fullName').value = user.full_name || '';
-            document.getElementById('gender').value = user.gender || '';
-            document.getElementById('phoneNumber').value = user.phone_number || '';
-            document.getElementById('bloodGroup').value = user.blood_group || '';
-            document.getElementById('programLevel').value = user.program_level || '';
-            document.getElementById('department').value = user.department || '';
-            // Refresh photo UI whenever profile is displayed
-            updateUserPhotoUI(user);
-
-            // Update name edit badge
-            updateNameBadge(user.name_edit_count || 0);
-        }
-
-        // Update name edit badge
-        function updateNameBadge(editCount) {
-            const badge = document.getElementById('nameBadge');
-            const remaining = 3 - editCount;
-
-            if (editCount >= 3) {
-                badge.className = 'locked-badge';
-                badge.textContent = 'LOCKED';
-            } else if (editCount > 0) {
-                badge.className = 'editable-badge';
-                badge.textContent = `${remaining} EDIT${remaining > 1 ? 'S' : ''} LEFT`;
-            } else {
-                badge.className = 'editable-badge';
-                badge.textContent = 'EDITABLE';
-            }
-        }
-
-        // Populate navbar avatar chip & sidebar user card from DB user record
-        function updateUserPhotoUI(user) {
-            const FALLBACK = 'images/logo.svg';
-            const photoUrl = user.profile_photo_url
-                || localStorage.getItem('profilePhotoUrl')
-                || FALLBACK;
-
-            // Navbar chip
-            const navImg = document.getElementById('navAvatarImg');
-            const navName = document.getElementById('navAvatarName');
-            if (navImg) {
-                navImg.src = photoUrl;
-                navImg.onerror = () => { navImg.src = FALLBACK; };
-            }
-            if (navName) {
-                const firstName = (user.full_name || user.student_id || 'User').split(' ')[0];
-                navName.textContent = firstName;
-            }
-
-            // Sidebar card
-            const sideImg = document.getElementById('sidebarUserPhoto');
-            const sideName = document.getElementById('sidebarUserName');
-            const sideRole = document.getElementById('sidebarUserRole');
-            if (sideImg) {
-                sideImg.src = photoUrl;
-                sideImg.onerror = () => { sideImg.src = FALLBACK; };
-            }
-            if (sideName) {
-                sideName.textContent = user.full_name || user.student_id || 'User';
-            }
-            if (sideRole) {
-                const roleMap = { student: 'Student', faculty: 'Faculty', official: 'Official' };
-                sideRole.textContent = roleMap[user.role] || (user.role || 'Member');
-            }
-        }
-
-
-        function enableEdit() {
-            isEditing = true;
-
-            // Add editing class to show badges
-            document.querySelector('.player-info-grid').classList.add('editing');
-
-            // Enable editable fields
-            const nameEditCount = currentUser.name_edit_count || 0;
-            if (nameEditCount < 3) {
-                document.getElementById('fullName').disabled = false;
-            } else {
-                document.getElementById('nameWarning').textContent = '❌ Name edit limit reached!';
-                document.getElementById('nameWarning').classList.remove('hidden');
-            }
-
-            document.getElementById('phoneNumber').disabled = false;
-            document.getElementById('bloodGroup').disabled = false;
-
-            // Toggle buttons
-            document.getElementById('editButtons').classList.add('hidden');
-            document.getElementById('saveButtons').classList.remove('hidden');
-        }
-
-        // Cancel edit
-        function cancelEdit() {
-            isEditing = false;
-            displayProfile(originalData);
-
-            // Remove editing class
-            document.querySelector('.player-info-grid').classList.remove('editing');
-
-            // Disable all inputs
-            document.getElementById('fullName').disabled = true;
-            document.getElementById('phoneNumber').disabled = true;
-            document.getElementById('bloodGroup').disabled = true;
-
-            // Toggle buttons
-            document.getElementById('editButtons').classList.remove('hidden');
-            document.getElementById('saveButtons').classList.add('hidden');
-            document.getElementById('nameWarning').classList.add('hidden');
-        }
-
-        // Save profile
-        async function saveProfile() {
-            try {
-                const studentId = localStorage.getItem('studentId');
-
-                const formData = {
-                    fullName: document.getElementById('fullName').value.trim(),
-                    gender: currentUser.gender,
-                    phoneNumber: document.getElementById('phoneNumber').value.trim(),
-                    bloodGroup: document.getElementById('bloodGroup').value,
-                    programLevel: currentUser.program_level,
-                    department: currentUser.department,
-                    isFirstTime: false
-                };
-
-                // Validate
-                if (!formData.fullName || !formData.phoneNumber || !formData.bloodGroup) {
-                    showAlert('Please fill in all required fields', 'error');
-                    return;
-                }
-
-                // Show loading
-                const saveBtn = document.querySelector('.save-btn');
-                const originalText = saveBtn.innerHTML;
-                saveBtn.innerHTML = '<span class="spinner"></span> Saving...';
-                saveBtn.disabled = true;
-
-                const response = await authFetch(`${API_URL}/user/profile/${studentId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    showAlert('Profile updated successfully!', 'success');
-                    currentUser = data.user;
-                    originalData = { ...data.user };
-                    displayProfile(data.user);
-                    cancelEdit();
-                } else {
-                    showAlert(data.message || 'Failed to update profile', 'error');
-                }
-
-                saveBtn.innerHTML = originalText;
-                saveBtn.disabled = false;
-
-            } catch (error) {
-                console.error('Update error:', error);
-                showAlert('Connection error. Please try again.', 'error');
-            }
-        }
-
-        // Show alert
-        function showAlert(message, type) {
-            const alertBox = document.getElementById('alertBox');
-            alertBox.className = `alert alert-${type}`;
-            alertBox.textContent = message;
-            alertBox.classList.remove('hidden');
-
-            setTimeout(() => {
-                alertBox.classList.add('hidden');
-            }, 5000);
-        }
-
-        // Logout
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                localStorage.clear();
-                window.location.href = 'login.html';
-            }
-        }
-
-        function goToAdmin() {
-            window.location.href = 'admin-dashboard.html';
-        }
-
-        // Load available tournaments for registration
-        async function loadAvailableTournaments() {
-            try {
-                const studentId = localStorage.getItem('studentId');
-
-                // Use the new dashboard endpoint
-                const response = await authFetch(`${API_URL}/dashboard/tournaments/${studentId}`);
-                const data = await response.json();
-
-                if (data.success && data.tournaments && data.tournaments.length > 0) {
-                    // Enable registration button
-                    document.getElementById('registerBtn').disabled = false;
-                    document.getElementById('registerBtn').textContent = 'Registration';
-                    document.getElementById('registerBtn').className = 'active-registration-btn'; // Use the red active button class
-
-                    // Update message
-                    document.getElementById('registrationMessage').innerHTML =
-                        '<p>Registration is now open! Click the button to register for tournaments.</p>';
-                } else {
-                    // No tournaments available
-                    document.getElementById('registerBtn').disabled = true;
-                    document.getElementById('registerBtn').textContent = 'Registration Closed';
-                    document.getElementById('registrationMessage').innerHTML =
-                        '<p>No tournaments available for registration at the moment.</p>';
-                }
-            } catch (error) {
-                console.error('Load tournaments error:', error);
-                document.getElementById('registerBtn').disabled = true;
-                document.getElementById('registrationMessage').innerHTML =
-                    '<p>Error loading tournament information. Please try again later.</p>';
-            }
-        }
-
-        // Go to registration page
-        function goToRegistration() {
-            window.location.href = 'registration.html';
-        }
-
-        // View tournament details (placeholder function)
-        function viewTournamentDetails(tournamentId) {
-            // For now, just open the modal to see the tournament
-            openTournamentModal();
-        }
-
-        // Open tournament registration modal
-        async function openTournamentModal() {
-            try {
-                document.getElementById('tournamentModal').classList.remove('hidden');
-
-                const modalBody = document.getElementById('modalBody');
-                modalBody.innerHTML = '<p>Loading tournaments...</p>';
-
-                const studentId = localStorage.getItem('studentId');
-                const response = await authFetch(`${API_URL}/dashboard/tournaments/${studentId}`);
-                const data = await response.json();
-
-                if (data.success && data.tournaments && data.tournaments.length > 0) {
-                    let html = '';
-
-                    data.tournaments.forEach(tournament => {
-                        html += `
-                            <div class="tournament-item">
-                                <div class="tournament-title">${tournament.title}</div>
-                                <div class="tournament-deadline">Registration Deadline: ${tournament.deadline}</div>
-                                <button class="edit-btn" style="margin-top: 10px;" onclick="loadTournamentGames(${tournament.id})">View Games</button>
-                                <div id="games-${tournament.id}" class="game-list" style="display: none;"></div>
-                            </div>
-                        `;
-                    });
-
-                    modalBody.innerHTML = html;
-                } else {
-                    modalBody.innerHTML = '<p>No tournaments available for registration.</p>';
-                }
-            } catch (error) {
-                console.error('Open tournament modal error:', error);
-                document.getElementById('modalBody').innerHTML = '<p>Error loading tournaments. Please try again.</p>';
-            }
-        }
-
-        // Load games for a specific tournament
-        async function loadTournamentGames(tournamentId) {
-            try {
-                const gamesContainer = document.getElementById(`games-${tournamentId}`);
-
-                // Show loading
-                gamesContainer.style.display = 'block';
-                gamesContainer.innerHTML = '<p>Loading games...</p>';
-
-                const response = await authFetch(`${API_URL}/tournaments/${tournamentId}/games`);
-                const data = await response.json();
-
-                if (data.success && data.games && data.games.length > 0) {
-                    let html = '<h3 style="margin: 10px 0 15px 0;">Available Games:</h3><div>';
-
-                    data.games.forEach(game => {
-                        html += `
-                            <div class="game-item">
-                                <div class="game-info">
-                                    <div class="game-name">${game.game_name}</div>
-                                    <div class="game-category">${game.category} • ${game.game_type} • ${game.fee_per_person} BDT</div>
-                                </div>
-                                <button class="register-game-btn" onclick="registerForGame(${game.id})">Register</button>
-                            </div>
-                        `;
-                    });
-
-                    html += '</div>';
-                    gamesContainer.innerHTML = html;
-                } else {
-                    gamesContainer.innerHTML = '<p>No games available in this tournament.</p>';
-                }
-            } catch (error) {
-                console.error('Load tournament games error:', error);
-                document.getElementById(`games-${tournamentId}`).innerHTML = '<p>Error loading games.</p>';
-            }
-        }
-
-        // Register for a specific game
-        async function registerForGame(gameId) {
-            try {
-                const studentId = localStorage.getItem('studentId');
-
-                const response = await authFetch(`${API_URL}/registration/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ studentId, gameId })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    showAlert('Successfully registered for the game!', 'success');
-                    closeTournamentModal();
-                } else {
-                    showAlert(data.message || 'Registration failed. Please try again.', 'error');
-                }
-            } catch (error) {
-                console.error('Register for game error:', error);
-                showAlert('Connection error. Please try again.', 'error');
-            }
-        }
-
-        // Close tournament modal
-        function closeTournamentModal() {
-            document.getElementById('tournamentModal').classList.add('hidden');
-        }
-
-        // Request a new game for a tournament
-        async function requestGameForTournament(tournamentId) {
-            const studentId = localStorage.getItem('studentId');
-            const gameName = prompt('Enter the name of the game you want to request:');
-            const category = prompt('Enter the category (Male/Female/Mix):');
-            const gameType = prompt('Enter the game type (Solo/Duo/Custom):');
-
-            if (!gameName || !category || !gameType) {
-                alert('All fields are required for the request.');
-                return;
-            }
-
-            try {
-                const response = await authFetch(`${API_URL}/tournaments/request-game`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        studentId: studentId,
-                        tournamentId: tournamentId,
-                        gameName: gameName,
-                        category: category,
-                        gameType: gameType
-                    })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    alert('Game request submitted successfully!');
-                } else {
-                    alert(`Error submitting request: ${data.message}`);
-                }
-            } catch (error) {
-                console.error('Request game error:', error);
-                alert('Error submitting game request. Please try again.');
-            }
-        }
-
-        // Request a new tournament
-        async function requestNewTournament() {
-            const studentId = localStorage.getItem('studentId');
-            const title = prompt('Enter the title of the tournament you want to request:');
-            const description = prompt('Enter a description for the tournament:');
-            const deadline = prompt('Enter the registration deadline (YYYY-MM-DD HH:MM):');
-
-            if (!title || !description || !deadline) {
-                alert('All fields are required for the request.');
-                return;
-            }
-
-            try {
-                const response = await authFetch(`${API_URL}/tournaments/request`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        studentId: studentId,
-                        title: title,
-                        description: description,
-                        registrationDeadline: deadline
-                    })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    alert('Tournament request submitted successfully!');
-                } else {
-                    alert(`Error submitting request: ${data.message}`);
-                }
-            } catch (error) {
-                console.error('Request tournament error:', error);
-                alert('Error submitting tournament request. Please try again.');
-            }
-        }
-
-        // Load user registration status
-        async function loadUserRegistrationStatus() {
-            try {
-                const studentId = localStorage.getItem('studentId');
-                const response = await authFetch(`${API_URL}/dashboard/registrations/${studentId}`);
-                const data = await response.json();
-
-                if (data.success && data.registrations) {
-                    // Update registration button based on user's registration status
-                    const registerBtn = document.getElementById('registerBtn');
-                    const messageDiv = document.getElementById('registrationMessage');
-
-                    if (data.registrations.length > 0) {
-                        registerBtn.textContent = `Registered (${data.registrations.length})`;
-                        registerBtn.className = 'active-registration-btn';
-                        messageDiv.innerHTML = `<p>You have registered for ${data.registrations.length} game${data.registrations.length > 1 ? 's' : ''}. Check your registration status.</p>`;
-                    } else {
-                        // If tournaments are available but user hasn't registered yet
-                        const tournamentResponse = await authFetch(`${API_URL}/dashboard/tournaments/${studentId}`);
-                        const tournamentData = await tournamentResponse.json();
-
-                        if (tournamentData.success && tournamentData.tournaments && tournamentData.tournaments.length > 0) {
-                            registerBtn.textContent = 'Registration';
-                            registerBtn.className = 'active-registration-btn';
-                            messageDiv.innerHTML = '<p>Registration is now open! Click the button to register for tournaments.</p>';
-                        } else {
-                            registerBtn.textContent = 'Registration Closed';
-                            registerBtn.className = 'disabled-btn';
-                            messageDiv.innerHTML = '<p>No tournaments available for registration at the moment.</p>';
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading registration status:', error);
-            }
-        }
-
-        // Open notifications modal
-        async function openNotificationsModal() {
-            try {
-                const studentId = localStorage.getItem('studentId');
-                // Cache-busting timestamp ensures fresh data even if browser caches the page
-                const cacheBuster = Date.now();
-                const response = await authFetch(`${API_URL}/user/notifications/${studentId}?t=${cacheBuster}`);
-                const data = await response.json();
-                console.log('[Notifications] Raw API response:', JSON.stringify(data.notifications?.map(n => ({ id: n.id, type: n.type, status: n.status, action_taken: n.action_taken }))));
-
-                if (data.success) {
-                    const notificationList = document.getElementById('notificationList');
-
-                    if (data.notifications.length === 0) {
-                        notificationList.innerHTML = '<p>No notifications found.</p>';
-                    } else {
-                        let html = '';
-                        data.notifications.forEach(notification => {
-                            const date = new Date(notification.created_at).toLocaleString();
-                            const isUnread = notification.status === 'UNREAD';
-
-                            // Check if this is a team request that has been processed
-                            let actionHtml = '';
-                            if (notification.type === 'TEAM_REQUEST') {
-                                // Always check action_taken first - if it's set, the invite is done
-                                if (notification.action_taken === 'ACCEPTED') {
-                                    actionHtml = `<div class="notification-actions"><span style="font-size:12px; color:#10b981; font-weight:600;">✓ Invitation Accepted</span></div>`;
-                                } else if (notification.action_taken === 'DECLINED') {
-                                    actionHtml = `<div class="notification-actions"><span style="font-size:12px; color:#ef4444; font-weight:600;">✕ Invitation Declined</span></div>`;
-                                } else if (isUnread && !notification.action_taken) {
-                                    // ONLY show buttons if UNREAD and no action has been taken yet
-                                    actionHtml = `
-                                        <div class="notification-actions">
-                                            <button class="notification-btn accept-btn" onclick="acceptTeamInvitation(${notification.id})">Accept</button>
-                                            <button class="notification-btn decline-btn" onclick="declineTeamInvitation(${notification.id})">Decline</button>
-                                        </div>`;
-                                } else {
-                                    // READ notification with no action (e.g. marked read manually)
-                                    actionHtml = `<div class="notification-actions"><span style="font-size:12px; color:#6b7280;">Processed</span></div>`;
-                                }
-                            } else if (isUnread) {
-                                actionHtml = `
-                                    <div class="notification-actions">
-                                        <button class="notification-btn mark-read-btn" onclick="markNotificationAsRead(${notification.id})">Mark as Read</button>
-                                    </div>`;
-                            }
-
-                            html += `
-                                <div class="notification-item ${isUnread ? 'unread' : ''}" data-id="${notification.id}">
-                                    <div class="notification-title">${notification.title}</div>
-                                    <div class="notification-message">${notification.message}</div>
-                                    <div class="notification-date">${date}</div>
-                                    ${actionHtml}
-                                </div>
-                            `;
-                        });
-
-                        notificationList.innerHTML = html;
-
-                        // Update notification count
-                        const unreadCount = data.notifications.filter(n => n.status === 'UNREAD').length;
-                        document.getElementById('notificationCount').textContent = unreadCount;
-                    }
-                } else {
-                    document.getElementById('notificationList').innerHTML = '<p>Error loading notifications.</p>';
-                }
-
-                document.getElementById('notificationsModal').style.display = 'flex';
-            } catch (error) {
-                console.error('Error loading notifications:', error);
-                document.getElementById('notificationList').innerHTML = '<p>Error loading notifications.</p>';
-            }
-        }
-
-        // Close notifications modal
-        function closeNotificationsModal() {
-            document.getElementById('notificationsModal').style.display = 'none';
-        }
-
-        // Mark notification as read
-        async function markNotificationAsRead(notificationId) {
-            try {
-                const response = await authFetch(`${API_URL}/user/notifications/${notificationId}/read`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    // Remove the notification from the list or update its status
-                    const notificationElement = document.querySelector(`[data-id="${notificationId}"]`);
-                    if (notificationElement) {
-                        notificationElement.classList.remove('unread');
-                        notificationElement.querySelector('.mark-read-btn').remove();
-
-                        // Update notification count
-                        const currentCount = parseInt(document.getElementById('notificationCount').textContent);
-                        document.getElementById('notificationCount').textContent = Math.max(0, currentCount - 1);
-                    }
-                }
-            } catch (error) {
-                console.error('Error marking notification as read:', error);
-            }
-        }
-
-        // Helper: update notification action UI in BOTH popup modal and sidebar panel
-        function updateNotificationActionUI(notificationId, actionHtml, isUnread) {
-            ['notificationList', 'notificationContent'].forEach(containerId => {
-                const container = document.getElementById(containerId);
-                if (!container) return;
-                const actionsEl = container.querySelector(`[data-id="${notificationId}"] .notification-actions`);
-                if (actionsEl) actionsEl.innerHTML = actionHtml;
-                if (isUnread) {
-                    const notifEl = container.querySelector(`[data-id="${notificationId}"]`);
-                    if (notifEl) notifEl.classList.remove('unread');
-                }
-            });
-        }
-
-        // Accept team invitation
-        async function acceptTeamInvitation(notificationId) {
-            try {
-                const studentId = localStorage.getItem('studentId');
-
-                // Show loading in both containers immediately
-                updateNotificationActionUI(notificationId, '<span style="font-size:12px; color:#6b7280;">Processing...</span>', false);
-
-                const response = await authFetch(`${API_URL}/teams/invitations/accept`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ studentId, notificationId })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    updateNotificationActionUI(notificationId, '<span style="font-size:12px; color:#10b981; font-weight:600;">✓ Invitation Accepted</span>', true);
-                    const countEl = document.getElementById('notificationCount');
-                    countEl.textContent = Math.max(0, parseInt(countEl.textContent) - 1);
-                } else if (data.message && data.message.toLowerCase().includes('already processed')) {
-                    updateNotificationActionUI(notificationId, '<span style="font-size:12px; color:#10b981; font-weight:600;">✓ Invitation Accepted</span>', true);
-                } else {
-                    alert(`Error accepting invitation: ${data.message}`);
-                    const restoreHtml = `<button class="notification-btn accept-btn" onclick="acceptTeamInvitation(${notificationId})">Accept</button><button class="notification-btn decline-btn" onclick="declineTeamInvitation(${notificationId})">Decline</button>`;
-                    updateNotificationActionUI(notificationId, restoreHtml, false);
-                }
-            } catch (error) {
-                console.error('Error accepting team invitation:', error);
-                alert('Error accepting team invitation. Please try again.');
-            }
-        }
-
-        // Decline team invitation
-        async function declineTeamInvitation(notificationId) {
-            if (!confirm('Are you sure you want to decline this team invitation?')) return;
-
-            try {
-                const studentId = localStorage.getItem('studentId');
-
-                // Show loading in both containers immediately
-                updateNotificationActionUI(notificationId, '<span style="font-size:12px; color:#6b7280;">Processing...</span>', false);
-
-                const response = await authFetch(`${API_URL}/teams/invitations/reject`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ studentId, notificationId })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    updateNotificationActionUI(notificationId, '<span style="font-size:12px; color:#ef4444; font-weight:600;">✕ Invitation Declined</span>', true);
-                    const countEl = document.getElementById('notificationCount');
-                    countEl.textContent = Math.max(0, parseInt(countEl.textContent) - 1);
-                } else if (data.message && data.message.toLowerCase().includes('already processed')) {
-                    updateNotificationActionUI(notificationId, '<span style="font-size:12px; color:#ef4444; font-weight:600;">✕ Invitation Declined</span>', true);
-                } else {
-                    alert(`Error declining invitation: ${data.message}`);
-                    const restoreHtml = `<button class="notification-btn accept-btn" onclick="acceptTeamInvitation(${notificationId})">Accept</button><button class="notification-btn decline-btn" onclick="declineTeamInvitation(${notificationId})">Decline</button>`;
-                    updateNotificationActionUI(notificationId, restoreHtml, false);
-                }
-            } catch (error) {
-                console.error('Error declining team invitation:', error);
-                alert('Error declining team invitation. Please try again.');
-            }
-        }
-
-        // Open cart modal
-        async function openCartModal() {
-            const cartModal = document.getElementById('cartModal');
-            const cartItemsList = document.getElementById('cartItemsList');
-
-            // Show modal immediately with loading state
-            cartModal.style.display = 'flex';
-            cartItemsList.innerHTML = '<div style="text-align:center; padding:20px;"><div class="spinner" style="border-top-color:#333; width:24px; height:24px;"></div><p style="margin-top:10px;">Loading cart...</p></div>';
-
-            try {
-                const studentId = localStorage.getItem('studentId');
-
-                if (!studentId) {
-                    cartItemsList.innerHTML = '<p style="color:red; text-align:center;">Error: User not identified. Please login again.</p>';
-                    return;
-                }
-
-                console.log('Fetching cart for:', studentId);
-                const response = await authFetch(`${API_URL}/cart/${studentId}`);
-
-                if (!response.ok) {
-                    throw new Error(`Server returned ${response.status} ${response.statusText}`);
-                }
-
-                const data = await response.json();
-
-                if (data.success) {
-                    // Robustly handle different response formats
-                    const items = data.cartItems || data.cart || [];
-                    console.log('Cart items received:', items);
-
-                    if (items.length === 0) {
-                        cartItemsList.innerHTML = '<p style="text-align:center; padding:20px;">Your cart is empty.</p>';
-                    } else {
-                        let html = '';
-                        let totalAmount = 0;
-
-                        items.forEach(item => {
-                            // Handle different data structures safely
-                            const gameName = item.game ? item.game.name : (item.tournament_games ? item.tournament_games.game_name : 'Unknown Game');
-                            const fee = item.game ? item.game.feePerPerson : (item.tournament_games ? item.tournament_games.fee_per_person : 0);
-                            const category = item.game ? item.game.category : (item.tournament_games ? item.tournament_games.category : 'N/A');
-                            const type = item.game ? item.game.type : (item.tournament_games ? item.tournament_games.game_type : 'N/A');
-                            const tournamentTitle = item.game ? item.game.tournamentTitle : 'Tournament';
-                            // Note: Backend might return nested tournament_games if using direct query
-
-                            const itemTotal = item.itemTotal || (fee * (item.multiplier || 1));
-                            totalAmount += itemTotal;
-
-                            html += `
-                                <div class="cart-item">
-                                    <div class="cart-item-header">
-                                        <div class="cart-item-title">${gameName}</div>
-                                        <div class="cart-item-price">৳${itemTotal}</div>
-                                    </div>
-                                    <div class="cart-item-details">
-                                        Category: ${category}<br>
-                                        Type: ${type}
-                                    </div>
-                                    <button class="remove-from-cart-btn" onclick="removeFromCart('${item.id}')">Remove</button>
-                                </div>
-                            `;
-                        });
-
-                        html += `<div class="cart-total">Total: ৳${totalAmount}</div>`;
-                        html += `<button class="pay-now-btn" onclick="openBkashModal(${totalAmount})">Pay Now</button>`;
-
-                        cartItemsList.innerHTML = html;
-
-                        // Update cart count if element exists
-                        const countEl = document.getElementById('cartItemCount');
-                        if (countEl) countEl.textContent = items.length;
-                    }
-                } else {
-                    cartItemsList.innerHTML = `<p style="color:red; text-align:center;">${data.message || 'Failed to load cart.'}</p>`;
-                }
-            } catch (error) {
-                console.error('Error loading cart:', error);
-                cartItemsList.innerHTML = `<p style="color:red; text-align:center;">Error loading cart: ${error.message}</p>`;
-            }
-        }
-
-        // Close cart modal
-        function closeCartModal() {
-            document.getElementById('cartModal').style.display = 'none';
-        }
-
-        // Remove item from cart
-        async function removeFromCart(cartItemId) {
-            if (!confirm('Are you sure you want to remove this item from your cart?')) {
-                return;
-            }
-
-            try {
-                const response = await authFetch(`${API_URL}/cart/${cartItemId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    alert('Item removed from cart successfully!');
-                    closeCartModal();
-                    // Reload cart
-                    openCartModal();
-                } else {
-                    alert(`Error removing item from cart: ${data.message}`);
-                }
-            } catch (error) {
-                console.error('Error removing item from cart:', error);
-                alert('Error removing item from cart. Please try again.');
-            }
-        }
-
-        // Check authentication (cross-browser safe)
-        window.addEventListener('DOMContentLoaded', () => {
-            // Safe reads — some browsers (Opera, Safari ITP, Firefox strict) block
-            // or sandbox localStorage, causing it to throw or return null silently
-            let isAuthenticated = false;
-            let hasToken = false;
-            try { isAuthenticated = localStorage.getItem('isAuthenticated') === 'true'; } catch (e) {}
-            try { hasToken = !!(localStorage.getItem('jwtToken') || localStorage.getItem('msAccessToken')); } catch (e) {}
-
-            // If coming fresh from a login redirect, trust the session for a moment
-            // to avoid bouncing back before localStorage has settled
-            let comingFromLogin = false;
-            try {
-                comingFromLogin = sessionStorage.getItem('redirectingToDashboard') === 'true';
-                sessionStorage.removeItem('redirectingToDashboard');
-            } catch (e) {}
-
-            if (!isAuthenticated && !comingFromLogin) {
-                window.location.href = 'login.html';
-                return;
-            }
-
-            loadProfile();
-            loadAvailableTournaments(); // Load available tournaments when page loads
-            loadUserRegistrationStatus(); // Load user's registration status
-            loadUserSchedule(); // Load real schedule data
-
-            // Check if this is first login after profile completion
-            let justCompleted = false;
-            try { justCompleted = sessionStorage.getItem('profileJustCompleted'); } catch (e) {}
-            if (justCompleted) {
-                try { sessionStorage.removeItem('profileJustCompleted'); } catch (e) {}
-                let userName = 'Player';
-                try { userName = localStorage.getItem('userName') || 'Player'; } catch (e) {}
-                document.getElementById('welcomeName').textContent = userName;
-                document.getElementById('welcomeScreen').style.display = 'flex';
-
-                setTimeout(() => {
-                    document.getElementById('welcomeScreen').style.display = 'none';
-                }, 3000);
-            }
-        });
-        // Navigation Logic
-        function showSection(sectionId) {
-            // Hide all sections
-            document.querySelectorAll('.content-section').forEach(section => {
-                section.style.display = 'none';
-            });
-
-            // Show selected section
-            const selectedSection = document.getElementById(sectionId);
-            if (selectedSection) {
-                selectedSection.style.display = 'block';
-            }
-
-            // Load content if needed
-            if (sectionId === 'registrationSection') {
-                loadRegistrationView();
-            } else if (sectionId === 'paymentSection') {
-                loadPaymentView();
-            } else if (sectionId === 'leaderboardSection') {
-                loadLeaderboardView();
-            }
-        }
-
-        // Registration View Logic
-        async function loadRegistrationView() {
-            const container = document.getElementById('registrationContent');
-            container.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="spinner"></div><p>Loading tournaments...</p></div>';
-
-            try {
-                const studentId = localStorage.getItem('studentId');
-                // Use dashboard endpoint or auth endpoint
-                const response = await authFetch(`${API_URL}/dashboard/tournaments/${studentId}`);
-                const data = await response.json();
-
-                if (data.success && data.tournaments && data.tournaments.length > 0) {
-                    let html = '<div class="games-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">';
-                    data.tournaments.forEach(tournament => {
-                        html += `
-                            <div class="tournament-card">
-                                <div class="tournament-image">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                                    </svg>
-                                </div>
-                                <div class="tournament-header" style="background:none; color:#333; padding: 15px 15px 0 15px;">
-                                    <h3 class="tournament-title" style="font-size:18px;">${tournament.title}</h3>
-                                    <p class="tournament-deadline">Deadline: ${new Date(tournament.deadline).toLocaleDateString()}</p>
-                                </div>
-                                <div class="tournament-body">
-                                    <p class="tournament-description">${tournament.description || 'Join now!'}</p>
-                                    <button class="register-game-btn" onclick="loadTournamentGamesForPanel(${tournament.id})" style="width:100%; padding: 10px; font-size:14px;">View Games</button>
-                                    <div id="panel-games-${tournament.id}" class="game-list" style="display: none; margin-top: 15px; border-top: 1px solid #eee; padding-top:10px;"></div>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    html += '</div>';
-                    container.innerHTML = html;
-                } else {
-                    container.innerHTML = '<p style="text-align: center; color: #666;">No tournaments available at the moment.</p>';
-                }
-            } catch (error) {
-                console.error('Error loading registration view:', error);
-
-                // Fallback to simpler fetch if dashboard endpoint fails or doesn't exist
-                try {
-                    const response = await authFetch(`${API_URL}/tournaments`);
-                    const data = await response.json();
-                    if (data.success && data.tournaments) {
-                        // Render same as above... (simplified for brevity in fallback)
-                        let html = '<div class="games-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">';
-                        data.tournaments.forEach(t => {
-                            html += `<div class="tournament-card">
-                                        <div class="tournament-header" style="padding:15px;"><h3 class="tournament-title">${t.title}</h3></div>
-                                        <div class="tournament-body"><button class="register-game-btn" onclick="loadTournamentGamesForPanel(${t.id})" style="width:100%;">View Games</button>
-                                        <div id="panel-games-${t.id}" style="display:none; margin-top:10px;"></div></div>
-                                      </div>`;
-                        });
-                        html += '</div>';
-                        container.innerHTML = html;
-                    }
-                } catch (e) {
-                    container.innerHTML = '<p style="text-align: center; color: red;">Error loading tournaments.</p>';
-                }
-            }
-        }
-
-        async function loadTournamentGamesForPanel(tournamentId) {
-            const gamesContainer = document.getElementById(`panel-games-${tournamentId}`);
-            if (gamesContainer.style.display === 'block') {
-                gamesContainer.style.display = 'none';
-                return;
-            }
-
-            gamesContainer.style.display = 'block';
-            gamesContainer.innerHTML = '<p>Loading games...</p>';
-
-            try {
-                const response = await authFetch(`${API_URL}/tournaments/${tournamentId}/games`);
-                const data = await response.json();
-
-                if (data.success && data.games && data.games.length > 0) {
-                    let html = '';
-                    data.games.forEach(game => {
-                        html += `
-                            <div class="game-item" style="padding: 10px; border-bottom: 1px solid #f0f0f0;">
-                                <div class="game-info">
-                                    <div class="game-name" style="font-weight:600;">${game.game_name}</div>
-                                    <div class="game-category-type" style="font-size: 12px; color: #666;">${game.category} • ${game.game_type} • ৳${game.fee_per_person}</div>
-                                </div>
-                                <button class="register-game-btn" onclick="registerForGamePanel(${game.id}, '${game.game_name}', '${game.game_type}')" style="padding: 5px 10px;">Register</button>
-                            </div>
-                        `;
-                    });
-                    gamesContainer.innerHTML = html;
-                } else {
-                    gamesContainer.innerHTML = '<p>No games found.</p>';
-                }
-            } catch (error) {
-                console.error('Error loading games:', error);
-                gamesContainer.innerHTML = '<p>Error loading games.</p>';
-            }
-        }
-
-        function registerForGamePanel(gameId, gameName, gameType) {
-            // Check if team modal exists, if not alert
-            if (!document.getElementById('teamModal')) {
-                alert('Team registration module is loading... please refresh or wait.');
-                // In next step we will add the modal. For now, this is a placeholder.
-                return;
-            }
-            // Logic to open team modal (will implement in next step)
-            openTeamModal(gameId, gameName, gameType);
-        }
-
-        // Payment View Logic
-        async function loadPaymentView() {
-            const container = document.getElementById('paymentContent');
-            container.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="spinner"></div><p>Loading payment history...</p></div>';
-
-            try {
-                const studentId = localStorage.getItem('studentId');
-                const response = await authFetch(`${API_URL}/dashboard/registrations/${studentId}`);
-                const data = await response.json();
-
-                if (data.success) {
-                    if (data.registrations.length === 0) {
-                        container.innerHTML = '<p style="text-align: center; padding: 20px;">No registrations found.</p>';
-                        return;
-                    }
-
-                    let html = `
-                        <div style="overflow-x: auto;">
-                        <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                            <thead style="background: #f3f4f6; border-bottom: 2px solid #e5e7eb;">
-                                <tr>
-                                    <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Game</th>
-                                    <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Tournament</th>
-                                    <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Status</th>
-                                    <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Amount</th>
-                                    <th style="padding: 12px; text-align: right; font-weight: 600; color: #374151;">
-                                        Action 
-                                        <button onclick="payAllPending()" id="payAllBtn" style="display:none; margin-left:10px; padding: 4px 8px; background: #be123c; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">Pay All</button>
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                    `;
-
-                    data.registrations.forEach(reg => {
-                        const statusColor = (reg.payment_status === 'PAID' || reg.paymentStatus === 'PAID') ? '#10b981' :
-                            ((reg.payment_status === 'PENDING' || reg.paymentStatus === 'PENDING') ? '#f59e0b' : '#ef4444');
-                        const statusText = reg.payment_status || reg.paymentStatus || 'UNPAID';
-                        const fee = reg.game ? reg.game.feePerPerson : (reg.tournament_games?.fee_per_person || 0);
-                        const gameName = reg.game ? reg.game.name : (reg.tournament_games?.game_name || 'N/A');
-                        const tourneyName = reg.game ? (reg.game.tournamentTitle || (reg.game.tournament ? reg.game.tournament.title : 'N/A')) : (reg.tournament_games?.tournaments?.title || 'N/A');
-
-                        html += `
-                            <tr style="border-bottom: 1px solid #f3f4f6;">
-                                <td style="padding: 12px;">${gameName}</td>
-                                <td style="padding: 12px;">${tourneyName}</td>
-                                <td style="padding: 12px;">
-                                    <span style="padding: 4px 8px; border-radius: 4px; background: ${statusColor}20; color: ${statusColor}; font-size: 12px; font-weight: 600;">
-                                        ${statusText}
-                                    </span>
-                                </td>
-                                <td style="padding: 12px;">৳${fee}</td>
-                                <td style="padding: 12px; text-align: right;">
-                                    ${(statusText === 'PENDING' || statusText === 'UNPAID') ?
-                                `<button onclick="openBkashModalForSingleItem(${fee}, '${gameName}', ${reg.gameId || reg.game_id || 'null'}, ${reg.teamId || reg.team_id || 'null'})" style="padding: 6px 12px; background: #e2136e; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Pay Now</button>`
-                                : '<span style="color: #6b7280; font-size: 12px;">Paid</span>'}
-                                </td>
-                            </tr>
-                        `;
-                    });
-
-                    html += '</tbody></table></div>';
-                    html += '</tbody></table></div>';
-                    container.innerHTML = html;
-
-                    // Show Pay All button if there are pending items
-                    const pendingCount = data.registrations.filter(r => (r.payment_status === 'PENDING' || r.paymentStatus === 'PENDING' || r.payment_status === 'UNPAID' || r.paymentStatus === 'UNPAID')).length;
-                    if (pendingCount > 0) {
-                        const payAllBtn = document.getElementById('payAllBtn');
-                        if (payAllBtn) {
-                            payAllBtn.style.display = 'inline-block';
-                            payAllBtn.innerText = `Pay All (${pendingCount})`;
-                        }
-                    }
-                } else {
-                    container.innerHTML = '<p>Failed to load registrations.</p>';
-                }
-            } catch (error) {
-                console.error('Error loading payment history:', error);
-                container.innerHTML = '<p>Error loading payment history.</p>';
-            }
-        }
-
-        async function openBkashModalForSingleItem(amount, itemName, gameId, teamId) {
-            // First, add to cart if not already there
-            const studentId = localStorage.getItem('studentId');
-            if (!studentId) { alert('Please login first'); return; }
-
-            try {
-                // Add to cart
-                const response = await authFetch(`${API_URL}/cart/add`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        studentId: studentId,
-                        item_type: teamId ? 'TEAM_REGISTRATION' : 'GAME_REGISTRATION',
-                        item_id: teamId || 'TEMP', // For existing registration, itemId might not be needed if we use gameId/teamId lookups logic in cart add... wait, cart/add expects specific structure
-                        // Actually, cart/add logic:
-                        // existing logic: if registration exists, it adds it.
-                        // We need the registration ID usually.
-                        // But wait, the previous step exposes gameId and teamId.
-                        // Let's use robust add logic.
-                        tournament_game_id: gameId
-                        // The backend cart/add logic handles "if already registered, add registration id"
-                    })
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    // Item added, proceed to checkout
-                    // We must refresh the checkout process to include this item.
-                    // openBkashModal assumes we pay for everything in cart.
-                    // This is correct behavior for now.
-
-                    // Fetch TRUE total from cart to avoid discrepancies
-                    const cartRes = await authFetch(`${API_URL}/cart/${studentId}`);
-                    const cartData = await cartRes.json();
-                    let trueTotal = amount;
-
-                    if (cartData.success && (cartData.cart || cartData.cartItems)) {
-                        const items = cartData.cart || cartData.cartItems;
-                        trueTotal = items.reduce((sum, item) => {
-                            const fee = item.game ? item.game.feePerPerson : (item.tournament_games ? item.tournament_games.fee_per_person : 0);
-                            // Handle multiplier if exists
-                            return sum + (item.itemTotal || fee);
-                        }, 0);
-                    }
-
-                    openBkashModal(trueTotal);
-                } else {
-                    // Check if already in cart
-                    if (data.message && data.message.includes('already')) {
-                        // Even if already in cart, we should fetch total
-                        const cartRes = await authFetch(`${API_URL}/cart/${studentId}`);
-                        const cartData = await cartRes.json();
-                        let trueTotal = amount;
-                        if (cartData.success && (cartData.cart || cartData.cartItems)) {
-                            const items = cartData.cart || cartData.cartItems;
-                            trueTotal = items.reduce((sum, item) => {
-                                const fee = item.game ? item.game.feePerPerson : (item.tournament_games ? item.tournament_games.fee_per_person : 0);
-                                return sum + (item.itemTotal || fee);
-                            }, 0);
-                        }
-                        openBkashModal(trueTotal);
-                    } else {
-                        alert('Failed to prepare payment: ' + data.message);
-                    }
-                }
-            } catch (e) {
-                console.error(e);
-                alert('Error processing payment request.');
-            }
-        }
-
-        // Open bKash Payment Modal
-        function openBkashModal(amount) {
-            closeCartModal(); // Close cart modal first
-            document.getElementById('bkashAmount').textContent = amount;
-            document.getElementById('bkashModal').style.display = 'flex';
-        }
-
-        function closeBkashModal() {
-            document.getElementById('bkashModal').style.display = 'none';
-        }
-
-        async function processCheckout() {
-            const bkashNumber = document.getElementById('bkashNumber').value;
-            const bkashPin = document.getElementById('bkashPin').value;
-            const amount = document.getElementById('bkashAmount').textContent;
-
-            if (!bkashNumber || !bkashPin) {
-                alert('Please enter your bKash number and PIN.');
-                return;
-            }
-
-            // Simulate loading
-            const payBtn = document.querySelector('#bkashModal .save-btn');
-            const originalText = payBtn.innerText;
-            payBtn.innerText = 'Processing...';
-            payBtn.disabled = true;
-
-            try {
-                const transactionId = 'TRX-' + Date.now() + Math.floor(Math.random() * 1000);
-                const studentId = localStorage.getItem('studentId');
-
-                const response = await authFetch(`${API_URL}/cart/checkout`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-user-email': localStorage.getItem('userEmail') // Optional for logging
-                    },
-                    body: JSON.stringify({
-                        paymentMethod: 'BKASH', // or CASH based on context, but here it's bKash
-                        transactionId: transactionId,
-                        bkashNumber: bkashNumber, // Backend doesn't store this, but good to send for "verification"
-                        studentId: studentId // Added studentId for robust identification
-                    })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    alert(`Payment Successful!\nTransaction ID: ${transactionId}`);
-                    closeBkashModal();
-                    // Reload registration status
-                    loadUserRegistrationStatus();
-                    loadAvailableTournaments(); // Refresh to update buttons if needed
-                    // Refresh payment view if valid
-                    if (document.getElementById('paymentSection').style.display === 'block') {
-                        loadPaymentView();
-                    }
-                } else {
-                    alert('Payment Failed: ' + data.message);
-                }
-
-            } catch (error) {
-                console.error('Payment error:', error);
-                alert('Payment error. Please try again.');
-            } finally {
-                payBtn.innerText = originalText;
-                payBtn.disabled = false;
-            }
-        }
-
-        async function payAllPending() {
-            const studentId = localStorage.getItem('studentId');
-            if (!studentId) { alert('Please login first'); return; }
-
-            // 1. Get all pending registrations from the current view (or fetch again)
-            // Ideally we fetch again to be sure
-            try {
-                const response = await authFetch(`${API_URL}/dashboard/registrations/${studentId}`);
-                const data = await response.json();
-
-                if (!data.success) {
-                    alert('Failed to fetch pending items.');
-                    return;
-                }
-
-                const pendingItems = data.registrations.filter(r =>
-                    r.payment_status === 'PENDING' || r.paymentStatus === 'PENDING' ||
-                    r.payment_status === 'UNPAID' || r.paymentStatus === 'UNPAID' ||
-                    !r.payment_status // Treat null/undefined as unpaid
-                );
-
-                if (pendingItems.length === 0) {
-                    alert('No pending items to pay.');
-                    return;
-                }
-
-                if (!confirm(`Are you sure you want to add ${pendingItems.length} items to your cart and pay all?`)) {
-                    return;
-                }
-
-                // 2. Add each to cart safely
-                let addedCount = 0;
-                for (const item of pendingItems) {
-                    // We need gameId and/or teamId
-                    const gameId = item.gameId || item.game_id;
-                    const teamId = item.teamId || item.team_id;
-
-                    await authFetch(`${API_URL}/cart/add`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            studentId: studentId,
-                            item_type: teamId ? 'TEAM_REGISTRATION' : 'GAME_REGISTRATION',
-                            item_id: teamId || 'TEMP',
-                            tournament_game_id: gameId
-                        })
-                    });
-                    addedCount++;
-                }
-
-                // 3. Open Payment Modal with TRUE total
-                const cartRes = await authFetch(`${API_URL}/cart/${studentId}`);
-                const cartData = await cartRes.json();
-                let trueTotal = 0;
-
-                if (cartData.success && (cartData.cart || cartData.cartItems)) {
-                    const items = cartData.cart || cartData.cartItems;
-                    trueTotal = items.reduce((sum, item) => {
-                        const fee = item.game ? item.game.feePerPerson : (item.tournament_games ? item.tournament_games.fee_per_person : 0);
-                        return sum + (item.itemTotal || fee);
-                    }, 0);
-                }
-
-                openBkashModal(trueTotal);
-
-            } catch (e) {
-                console.error(e);
-                alert('Error processing Pay All request.');
-            }
-        }
-
-        // ==========================================
-        // Enhanced Registration & Team Logic
-        // ==========================================
-
-        // Global Data Maps
-        const gameDataMap = new Map();
-        let currentTeamSize = 2;
-        let currentTeamId = null;
-        let isEditMode = false;
-        let currentGameId = null;
-        let currentGameName = null;
-        let currentCategory = null;
-        let replaceModalData = {
-            teamId: null,
-            memberId: null,
-            currentMemberName: null,
-            currentMemberStudentId: null
-        };
-
-        // Updated Navigation Logic
-        function showSection(sectionId) {
-            document.querySelectorAll('.content-section').forEach(section => {
-                section.style.display = 'none';
-            });
-            const selectedSection = document.getElementById(sectionId);
-            if (selectedSection) {
-                selectedSection.style.display = 'block';
-            }
-            if (sectionId === 'registrationSection') loadRegistrationView();
-            else if (sectionId === 'paymentSection') loadPaymentView();
-            else if (sectionId === 'notificationSection') loadNotificationsView();
-            else if (sectionId === 'leaderboardSection') loadLeaderboardView();
-        }
-
-        // Load real schedule data into both schedule cards
-        async function loadUserSchedule() {
-            const studentId = localStorage.getItem('studentId');
-            if (!studentId) return;
-
-            const containers = [
-                document.getElementById('scheduleContentHome'),
-                document.getElementById('scheduleContent')
-            ].filter(Boolean);
-
-            try {
-                const response = await authFetch(`${API_URL}/dashboard/schedule/${studentId}`);
-                const data = await response.json();
-
-                const html = buildScheduleHTML(data.success ? data.matches : []);
-                containers.forEach(c => c.innerHTML = html);
-            } catch (err) {
-                console.error('Error loading schedule:', err);
-                const errHtml = '<div class="no-matches-msg">Could not load schedule.</div>';
-                containers.forEach(c => c.innerHTML = errHtml);
-            }
-        }
-
-        function buildScheduleHTML(matches) {
-            if (!matches || matches.length === 0) {
-                return '<div class="no-matches-msg">No upcoming matches scheduled yet.</div>';
-            }
-
-            // Show up to 6 matches
-            const display = matches.slice(0, 6);
-            let html = '';
-            display.forEach(m => {
-                const start = new Date(m.scheduled_start);
-                const dateStr = start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                const timeStr = start.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-                const statusClass = (m.status || '').toLowerCase().includes('played') ? 'played'
-                    : (m.status || '').toLowerCase().includes('cancel') ? 'cancelled' : 'scheduled';
-                const scoreText = m.status === 'PLAYED' && m.score_a != null && m.score_b != null
-                    ? `${m.score_a} - ${m.score_b}` : '';
-
-                html += `
-                <div class="match-item">
-                    <div class="match-time-block">
-                        <div class="match-date">${dateStr}</div>
-                        <div class="match-time">${timeStr}</div>
-                    </div>
-                    <div class="match-details">
-                        <div class="match-game-name">${m.game_name || 'Game'} ${m.tournament_title ? '- ' + m.tournament_title : ''}</div>
-                        <div class="match-vs">${m.participant_a_label || 'TBD'} vs ${m.participant_b_label || 'TBD'}${scoreText ? ' &bull; ' + scoreText : ''}</div>
-                        <div class="match-venue">${m.venue_name || ''} ${m.round_label ? '&bull; ' + m.round_label : ''}</div>
-                    </div>
-                    <span class="match-status-badge ${statusClass}">${m.status || 'SCHEDULED'}</span>
-                </div>`;
-            });
-
-            if (matches.length > 6) {
-                html += `<div style="text-align:center; padding:8px; color:#6b7280; font-size:12px;">+ ${matches.length - 6} more matches</div>`;
-            }
-            return html;
-        }
-
-        // Load leaderboard view
-        async function loadLeaderboardView() {
-            const container = document.getElementById('leaderboardContent');
-            container.innerHTML = '<div style="text-align:center; padding:40px;"><div class="spinner"></div><p>Loading match results...</p></div>';
-
-            try {
-                const response = await authFetch(`${API_URL}/dashboard/leaderboard`);
-                const data = await response.json();
-
-                if (!data.success || !data.games || data.games.length === 0) {
-                    container.innerHTML = '<div class="no-matches-msg">No match results available yet.</div>';
-                    return;
-                }
-
-                let html = '<div class="leaderboard-container">';
-                data.games.forEach(game => {
-                    const progressPct = game.total > 0 ? Math.round((game.played / game.total) * 100) : 0;
-
-                    html += `
-                    <div class="leaderboard-game-group">
-                        <div class="leaderboard-game-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
-                            <h3>${game.game_name} ${game.tournament_title ? '(' + game.tournament_title + ')' : ''}</h3>
-                            <div class="game-meta">
-                                <span>${game.category || ''}</span>
-                                <span>${game.game_type || ''}</span>
-                                <span>${game.played}/${game.total} played</span>
-                            </div>
-                        </div>
-                        <div>
-                            <table class="leaderboard-matches-table">
-                                <thead>
-                                    <tr>
-                                        <th>Round</th>
-                                        <th>Match</th>
-                                        <th>Score</th>
-                                        <th>Winner</th>
-                                        <th>Venue</th>
-                                        <th>Time</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>`;
-
-                    game.matches.forEach(m => {
-                        const timeStr = m.time ? new Date(m.time).toLocaleString('en-US', {
-                            month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true
-                        }) : '-';
-                        const scoreStr = m.score_a != null && m.score_b != null ? `${m.score_a} - ${m.score_b}` : '-';
-                        const statusClass = m.status === 'PLAYED' ? 'played'
-                            : m.status === 'CANCELLED' ? 'cancelled' : 'scheduled';
-
-                        html += `
-                                    <tr>
-                                        <td>${m.round_label || '-'}</td>
-                                        <td>${m.participant_a || 'TBD'} vs ${m.participant_b || 'TBD'}</td>
-                                        <td class="score-cell">${scoreStr}</td>
-                                        <td class="winner-cell">${m.winner || '-'}</td>
-                                        <td>${m.venue || '-'}</td>
-                                        <td>${timeStr}</td>
-                                        <td><span class="match-status-badge ${statusClass}">${m.status}</span></td>
-                                    </tr>`;
-                    });
-
-                    html += `
-                                </tbody>
-                            </table>
-                            <div class="leaderboard-progress">
-                                <span>${progressPct}% complete</span>
-                                <div class="progress-bar-bg">
-                                    <div class="progress-bar-fill" style="width: ${progressPct}%"></div>
-                                </div>
-                                <span>${game.played}/${game.total}</span>
-                            </div>
-                        </div>
-                    </div>`;
-                });
-
-                html += '</div>';
-                container.innerHTML = html;
-            } catch (err) {
-                console.error('Error loading leaderboard:', err);
-                container.innerHTML = '<div class="no-matches-msg">Could not load match results. Please try again later.</div>';
-            }
-        }
-
-        // Updated Registration View
-        async function loadRegistrationView() {
-            const container = document.getElementById('registrationContent');
-            container.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="spinner"></div><p>Loading tournaments...</p></div>';
-
-            try {
-                const studentId = localStorage.getItem('studentId');
-                const response = await authFetch(`${API_URL}/dashboard/tournaments/${studentId}`);
-                const data = await response.json();
-
-                if (data.success && data.tournaments && data.tournaments.length > 0) {
-                    let html = '<div class="games-grid">';
-                    data.tournaments.forEach(tournament => {
-                        html += `
-                        <div class="tournament-card">
-                            <div class="tournament-header">
-                                <h3 class="tournament-title">${tournament.title}</h3>
-                                <p class="tournament-deadline">Deadline: ${new Date(tournament.deadline).toLocaleDateString()}</p>
-                            </div>
-                            <div class="tournament-body">
-                                <p class="tournament-description">${tournament.description || 'Join now and compete with the best!'}</p>
-                                <button class="view-games-btn" onclick="loadTournamentGamesForPanel(${tournament.id})">
-                                    View Games
-                                </button>
-                                <div id="panel-games-${tournament.id}" class="game-list" style="display: none;"></div>
-                            </div>
-                        </div>
-                    `;
-                    });
-                    html += '</div>';
-                    container.innerHTML = html;
-                } else {
-                    container.innerHTML = '<div style="text-align: center; padding: 40px; color: #6b7280;"><p>No tournaments available at the moment.</p></div>';
-                }
-            } catch (error) {
-                console.error('Error loading registration view:', error);
-                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #ef4444;"><p>Error loading tournaments. Please try again later.</p></div>';
-            }
-        }
-
-        async function loadTournamentGamesForPanel(tournamentId) {
-            const gamesContainer = document.getElementById(`panel-games-${tournamentId}`);
-            if (gamesContainer.style.display === 'block') {
-                gamesContainer.style.display = 'none';
-                return;
-            }
-
-            gamesContainer.style.display = 'block';
-            gamesContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #6b7280; font-size: 14px;">Loading games...</div>';
-
-            try {
-                const response = await authFetch(`${API_URL}/tournaments/${tournamentId}/games`);
-                const data = await response.json();
-
-                if (data.success && data.games && data.games.length > 0) {
-                    let html = '';
-                    data.games.forEach(game => {
-                        gameDataMap.set(game.id, game); // Populate map
-                        html += `
-                        <div class="game-item">
-                            <div class="game-info">
-                                <div class="game-name">${game.game_name}</div>
-                                <div class="game-meta">${game.category} • ${game.game_type} • <span style="color: #10b981; font-weight: 600;">৳${game.fee_per_person}</span></div>
-                            </div>
-                            <button class="register-btn-sm" onclick="registerForGamePanel(${game.id}, '${game.game_name}', '${game.category}')">
-                                Register
-                            </button>
-                        </div>
-                    `;
-                    });
-                    gamesContainer.innerHTML = html;
-                } else {
-                    gamesContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #6b7280; font-size: 14px;">No games found for this tournament.</div>';
-                }
-            } catch (error) {
-                console.error('Error loading games:', error);
-                gamesContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #ef4444; font-size: 14px;">Error loading games.</div>';
-            }
-        }
-
-        async function registerForGamePanel(gameId, gameName, category) {
-            const studentId = localStorage.getItem('studentId');
-            if (!studentId) { alert('Please log in first!'); return; }
-
-            const gameData = gameDataMap.get(gameId);
-            if (!gameData) { alert('Game data not found. Please refresh.'); return; }
-
-            const teamSize = gameData.team_size || 1;
-
-            if (teamSize > 1) {
-                openTeamModal(gameId, gameName, category, teamSize);
-                return;
-            }
-
-            if (!confirm(`Register for ${gameName} (${category})?\nFee: ৳${gameData.fee_per_person || 0}`)) return;
-
-            try {
-                const response = await authFetch(`${API_URL}/registration/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ studentId: studentId, gameId: gameId })
-                });
-
-                const result = await response.json();
-                if (result.success) {
-                    await authFetch(`${API_URL}/cart/add`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            studentId: studentId,
-                            item_type: 'GAME_REGISTRATION',
-                            item_id: result.registration.id,
-                            tournament_game_id: gameId
-                        })
-                    });
-                    alert(`Successfully registered for ${gameName}! Added to cart.`);
-                    loadAvailableTournaments();
-                    openCartModal();
-                } else {
-                    alert('Registration Failed: ' + result.message);
-                }
-            } catch (error) {
-                console.error('Registration error:', error);
-                alert('Error registering for game.');
-            }
-        }
-
-        // Team Logic Functions
-        function openTeamModal(gameId, gameName, category, teamSize = 2) {
-            isEditMode = false;
-            currentTeamId = null;
-            document.getElementById('teamName').disabled = false;
-            currentGameId = gameId;
-            currentGameName = gameName;
-            currentCategory = category;
-            currentTeamSize = teamSize;
-
-            document.getElementById('modalGameName').textContent = gameName;
-            document.getElementById('teamName').value = '';
-
-            const gameData = gameDataMap.get(gameId);
-            const feePerPerson = gameData?.fee_per_person || 0;
-            const totalFee = feePerPerson * teamSize;
-
-            const modalSubtitle = document.querySelector('.team-modal-subtitle');
-            if (modalSubtitle) {
-                modalSubtitle.textContent = `${category} Category | Team Size: ${teamSize} | Fee: ৳${feePerPerson} × ${teamSize} = ৳${totalFee}`;
-            }
-
-            const teamMembersList = document.getElementById('teamMembersList');
-            let slotsHtml = `
-            <div class="team-member-slot leader" style="display:flex; gap:10px; padding:10px; background:#dbeafe; border-radius:6px; margin-bottom:10px; border:1px solid #3b82f6;">
-                <div class="member-role" style="font-weight:600; color:#3b82f6;">👑 Leader</div>
-                <div class="member-info" style="flex:1;">
-                    <div class="member-id">${localStorage.getItem('studentId')}</div>
-                    <div class="member-name">${localStorage.getItem('userName') || 'You'}</div>
-                </div>
-                <div class="member-status confirmed" style="color:#065f46; font-size:12px; font-weight:600;">✅ Confirmed</div>
-            </div>
-        `;
-
-            for (let i = 1; i < teamSize; i++) {
-                slotsHtml += `
-                <div class="team-member-slot" style="display:flex; gap:10px; padding:10px; border:1px solid #e5e7eb; border-radius:6px; margin-bottom:10px;">
-                    <div class="member-role" style="font-weight:600; color:#3b82f6;">👤 Member ${i + 1}</div>
-                    <div class="member-info" style="flex:1;">
-                        <input type="text" class="team-form-input member-id-input" 
-                               placeholder="Enter student ID (XX-XXXXX-X)" 
-                               style="width:100%; padding:8px; border:1px solid #d1d5db; border-radius:4px;"
-                               data-slot="${i}">
-                    </div>
-                    <div class="member-status pending" style="color:#d97706; font-size:12px;">⏳ Pending</div>
-                </div>
-            `;
-            }
-
-            teamMembersList.innerHTML = slotsHtml;
-            document.getElementById('teamModal').style.display = 'flex';
-        }
-
-        function closeTeamModal() {
-            document.getElementById('teamModal').style.display = 'none';
-        }
-
-        async function createTeam() {
-            const teamName = document.getElementById('teamName').value.trim();
-            const studentId = localStorage.getItem('studentId');
-
-            if (!teamName) {
-                alert('Team name is required');
-                return;
-            }
-
-            const memberInputs = document.querySelectorAll('#teamMembersList .member-info input');
-            const memberIds = [studentId];
-            for (const input of memberInputs) {
-                const mid = input.value.trim();
-                if (mid) memberIds.push(mid);
-            }
-
-            if (memberIds.length < currentTeamSize) {
-                if (!confirm(`You have only filled ${memberIds.length} out of ${currentTeamSize} slots. Continue? (You can add members later)`)) return;
-            }
-
-            const createBtn = document.querySelector('#teamModal .btn-confirm');
-            const originalText = createBtn.textContent;
-            createBtn.textContent = 'Creating...';
-            createBtn.disabled = true;
-
-            try {
-                const response = await authFetch(`${API_URL}/teams/create`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ studentId, gameId: currentGameId, teamName })
-                });
-                const result = await response.json();
-
-                if (result.success) {
-                    createBtn.textContent = 'Adding members...';
-                    for (let i = 1; i < memberIds.length; i++) {
-                        await addTeamMember(result.team.id, memberIds[i]);
-                    }
-
-                    alert('Team created and added to cart!');
-                    await authFetch(`${API_URL}/cart/add`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            studentId: studentId,
-                            item_type: 'TEAM_REGISTRATION',
-                            item_id: result.team.id,
-                            tournament_game_id: currentGameId
-                        })
-                    });
-
-                    closeTeamModal();
-                    openCartModal();
-                } else {
-                    alert('Failed: ' + result.message);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Team creation failed.');
-            } finally {
-                createBtn.textContent = originalText;
-                createBtn.disabled = false;
-            }
-        }
-
-        async function addTeamMember(teamId, memberStudentId) {
-            const leaderStudentId = localStorage.getItem('studentId');
-            try {
-                await authFetch(`${API_URL}/teams/${teamId}/members`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ leaderStudentId, memberStudentId })
-                });
-            } catch (e) { console.error(e); }
-        }
-
-        function closeReplaceMemberModal() {
-            const m = document.getElementById('replaceMemberModal');
-            m.style.display = 'none';
-            m.style.visibility = 'hidden';
-            replaceModalData = { teamId: null, memberId: null, currentMemberName: null, currentMemberStudentId: null };
-        }
-
-        // Replace function shim
-        function replaceMember(teamId, memberId, memberName, memberStudentId) {
-            // Just stub for now as we don't have updateTeam functionality fully ported in this view yet
-            alert('Replace functionality is available in Registration Details view.');
-        }
-
-        // Payment View Logic (Redefined here to ensure it uses any updated globals if needed)
-        async function loadPaymentView() {
-            const container = document.getElementById('paymentContent');
-            container.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="spinner"></div><p>Loading payment history...</p></div>';
-
-            try {
-                const studentId = localStorage.getItem('studentId');
-                const response = await authFetch(`${API_URL}/dashboard/registrations/${studentId}`);
-                const data = await response.json();
-
-                if (data.success) {
-                    if (data.registrations.length === 0) {
-                        container.innerHTML = '<p style="text-align: center; padding: 20px;">No registrations found.</p>';
-                        return;
-                    }
-                    // Sort by newest
-                    data.registrations.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
-
-                    let html = `
-                    <div style="overflow-x: auto;">
-                    <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                        <thead style="background: #f3f4f6; border-bottom: 2px solid #e5e7eb;">
-                            <tr>
-                                <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Game</th>
-                                <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Tournament</th>
-                                <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Status</th>
-                                <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Amount</th>
-                                <th style="padding: 12px; text-align: right; font-weight: 600; color: #374151;">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-
-                    data.registrations.forEach(reg => {
-                        const statusColor = (reg.payment_status === 'PAID' || reg.payment_status === 'CONFIRMED') ? '#10b981' : (reg.payment_status === 'PENDING' ? '#f59e0b' : '#ef4444');
-                        const statusText = reg.payment_status || 'UNPAID';
-                        const fee = reg.team_id && reg.teams ? (reg.teams.game?.feePerPerson || 0) : (reg.game ? reg.game.feePerPerson : (reg.tournament_games?.fee_per_person || 0));
-                        const gameName = reg.game ? reg.game.name : (reg.tournament_games?.game_name || 'N/A');
-                        const tourneyName = reg.game ? reg.game.tournamentTitle : (reg.tournament_games?.tournaments?.title || 'N/A');
-
-                        let amountDisplay = '৳' + fee;
-
-                        html += `
-                        <tr style="border-bottom: 1px solid #f3f4f6;">
-                            <td style="padding: 12px;">${gameName}</td>
-                            <td style="padding: 12px;">${tourneyName}</td>
-                            <td style="padding: 12px;">
-                                <span style="padding: 4px 8px; border-radius: 4px; background: ${statusColor}20; color: ${statusColor}; font-size: 12px; font-weight: 600;">
-                                    ${statusText}
-                                </span>
-                            </td>
-                            <td style="padding: 12px;">${amountDisplay}</td>
-                            <td style="padding: 12px; text-align: right;">
-                                ${(statusText === 'PENDING' || statusText === 'UNPAID') ?
-                                `<button onclick="openBkashModal(${fee || 0})" style="padding: 6px 12px; background: #e2136e; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Pay Now</button>`
-                                : '<span style="color: #6b7280; font-size: 12px;">Paid</span>'}
-                            </td>
-                        </tr>
-                    `;
-                    });
-
-                    html += '</tbody></table></div>';
-                    container.innerHTML = html;
-                } else {
-                    container.innerHTML = '<p>Failed to load registrations.</p>';
-                }
-            } catch (error) {
-                console.error('Error loading payment history:', error);
-                container.innerHTML = '<p>Error loading payment history.</p>';
-            }
-        }
-    </script>
-
-    <!-- bKash Modal -->
-    <div id="bkashModal" class="modal">
-        <div class="modal-content" style="max-width: 400px; background: #e2136e; color: white;"> <!-- bKash Pink -->
-            <div style="text-align: center; margin-bottom: 20px;">
-                <img src="https://logos-download.com/wp-content/uploads/2022/01/BKash_Logo_icon.png" alt="bKash"
-                    style="height: 60px; background: white; padding: 5px; border-radius: 8px;">
-                <h2 style="margin-top: 10px; font-size: 20px;">Merchant Payment</h2>
-            </div>
-
-            <div style="background: white; padding: 20px; border-radius: 8px; color: #333;">
-                <div
-                    style="display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
-                    <span style="color: #666;">Merchant:</span>
-                    <span style="font-weight: 600;">AIUB Sports Portal</span>
-                </div>
-                <div
-                    style="display: flex; justify-content: space-between; margin-bottom: 20px; font-weight: 700; font-size: 18px;">
-                    <span>Total Amount:</span>
-                    <span>৳<span id="bkashAmount">0</span></span>
-                </div>
-
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; font-size: 12px; color: #666; margin-bottom: 4px;">Your bKash Account
-                        Number</label>
-                    <input type="text" id="bkashNumber" placeholder="01XXXXXXXXX"
-                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
-                </div>
-
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; font-size: 12px; color: #666; margin-bottom: 4px;">PIN</label>
-                    <input type="password" id="bkashPin" placeholder="XXXX"
-                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
-                </div>
-
-                <div style="display: flex; gap: 10px;">
-                    <button onclick="closeBkashModal()"
-                        style="flex: 1; padding: 10px; background: #eee; border: none; border-radius: 4px; cursor: pointer; color: #333; font-weight: 600;">Cancel</button>
-                    <button class="save-btn" onclick="processCheckout()"
-                        style="flex: 1; padding: 10px; background: #e2136e; border: none; border-radius: 4px; cursor: pointer; color: white; font-weight: 600;">Confirm</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Team Registration Modal -->
-    <div id="teamModal" class="team-modal">
-        <div class="team-modal-content">
-            <div class="team-modal-header">
-                <div>
-                    <span>Create Team for <span id="modalGameName"></span></span>
-                    <div class="team-modal-subtitle"
-                        style="font-size: 14px; font-weight: 400; color: #666; margin-top: 5px;"></div>
-                </div>
-                <button class="team-modal-close" onclick="closeTeamModal()">&times;</button>
-            </div>
-            <div class="team-modal-body">
-                <div class="team-form-group">
-                    <label class="team-form-label">Team Name</label>
-                    <input type="text" id="teamName" class="team-form-input" placeholder="Enter team name" required>
-                    <span id="teamNameError" style="display: none; color: #dc2626; font-size: 13px; margin-top: 5px;">⚠️
-                        Team name is required</span>
-                </div>
-
-                <div class="team-members-container">
-                    <h3>Team Members</h3>
-                    <div id="teamMembersList"></div>
-                    <p class="team-required-msg"
-                        style="margin-top: 15px; padding: 12px; background: #fef3c7; border-radius: 6px; color: #92400e; font-size: 14px;">
-                    </p>
-                </div>
-            </div>
-            <div class="team-modal-buttons">
-                <button class="btn-cancel" onclick="closeTeamModal()">Cancel</button>
-                <button class="btn-confirm" onclick="createTeam()">Create Team & Register</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Replace Member Modal -->
-    <div id="replaceMemberModal" class="modal-backdrop" style="display: none; visibility: hidden;">
-        <div class="modal" style="max-width: 450px;">
-            <div class="modal-header" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;">
-                <div class="modal-title">🔄 Replace Team Member</div>
-                <button class="modal-close" type="button" onclick="closeReplaceMemberModal()"
-                    style="color: white;">&times;</button>
-            </div>
-            <div class="modal-body" style="padding: 20px;">
-                <div id="currentMemberInfo"
-                    style="background: #fef3c7; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
-                    <p style="margin: 0; font-size: 14px; color: #92400e;">
-                        <strong>Replacing:</strong> <span id="currentMemberName">Loading...</span>
-                    </p>
-                </div>
-
-                <div class="field" style="margin-bottom: 15px;">
-                    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">New Member's
-                        Student ID:</label>
-                    <input type="text" id="newMemberStudentId" placeholder="e.g., 23-54919-3"
-                        style="width: 100%; padding: 12px; border: 2px solid #d1d5db; border-radius: 8px; font-size: 15px; transition: border-color 0.2s;"
-                        onfocus="this.style.borderColor='#f59e0b'" onblur="this.style.borderColor='#d1d5db'">
-                    <p id="newMemberInfo"
-                        style="margin-top: 10px; padding: 10px; background: #ecfdf5; border-radius: 6px; color: #065f46; display: none;">
-                        <!-- Will show new member name when found -->
-                    </p>
-                    <p id="newMemberError"
-                        style="margin-top: 10px; padding: 10px; background: #fef2f2; border-radius: 6px; color: #dc2626; display: none;">
-                        <!-- Will show error message -->
-                    </p>
-                </div>
-
-                <script>
-                    // Load Notifications View (Section)
-                    async function loadNotificationsView() {
-                        const container = document.getElementById('notificationContent');
-                        container.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="spinner"></div><p>Loading notifications...</p></div>';
-
-                        try {
-                            const studentId = localStorage.getItem('studentId');
-                            const response = await authFetch(`${API_URL}/user/notifications/${studentId}`);
-                            const data = await response.json();
-
-                            if (data.success) {
-                                if (data.notifications.length === 0) {
-                                    container.innerHTML = '<div style="text-align: center; padding: 40px; color: #6b7280;"><p>No notifications found.</p></div>';
-                                    return;
-                                }
-
-                                // Sort by newest
-                                data.notifications.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
-
-                                let html = '';
-                                data.notifications.forEach(notification => {
-                                    const date = new Date(notification.created_at).toLocaleString();
-                                    const isUnread = notification.status === 'UNREAD';
-
-                                    // Determine action HTML — same logic as popup modal
-                                    let actionHtml = '';
-                                    if (notification.type === 'TEAM_REQUEST') {
-                                        if (notification.action_taken === 'ACCEPTED') {
-                                            actionHtml = '<span style="font-size:12px; color:#10b981; font-weight:600;">✓ Invitation Accepted</span>';
-                                        } else if (notification.action_taken === 'DECLINED') {
-                                            actionHtml = '<span style="font-size:12px; color:#ef4444; font-weight:600;">✕ Invitation Declined</span>';
-                                        } else if (isUnread && !notification.action_taken) {
-                                            actionHtml = `<button class="notification-btn accept-btn" onclick="acceptTeamInvitation(${notification.id})">Accept</button><button class="notification-btn decline-btn" onclick="declineTeamInvitation(${notification.id})">Decline</button>`;
-                                        } else {
-                                            actionHtml = '<span style="font-size:12px; color:#6b7280;">Processed</span>';
-                                        }
-                                    } else if (isUnread) {
-                                        actionHtml = `<button class="notification-btn mark-read-btn" onclick="markNotificationAsReadForSection(${notification.id})">Mark as Read</button>`;
-                                    }
-
-                                    html += `
-                            <div class="notification-item ${isUnread ? 'unread' : ''}" data-id="${notification.id}">
-                                <div class="notification-title">${notification.title}</div>
-                                <div class="notification-message">${notification.message}</div>
-                                <div class="notification-date">${date}</div>
-                                <div class="notification-actions">${actionHtml}</div>
-                            </div>
-                        `;
-                                });
-
-                                container.innerHTML = html;
-
-                                // Update header count
-                                const unreadCount = data.notifications.filter(n => n.status === 'UNREAD').length;
-                                document.getElementById('notificationCount').textContent = unreadCount;
-
-                            } else {
-                                container.innerHTML = '<p style="text-align: center; color: #ef4444;">Failed to load notifications.</p>';
-                            }
-                        } catch (error) {
-                            console.error('Error loading notifications:', error);
-                            container.innerHTML = '<p style="text-align: center; color: #ef4444;">Error loading notifications.</p>';
-                        }
-                    }
-
-                    // Mark as read for section view (no modal)
-                    async function markNotificationAsReadForSection(notificationId) {
-                        await markNotificationAsRead(notificationId);
-                        // Reload view to update UI
-                        loadNotificationsView();
-                    }
-                </script>
-
-                <div id="replaceConfirmation"
-                    style="background: #fff7ed; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b; display: none;">
-                    <p style="margin: 0; font-size: 14px; color: #9a3412;">
-                        ⚠️ <strong>Are you sure?</strong><br>
-                        <span id="confirmationText">This will remove the current member and invite the new
-                            member.</span>
-                    </p>
-                </div>
-            </div>
-            <div class="modal-footer"
-                style="display: flex; gap: 10px; justify-content: flex-end; padding: 15px 20px; background: #f9fafb; border-top: 1px solid #e5e7eb;">
-                <button class="btn secondary" type="button" onclick="closeReplaceMemberModal()"
-                    style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
-                    Cancel
-                </button>
-                <button class="btn primary" type="button" id="confirmReplaceBtn" onclick="confirmReplaceMember()"
-                    style="padding: 10px 20px; background: #f59e0b; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
-                    🔄 Replace Member
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Supabase for message / bug-report forms -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase-client.js"></script>
-    <script>
-    /* ─── SHARED HELPERS ─────────────────────────────────── */
-    const MAX_FILE_MB = 10;
-
-    function validateFile(input, infoId) {
-      const info = document.getElementById(infoId);
-      if (!input.files.length) { info.textContent = ''; return true; }
-      const file = input.files[0];
-      if (file.size > MAX_FILE_MB * 1024 * 1024) {
-        info.textContent = `❌ File too large (${(file.size/1024/1024).toFixed(1)} MB). Max is ${MAX_FILE_MB} MB.`;
-        info.style.color = '#dc2626';
-        input.value = '';
-        return false;
-      }
-      info.textContent = `✅ ${file.name} (${(file.size/1024/1024).toFixed(2)} MB)`;
-      info.style.color = '#059669';
-      return true;
-    }
-
-    function showFormToast(toastId, msg, isError) {
-      const el = document.getElementById(toastId);
-      el.textContent = msg;
-      el.style.display = 'block';
-      el.style.background = isError ? '#fef2f2' : '#f0fdf4';
-      el.style.color      = isError ? '#dc2626'  : '#15803d';
-      el.style.border     = isError ? '1px solid #fca5a5' : '1px solid #86efac';
-      setTimeout(() => { el.style.display = 'none'; }, 6000);
-    }
-
-    /* ─── File → base64 helper (store as data-url in text col) ─ */
-    function fileToBase64(file) {
-      return new Promise((res, rej) => {
-        const r = new FileReader();
-        r.onload  = () => res(r.result);
-        r.onerror = rej;
-        r.readAsDataURL(file);
-      });
-    }
-
-    /* ─── Auto-prefill user details ──────────────────────── */
-    function prefillUserForms() {
-      const name  = localStorage.getItem('userName')  || localStorage.getItem('fullName')  || '';
-      const email = localStorage.getItem('userEmail') || '';
-      ['msg-name','bug-name'].forEach(id => { const el=document.getElementById(id); if(el && name)  el.value = name;  });
-      ['msg-email','bug-email'].forEach(id => { const el=document.getElementById(id); if(el && email) el.value = email; });
-    }
-
-    /* ─── STATUS BADGE HELPERS ───────────────────────────── */
-    const msgStatusColor  = { unread:'#3b82f6', read:'#6b7280', replied:'#059669', closed:'#9ca3af' };
-    const bugStatusColor  = { open:'#dc2626', in_progress:'#d97706', resolved:'#059669', wont_fix:'#6b7280' };
-    const bugSevColor     = { low:'#059669', medium:'#d97706', high:'#ea580c', critical:'#dc2626' };
-
-    function badge(label, color) {
-      return `<span style="display:inline-block;padding:2px 10px;border-radius:99px;font-size:11px;font-weight:600;background:${color}22;color:${color};">${label}</span>`;
-    }
-
-    /* ─── LOAD MY MESSAGES ───────────────────────────────── */
-    async function loadMyMessages() {
-      const studentId = localStorage.getItem('studentId') || '';
-      const email     = localStorage.getItem('userEmail')  || '';
-      const list = document.getElementById('my-messages-list');
-      if (!window.db) { list.innerHTML = '<p style="color:#9ca3af;font-size:13px;">Supabase not loaded.</p>'; return; }
-      const { data, error } = await window.db.from('user_messages')
-        .select('id,subject,status,created_at,admin_reply')
-        .eq('email', email)
-        .order('created_at', { ascending: false })
-        .limit(10);
-      if (error || !data || data.length === 0) {
-        list.innerHTML = '<p style="color:#9ca3af;font-size:13px;">No messages submitted yet.</p>';
-        return;
-      }
-      list.innerHTML = data.map(m => `
-        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <span style="font-size:13px;font-weight:600;color:#1f2937;">${m.subject}</span>
-            ${badge(m.status, msgStatusColor[m.status]||'#6b7280')}
-          </div>
-          <div style="font-size:11px;color:#9ca3af;">${new Date(m.created_at).toLocaleString()}</div>
-          ${m.admin_reply ? `<div style="margin-top:8px;padding:8px 12px;background:#f0fdf4;border-radius:6px;font-size:12px;color:#15803d;"><strong>Admin reply:</strong> ${m.admin_reply}</div>` : ''}
-        </div>`).join('');
-    }
-
-    /* ─── LOAD MY BUG REPORTS ────────────────────────────── */
-    async function loadMyBugReports() {
-      const email = localStorage.getItem('userEmail') || '';
-      const list  = document.getElementById('my-bugs-list');
-      if (!window.db) { list.innerHTML = '<p style="color:#9ca3af;font-size:13px;">Supabase not loaded.</p>'; return; }
-      const { data, error } = await window.db.from('bug_reports')
-        .select('id,title,status,severity,category,created_at,admin_notes')
-        .eq('email', email)
-        .order('created_at', { ascending: false })
-        .limit(10);
-      if (error || !data || data.length === 0) {
-        list.innerHTML = '<p style="color:#9ca3af;font-size:13px;">No bug reports submitted yet.</p>';
-        return;
-      }
-      list.innerHTML = data.map(b => `
-        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <span style="font-size:13px;font-weight:600;color:#1f2937;">${b.title}</span>
-            <div style="display:flex;gap:6px;">
-              ${badge(b.severity, bugSevColor[b.severity]||'#6b7280')}
-              ${badge(b.status.replace('_',' '), bugStatusColor[b.status]||'#6b7280')}
-            </div>
-          </div>
-          <div style="font-size:11px;color:#9ca3af;">${b.category} · ${new Date(b.created_at).toLocaleString()}</div>
-          ${b.admin_notes ? `<div style="margin-top:8px;padding:8px 12px;background:#fff7ed;border-radius:6px;font-size:12px;color:#92400e;"><strong>Admin notes:</strong> ${b.admin_notes}</div>` : ''}
-        </div>`).join('');
-    }
-
-    /* ─── SUBMIT MESSAGE ─────────────────────────────────── */
-    async function submitMessage(e) {
-      e.preventDefault();
-      if (!validateFile(document.getElementById('msg-file'), 'msg-file-info')) return;
-      const btn = document.getElementById('msg-submit-btn');
-      btn.disabled = true; btn.textContent = 'Sending…';
-
-      let attachment_url = null, attachment_name = null;
-      const fileInput = document.getElementById('msg-file');
-      if (fileInput.files[0]) {
-        attachment_url  = await fileToBase64(fileInput.files[0]);
-        attachment_name = fileInput.files[0].name;
-      }
-
-      const payload = {
-        student_id:      localStorage.getItem('studentId') || null,
-        full_name:       document.getElementById('msg-name').value.trim(),
-        email:           document.getElementById('msg-email').value.trim(),
-        subject:         document.getElementById('msg-subject').value.trim(),
-        message:         document.getElementById('msg-body').value.trim(),
-        attachment_url, attachment_name
-      };
-
-      const { error } = await window.db.from('user_messages').insert(payload);
-      if (error) {
-        showFormToast('msg-toast', '❌ Failed to send: ' + error.message, true);
-      } else {
-        showFormToast('msg-toast', '✅ Message sent! We will get back to you soon.', false);
-        document.getElementById('msgForm').reset();
-        document.getElementById('msg-file-info').textContent = '';
-        loadMyMessages();
-      }
-      btn.disabled = false; btn.textContent = 'Send Message →';
-    }
-
-    /* ─── SUBMIT BUG REPORT ──────────────────────────────── */
-    async function submitBugReport(e) {
-      e.preventDefault();
-      if (!validateFile(document.getElementById('bug-file'), 'bug-file-info')) return;
-      const btn = document.getElementById('bug-submit-btn');
-      btn.disabled = true; btn.textContent = 'Submitting…';
-
-      let attachment_url = null, attachment_name = null;
-      const fileInput = document.getElementById('bug-file');
-      if (fileInput.files[0]) {
-        attachment_url  = await fileToBase64(fileInput.files[0]);
-        attachment_name = fileInput.files[0].name;
-      }
-
-      const payload = {
-        student_id:     localStorage.getItem('studentId') || null,
-        full_name:      document.getElementById('bug-name').value.trim(),
-        email:          document.getElementById('bug-email').value.trim(),
-        category:       document.getElementById('bug-category').value,
-        severity:       document.getElementById('bug-severity').value,
-        title:          document.getElementById('bug-title').value.trim(),
-        description:    document.getElementById('bug-desc').value.trim(),
-        steps_to_repro: document.getElementById('bug-steps').value.trim() || null,
-        attachment_url, attachment_name
-      };
-
-      const { error } = await window.db.from('bug_reports').insert(payload);
-      if (error) {
-        showFormToast('bug-toast', '❌ Submission failed: ' + error.message, true);
-      } else {
-        showFormToast('bug-toast', '✅ Bug report submitted! Thank you for helping us improve.', false);
-        document.getElementById('bugForm').reset();
-        document.getElementById('bug-file-info').textContent = '';
-        loadMyBugReports();
-      }
-      btn.disabled = false; btn.textContent = 'Submit Bug Report →';
-    }
-
-    /* ─── HOOK showSection to load data on first visit ───── */
-    /* FIX: capture window.showSection BEFORE overwriting (no hoisting issue) */
-    (function() {
-      var _origShowSection = window.showSection;
-      window.showSection = function(id) {
-        if (_origShowSection) _origShowSection(id);
-        if (id === 'messageSection') { prefillUserForms(); loadMyMessages(); }
-        if (id === 'reportSection')  { prefillUserForms(); loadMyBugReports(); }
-      };
-    })();
-
-    /* Run prefill on DOMContentLoaded in case user is already on these sections */
-    document.addEventListener('DOMContentLoaded', prefillUserForms);
-    </script>
-    <script>
-    /* Theme persistence — load saved theme on page load */
-    (function(){
-        try {
-            var saved = localStorage.getItem('dashboardTheme');
-            if (saved) {
-                document.documentElement.setAttribute('data-theme', saved);
-            }
-        } catch(e) {}
-    })();
-    </script>
 </body>
-
 </html>
