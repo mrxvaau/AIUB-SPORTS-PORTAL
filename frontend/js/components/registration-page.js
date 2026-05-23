@@ -17,6 +17,7 @@ var currentTeamSize  = 2;
 var currentTeamId    = null;
 var isEditMode       = false;
 var teamMemberSlots  = 1;
+var userGender       = null; // 'Male', 'Female', or null — used to filter visible categories
 
 var replaceModalData = {
     teamId: null,
@@ -72,6 +73,15 @@ async function loadTournaments() {
                     userRegistrations = regData.registrations;
                 }
             } catch(e) { console.error('Error fetching registrations:', e); }
+
+            // Fetch user gender for category filtering
+            try {
+                var profileRes  = await authFetch(API_URL + '/auth/profile/' + studentId);
+                var profileData = await profileRes.json();
+                if (profileData.success && profileData.user && profileData.user.gender) {
+                    userGender = profileData.user.gender; // 'Male' or 'Female'
+                }
+            } catch(e) { console.error('Error fetching user profile:', e); }
         }
 
         for (var i = 0; i < data.tournaments.length; i++) {
@@ -115,7 +125,8 @@ function createTournamentCard(tournament, games) {
             type: game.game_type,
             fee: game.fee_per_person,
             fee_per_person: game.fee_per_person,
-            team_size: game.team_size || 1
+            team_size: game.team_size || 1,
+            allow_cross_department: game.allow_cross_department || false
         };
         gameDataMap.set(String(game.id), info);
         gameDataMap.set(Number(game.id), info);
@@ -141,6 +152,13 @@ function createTournamentCard(tournament, games) {
 
     var safeTitle = tournament.title.replace(/'/g, "\\'");
 
+    // Filter categories based on user gender
+    // Male users: see Male + Mix only
+    // Female users: see Female + Mix only
+    // Unknown/Other/null: see everything
+    var showMale   = !userGender || userGender === 'Male'   || userGender === 'Other';
+    var showFemale = !userGender || userGender === 'Female' || userGender === 'Other';
+
     return '<div class="tournament-card">' +
         '<div class="tournament-header">' + imageHtml +
         '<div class="tournament-info"><h1>' + tournament.title + '</h1>' +
@@ -148,8 +166,8 @@ function createTournamentCard(tournament, games) {
         '<div class="info-item">📊 Status: ' + tournament.status + '</div>' +
         (tournament.description ? '<div class="info-item">📝 ' + tournament.description + '</div>' : '') +
         '</div></div>' +
-        (maleGames.length   > 0 ? createCategorySection('Male',   maleGames)   : '') +
-        (femaleGames.length > 0 ? createCategorySection('Female', femaleGames) : '') +
+        (showMale   && maleGames.length   > 0 ? createCategorySection('Male',   maleGames)   : '') +
+        (showFemale && femaleGames.length > 0 ? createCategorySection('Female', femaleGames) : '') +
         (mixGames.length    > 0 ? createCategorySection('Mix',    mixGames)    : '') +
         '</div>';
 }
@@ -262,13 +280,14 @@ async function registerForGame(gameId, gameName, category) {
     var gameCard = document.querySelector('.game-card[data-game-id="' + gameId + '"]');
     if (!gameCard) return;
     var feeMatch = gameCard.querySelector('.game-fee').textContent.match(/৳(\d+)/);
-    var fee      = feeMatch ? feeMatch[1] : '0';
+    var fee      = feeMatch ? parseInt(feeMatch[1]) : 0;
+    var isFree   = !fee || fee === 0;
     var button   = gameCard.querySelector('.register-btn');
     if (!button || button.textContent.trim() === 'Cancel Registration') return;
 
     openConfirmModal(
         'Confirm Registration',
-        'Register for ' + gameName + ' in ' + category + ' category?\nFee: ৳' + fee,
+        'Register for ' + gameName + ' in ' + category + ' category?' + (isFree ? '\nThis is a FREE tournament — no payment required!' : '\nFee: ৳' + fee),
         async function() {
             closeConfirmModal();
             var origHtml    = button.innerHTML;
@@ -284,20 +303,33 @@ async function registerForGame(gameId, gameName, category) {
                 var result = await res.json();
 
                 if (result.success) {
-                    try {
-                        await authFetch(API_URL + '/cart/add', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ studentId: studentId, item_type: 'GAME_REGISTRATION', item_id: result.registration.id, tournament_game_id: gameId })
+                    if (isFree) {
+                        // Free game: show confirmation popup
+                        showFreeConfirmPopup(gameId, gameName, null, function() {
+                            button.innerHTML  = 'Cancel Registration';
+                            button.className  = 'register-btn cancel';
+                            button.disabled   = false;
+                            button.setAttribute('data-game-id', gameId);
+                            button.setAttribute('data-game-name', gameName);
+                            button.setAttribute('data-game-category', category);
                         });
-                    } catch(e) { console.error('Cart error:', e); }
-                    button.innerHTML  = 'Cancel Registration';
-                    button.className  = 'register-btn cancel';
-                    button.disabled   = false;
-                    button.setAttribute('data-game-id', gameId);
-                    button.setAttribute('data-game-name', gameName);
-                    button.setAttribute('data-game-category', category);
-                    showToast('Successfully registered for ' + gameName + '!', 'success', 'Registered');
+                    } else {
+                        // Paid game: add to cart
+                        try {
+                            await authFetch(API_URL + '/cart/add', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ studentId: studentId, item_type: 'GAME_REGISTRATION', item_id: result.registration.id, tournament_game_id: gameId })
+                            });
+                        } catch(e) { console.error('Cart error:', e); }
+                        button.innerHTML  = 'Cancel Registration';
+                        button.className  = 'register-btn cancel';
+                        button.disabled   = false;
+                        button.setAttribute('data-game-id', gameId);
+                        button.setAttribute('data-game-name', gameName);
+                        button.setAttribute('data-game-category', category);
+                        showToast('Successfully registered for ' + gameName + '!', 'success', 'Registered');
+                    }
                 } else {
                     showToast(result.message || 'Unknown error', 'error', 'Registration Failed');
                     button.innerHTML = origHtml;
@@ -558,7 +590,11 @@ async function createTeam() {
                 if (!valResult.success) {
                     createBtn.textContent = originalText;
                     createBtn.disabled    = false;
-                    showGenderErrorPopup(valResult, memberIds[k], k);
+                    if (valResult.errorType === 'department_mismatch') {
+                        showDepartmentErrorPopup(valResult, memberIds[k], k);
+                    } else {
+                        showGenderErrorPopup(valResult, memberIds[k], k);
+                    }
                     return;
                 }
             }
@@ -578,10 +614,25 @@ async function createTeam() {
             for (var m = 1; m < memberIds.length; m++) {
                 await addTeamMember(result.team.id, memberIds[m]);
             }
-            await addToCart(studentId, 'TEAM_REGISTRATION', result.team.id, currentGameId);
-            showToast('Team created and added to cart!', 'success', 'Team Created');
-            closeTeamModal();
-            location.reload();
+
+            // Check if this is a free game
+            var gameData = gameDataMap.get(currentGameId) || gameDataMap.get(String(currentGameId)) || gameDataMap.get(Number(currentGameId));
+            var gameFee = gameData ? (gameData.fee_per_person || gameData.fee || 0) : 0;
+            var isFree  = !gameFee || gameFee === 0;
+
+            if (isFree) {
+                // Free game: show confirm registration popup
+                closeTeamModal();
+                showFreeConfirmPopup(currentGameId, currentGameName, result.team.id, function() {
+                    location.reload();
+                });
+            } else {
+                // Paid game: add to cart
+                await addToCart(studentId, 'TEAM_REGISTRATION', result.team.id, currentGameId);
+                showToast('Team created and added to cart!', 'success', 'Team Created');
+                closeTeamModal();
+                location.reload();
+            }
         } else {
             showToast(result.message || 'Unknown error', 'error', 'Team Creation Failed');
         }
@@ -614,6 +665,96 @@ function showGenderErrorPopup(result, studentId, memberIndex) {
         '<button onclick="document.getElementById(\'genderErrorOverlay\').remove();" style="padding:11px 22px;background:#f59e0b;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:14px;">✏️ Change Member ID</button>' +
         '</div></div></div>';
     document.body.appendChild(overlay);
+}
+
+function showDepartmentErrorPopup(result, studentId, memberIndex) {
+    var memberName       = result.memberName       || studentId;
+    var memberDepartment = result.memberDepartment  || 'unknown';
+    var leaderDepartment = result.leaderDepartment  || 'unknown';
+
+    var overlay = document.createElement('div');
+    overlay.id  = 'departmentErrorOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:10001;backdrop-filter:blur(4px);';
+    overlay.innerHTML =
+        '<div style="background:var(--bg-card);border-radius:12px;max-width:430px;width:90%;box-shadow:0 20px 50px rgba(0,0,0,0.4);overflow:hidden;border:1px solid var(--border-color);">' +
+        '<div style="background:linear-gradient(135deg,#d97706,#b45309);color:white;padding:20px;text-align:center;">' +
+        '<div style="font-size:44px;margin-bottom:8px;">⚠️</div><h3 style="margin:0;font-size:18px;">Department Mismatch</h3></div>' +
+        '<div style="padding:24px;">' +
+        '<div style="background:rgba(217,119,6,0.08);border-left:4px solid #d97706;padding:14px;border-radius:6px;margin-bottom:18px;">' +
+        '<p style="margin:0;font-size:14px;"><strong>' + memberName + '</strong> is from <strong>' + memberDepartment + '</strong>.<br><br>This tournament requires same-department teams. Please add someone from your department (<strong>' + leaderDepartment + '</strong>).</p></div>' +
+        '<p style="text-align:center;font-size:13px;margin-bottom:18px;">Enter a student ID from the <strong>' + leaderDepartment + '</strong> department.</p>' +
+        '<div style="display:flex;justify-content:center;">' +
+        '<button onclick="document.getElementById(\'departmentErrorOverlay\').remove();" style="padding:11px 22px;background:#d97706;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:14px;">✏️ Change Member ID</button>' +
+        '</div></div></div>';
+    document.body.appendChild(overlay);
+}
+
+function showFreeConfirmPopup(gameId, gameName, teamId, onSuccess) {
+    var overlay = document.createElement('div');
+    overlay.id  = 'freeConfirmOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;z-index:10001;backdrop-filter:blur(5px);';
+    overlay.innerHTML =
+        '<div style="background:var(--bg-card,#fff);border-radius:16px;max-width:460px;width:92%;box-shadow:0 25px 60px rgba(0,0,0,0.5);overflow:hidden;border:1px solid var(--border-color,#e5e7eb);animation:fadeInScale 0.3s ease-out;">' +
+        '<div style="background:linear-gradient(135deg,#059669,#047857);color:white;padding:24px;text-align:center;">' +
+        '<div style="font-size:48px;margin-bottom:10px;">🎉</div>' +
+        '<h3 style="margin:0;font-size:20px;font-weight:700;">Confirm Registration</h3>' +
+        '<p style="margin:6px 0 0;font-size:13px;opacity:0.9;">Free Tournament — No Payment Required</p>' +
+        '</div>' +
+        '<div style="padding:24px;">' +
+        '<div style="background:rgba(245,158,11,0.08);border-left:4px solid #f59e0b;padding:16px;border-radius:8px;margin-bottom:20px;">' +
+        '<p style="margin:0;font-size:14px;line-height:1.6;color:var(--text-primary,#111);">' +
+        '<strong>⚠️ Please read carefully:</strong><br><br>' +
+        'Once you confirm your registration for <strong>' + gameName + '</strong>, ' +
+        'your spot will be <strong>locked and finalized</strong>.<br><br>' +
+        '• You <strong>cannot undo</strong> this action<br>' +
+        '• Team members <strong>cannot be changed</strong> after confirmation<br>' +
+        '• Your registration status will be set to <strong>Confirmed</strong>' +
+        '</p></div>' +
+        '<p style="text-align:center;font-size:13px;color:var(--text-secondary,#6b7280);margin-bottom:20px;">Are you sure you want to confirm your registration?</p>' +
+        '<div style="display:flex;gap:12px;justify-content:center;">' +
+        '<button id="freeConfirmCancelBtn" style="padding:12px 24px;background:var(--bg-card,#f3f4f6);color:var(--text-primary,#374151);border:1px solid var(--border-color,#d1d5db);border-radius:10px;cursor:pointer;font-weight:600;font-size:14px;transition:all 0.2s;">Cancel</button>' +
+        '<button id="freeConfirmYesBtn" style="padding:12px 24px;background:linear-gradient(135deg,#059669,#047857);color:white;border:none;border-radius:10px;cursor:pointer;font-weight:600;font-size:14px;box-shadow:0 4px 12px rgba(5,150,105,0.3);transition:all 0.2s;">✅ Confirm Registration</button>' +
+        '</div></div></div>';
+
+    document.body.appendChild(overlay);
+
+    document.getElementById('freeConfirmCancelBtn').onclick = function() {
+        overlay.remove();
+    };
+
+    document.getElementById('freeConfirmYesBtn').onclick = async function() {
+        var btn = this;
+        btn.textContent = 'Confirming...';
+        btn.disabled = true;
+
+        try {
+            var studentId = localStorage.getItem('studentId');
+            var body = { studentId: studentId, gameId: gameId };
+            if (teamId) body.teamId = teamId;
+
+            var res = await authFetch(API_URL + '/registration/confirm-free', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            var result = await res.json();
+
+            if (result.success) {
+                overlay.remove();
+                showToast('Registration confirmed for ' + gameName + '! 🎉', 'success', 'Confirmed!');
+                if (onSuccess) onSuccess();
+            } else {
+                showToast(result.message || 'Confirmation failed', 'error', 'Error');
+                btn.textContent = '✅ Confirm Registration';
+                btn.disabled = false;
+            }
+        } catch(err) {
+            console.error('Free confirm error:', err);
+            showToast('Error confirming. Please try again.', 'error');
+            btn.textContent = '✅ Confirm Registration';
+            btn.disabled = false;
+        }
+    };
 }
 
 async function addTeamMember(teamId, memberStudentId) {

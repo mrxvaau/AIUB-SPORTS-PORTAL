@@ -1420,14 +1420,117 @@
                 </div>
             </div>
 
-            <!-- User Management Placeholder -->
+            <!-- User Management Panel -->
             <div id="user-management-placeholder" class="content-section">
                 <div class="player-card">
-                    <div class="card-header">
-                        <h2>User Management</h2>
+                    <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+                        <h2>👥 User Management</h2>
+                        <button onclick="exportUsersCSV()" style="padding:8px 16px;background:#059669;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;">
+                            📥 Export CSV
+                        </button>
                     </div>
-                    <div class="warning-box">
-                        <p>This panel is under development. Will be fixed soon.</p>
+
+                    <!-- Stats Cards -->
+                    <div id="umStats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;padding:16px 20px 0;">
+                        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px 16px;text-align:center;">
+                            <div style="font-size:24px;font-weight:800;color:#1e40af;" id="umStatTotal">—</div>
+                            <div style="font-size:11px;font-weight:600;color:#3b82f6;text-transform:uppercase;letter-spacing:0.05em;">Total Users</div>
+                        </div>
+                        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px 16px;text-align:center;">
+                            <div style="font-size:24px;font-weight:800;color:#166534;" id="umStatMale">—</div>
+                            <div style="font-size:11px;font-weight:600;color:#22c55e;text-transform:uppercase;letter-spacing:0.05em;">Male</div>
+                        </div>
+                        <div style="background:#fdf2f8;border:1px solid #fbcfe8;border-radius:10px;padding:14px 16px;text-align:center;">
+                            <div style="font-size:24px;font-weight:800;color:#9d174d;" id="umStatFemale">—</div>
+                            <div style="font-size:11px;font-weight:600;color:#ec4899;text-transform:uppercase;letter-spacing:0.05em;">Female</div>
+                        </div>
+                        <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:14px 16px;text-align:center;">
+                            <div style="font-size:24px;font-weight:800;color:#0c4a6e;" id="umStatCompleted">—</div>
+                            <div style="font-size:11px;font-weight:600;color:#0ea5e9;text-transform:uppercase;letter-spacing:0.05em;">Profiles Done</div>
+                        </div>
+                        <div style="background:#fefce8;border:1px solid #fde68a;border-radius:10px;padding:14px 16px;text-align:center;">
+                            <div style="font-size:24px;font-weight:800;color:#854d0e;" id="umStatRecent">—</div>
+                            <div style="font-size:11px;font-weight:600;color:#eab308;text-transform:uppercase;letter-spacing:0.05em;">New (7 days)</div>
+                        </div>
+                    </div>
+
+                    <!-- Search & Filter Bar -->
+                    <div style="display:flex;flex-wrap:wrap;gap:10px;padding:16px 20px;align-items:center;">
+                        <div style="flex:1;min-width:220px;position:relative;">
+                            <input type="text" id="umSearch" placeholder="🔍 Search by name, ID, or email..."
+                                style="width:100%;padding:10px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;"
+                                oninput="debounceUserSearch()">
+                        </div>
+                        <select id="umFilterGender" onchange="loadUserManagement()"
+                            style="padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;background:#fff;cursor:pointer;">
+                            <option value="all">All Genders</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                        <select id="umFilterDept" onchange="loadUserManagement()"
+                            style="padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;background:#fff;cursor:pointer;">
+                            <option value="all">All Departments</option>
+                        </select>
+                        <select id="umFilterProfile" onchange="loadUserManagement()"
+                            style="padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;background:#fff;cursor:pointer;">
+                            <option value="all">All Profiles</option>
+                            <option value="true">Complete</option>
+                            <option value="false">Incomplete</option>
+                        </select>
+                        <select id="umSort" onchange="loadUserManagement()"
+                            style="padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;background:#fff;cursor:pointer;">
+                            <option value="created_at:desc">Newest First</option>
+                            <option value="created_at:asc">Oldest First</option>
+                            <option value="full_name:asc">Name A → Z</option>
+                            <option value="full_name:desc">Name Z → A</option>
+                            <option value="last_login:desc">Recently Active</option>
+                        </select>
+                    </div>
+
+                    <!-- Users Table -->
+                    <div style="overflow-x:auto;padding:0 20px 10px;">
+                        <table id="umTable" style="width:100%;border-collapse:collapse;font-size:13px;">
+                            <thead>
+                                <tr style="border-bottom:2px solid #e5e7eb;background:#f9fafb;">
+                                    <th style="padding:10px 12px;text-align:left;font-weight:600;color:#374151;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;">Student ID</th>
+                                    <th style="padding:10px 12px;text-align:left;font-weight:600;color:#374151;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;">Full Name</th>
+                                    <th style="padding:10px 12px;text-align:left;font-weight:600;color:#374151;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;">Email</th>
+                                    <th style="padding:10px 12px;text-align:left;font-weight:600;color:#374151;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;">Gender</th>
+                                    <th style="padding:10px 12px;text-align:left;font-weight:600;color:#374151;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;">Department</th>
+                                    <th style="padding:10px 12px;text-align:left;font-weight:600;color:#374151;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;">Phone</th>
+                                    <th style="padding:10px 12px;text-align:center;font-weight:600;color:#374151;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;">Profile</th>
+                                    <th style="padding:10px 12px;text-align:left;font-weight:600;color:#374151;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;">Joined</th>
+                                    <th style="padding:10px 12px;text-align:center;font-weight:600;color:#374151;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="umTableBody">
+                                <tr><td colspan="9" style="text-align:center;padding:40px;color:#9ca3af;">Loading users...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div id="umPagination" style="display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-top:1px solid #f3f4f6;font-size:13px;color:#6b7280;">
+                        <span id="umPageInfo">—</span>
+                        <div style="display:flex;gap:6px;">
+                            <button id="umPrevBtn" onclick="umChangePage(-1)" disabled
+                                style="padding:6px 14px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;font-size:12px;font-weight:600;">← Prev</button>
+                            <button id="umNextBtn" onclick="umChangePage(1)" disabled
+                                style="padding:6px 14px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;font-size:12px;font-weight:600;">Next →</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Detail Modal -->
+                <div id="umDetailModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;justify-content:center;align-items:center;">
+                    <div style="background:#fff;border-radius:12px;width:90%;max-width:720px;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2);position:relative;">
+                        <div style="padding:20px 24px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#fff;border-radius:12px 12px 0 0;z-index:1;">
+                            <h3 id="umDetailTitle" style="font-size:18px;font-weight:700;color:#1f2937;">User Details</h3>
+                            <button onclick="closeUserDetailModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#9ca3af;padding:4px;">&times;</button>
+                        </div>
+                        <div id="umDetailContent" style="padding:24px;">
+                            <p style="text-align:center;color:#9ca3af;">Loading...</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1869,7 +1972,9 @@
                     console.error('loadRegistrationManagementNested function not found');
                 }
             } else if (sectionId === 'user-management-placeholder') {
-                // Load users if needed
+                if (typeof loadUserManagement === 'function') {
+                    loadUserManagement();
+                }
             } else if (sectionId === 'system-configuration-placeholder') {
                 if (typeof initTunnelControl === 'function') {
                     initTunnelControl();
@@ -2810,10 +2915,11 @@
                                         <div class="tournament-title">${tournament.title || 'Untitled'}</div>
                                         <div class="tournament-deadline">Deadline: ${tournament.registration_deadline || 'No deadline'}</div>
                                         <div class="tournament-games">${tournament.GAMES_COUNT || '0'} Games</div>
+                                        <div style="margin-top:4px;"><span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;${tournament.allow_cross_department ? 'background:#dbeafe;color:#1e40af;' : 'background:#f3f4f6;color:#6b7280;'}">${tournament.allow_cross_department ? '🔀 Cross-Dept' : '🏢 Same-Dept'}</span></div>
                                     </div>
                                 </div>
                                 <div style="display: flex; flex-direction: column; gap: 5px;">
-                                    <button class="edit-btn" style="padding: 6px 12px; font-size: 12px;" onclick="editTournament(${tournament.id}, '${(tournament.title || '').replace(/'/g, "\\'")}', '${(tournament.registration_deadline || '').replace(/'/g, "\\'")}', '${(tournament.description || '').replace(/'/g, "\\'")}')">
+                                    <button class="edit-btn" style="padding: 6px 12px; font-size: 12px;" onclick="editTournament(${tournament.id}, '${(tournament.title || '').replace(/'/g, "\\'")}', '${(tournament.registration_deadline || '').replace(/'/g, "\\'")}', '${(tournament.description || '').replace(/'/g, "\\'")}', ${tournament.allow_cross_department || false})">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                         </svg>
@@ -2865,6 +2971,30 @@
                         <label class="info-label">Tournament Description (Optional)</label>
                         <textarea id="description" class="info-input" placeholder="Enter tournament description..." style="height: 100px; resize: vertical;"></textarea>
                     </div>
+
+                    <div class="info-field" style="margin-bottom: 16px;">
+                        <label class="info-label" style="display: flex; align-items: center; gap: 10px;">
+                            Allow Cross-Department Teams
+                            <label style="position:relative;display:inline-block;width:44px;height:24px;margin:0;cursor:pointer;">
+                                <input type="checkbox" id="allowCrossDepartment" style="opacity:0;width:0;height:0;">
+                                <span style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#ccc;border-radius:24px;transition:.3s;"></span>
+                                <span id="crossDeptSlider" style="position:absolute;content:'';height:18px;width:18px;left:3px;bottom:3px;background-color:white;border-radius:50%;transition:.3s;"></span>
+                            </label>
+                        </label>
+                        <small style="color: #6b7280; font-size: 12px;">When enabled, players from different departments can form teams together.</small>
+                    </div>
+
+                    <div class="info-field" style="margin-bottom: 16px;">
+                        <label class="info-label" style="display: flex; align-items: center; gap: 10px;">
+                            Charge Entry Fee
+                            <label style="position:relative;display:inline-block;width:44px;height:24px;margin:0;cursor:pointer;">
+                                <input type="checkbox" id="chargeEntryFee" checked style="opacity:0;width:0;height:0;">
+                                <span style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#1e40af;border-radius:24px;transition:.3s;"></span>
+                                <span id="entryFeeSlider" style="position:absolute;content:'';height:18px;width:18px;left:3px;bottom:3px;background-color:white;border-radius:50%;transition:.3s;transform:translateX(20px);"></span>
+                            </label>
+                        </label>
+                        <small style="color: #6b7280; font-size: 12px;">When disabled, all games in this tournament will be free (no entry fee).</small>
+                    </div>
                     
                     <div class="info-field" style="margin-bottom: 16px;">
                         <label class="info-label">Games</label>
@@ -2912,6 +3042,38 @@
             `;
 
             document.getElementById('createTournamentForm').innerHTML = formHtml;
+
+            // Wire up the entry fee toggle visual
+            const entryFeeCheckbox = document.getElementById('chargeEntryFee');
+            if (entryFeeCheckbox) {
+                entryFeeCheckbox.addEventListener('change', function() {
+                    const slider = document.getElementById('entryFeeSlider');
+                    const track = this.nextElementSibling;
+                    if (this.checked) {
+                        track.style.backgroundColor = '#1e40af';
+                        slider.style.transform = 'translateX(20px)';
+                    } else {
+                        track.style.backgroundColor = '#ccc';
+                        slider.style.transform = 'translateX(0)';
+                    }
+                });
+            }
+
+            // Wire up the cross-department toggle visual
+            const crossDeptCheckbox = document.getElementById('allowCrossDepartment');
+            if (crossDeptCheckbox) {
+                crossDeptCheckbox.addEventListener('change', function() {
+                    const slider = document.getElementById('crossDeptSlider');
+                    const track = this.nextElementSibling;
+                    if (this.checked) {
+                        track.style.backgroundColor = '#1e40af';
+                        slider.style.transform = 'translateX(20px)';
+                    } else {
+                        track.style.backgroundColor = '#ccc';
+                        slider.style.transform = 'translateX(0)';
+                    }
+                });
+            }
         }
 
         // Add game to form by category
@@ -3005,6 +3167,7 @@
             const title = document.getElementById('title').value;
             const deadlineInput = document.getElementById('deadline').value;
             const description = document.getElementById('description').value;
+            const allowCrossDepartment = document.getElementById('allowCrossDepartment')?.checked || false;
 
             if (!title || !deadlineInput) {
                 showAlert('Please fill in all required fields', 'error');
@@ -3024,17 +3187,17 @@
                 const reader = new FileReader();
                 reader.onload = async function (e) {
                     // For file uploads, we'll pass photo as file via FormData, not as base64
-                    await submitTournament(title, null, null, tournamentGames, description, deadlineInput);
+                    await submitTournament(title, null, null, tournamentGames, description, deadlineInput, allowCrossDepartment);
                 };
                 reader.readAsDataURL(photoFile);
             } else {
                 // For no photo, send directly with the raw deadlineInput value
-                await submitTournament(title, null, null, tournamentGames, description, deadlineInput);
+                await submitTournament(title, null, null, tournamentGames, description, deadlineInput, allowCrossDepartment);
             }
         }
 
         // Submit tournament to server
-        async function submitTournament(title, photoUrl, deadline, games, description, deadlineInputValue) {
+        async function submitTournament(title, photoUrl, deadline, games, description, deadlineInputValue, allowCrossDepartment) {
             try {
                 const submitBtn = document.querySelector('.save-btn');
                 const originalText = submitBtn.textContent;
@@ -3053,6 +3216,7 @@
                     formData.append('description', description);
                     formData.append('games', JSON.stringify(games));
                     formData.append('photo', photoFile);
+                    formData.append('allow_cross_department', allowCrossDepartment ? 'true' : 'false');
 
                     const response = await authFetch(`${API_URL}/admin/tournaments`, {
                         method: 'POST',
@@ -3094,7 +3258,7 @@
                             'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
                             'x-user-email': localStorage.getItem('userEmail') || ''
                         },
-                        body: JSON.stringify({ title, photoUrl, deadline: deadlineInputValue, games, description })
+                        body: JSON.stringify({ title, photoUrl, deadline: deadlineInputValue, games, description, allow_cross_department: allowCrossDepartment })
                     });
 
                     if (response.status === 401) {
@@ -3173,7 +3337,7 @@
         }
 
         // Edit tournament function
-        function editTournament(tournamentId, title, deadline, description) {
+        function editTournament(tournamentId, title, deadline, description, allowCrossDepartment) {
             // Create a function that waits for the form elements to be available
             function waitForFormAndEdit() {
                 // Check if the game containers exist
@@ -3203,6 +3367,21 @@
                         document.getElementById('deadline').value = '';
                     }
                     document.getElementById('description').value = description || '';
+
+                    // Pre-fill the cross-department toggle
+                    const crossDeptCheckbox = document.getElementById('allowCrossDepartment');
+                    if (crossDeptCheckbox) {
+                        crossDeptCheckbox.checked = !!allowCrossDepartment;
+                        const slider = document.getElementById('crossDeptSlider');
+                        const track = crossDeptCheckbox.nextElementSibling;
+                        if (crossDeptCheckbox.checked) {
+                            track.style.backgroundColor = '#1e40af';
+                            slider.style.transform = 'translateX(20px)';
+                        } else {
+                            track.style.backgroundColor = '#ccc';
+                            slider.style.transform = 'translateX(0)';
+                        }
+                    }
 
                     // Reset game containers
                     maleGamesContainer.innerHTML = '';
@@ -3437,6 +3616,7 @@
             const title = document.getElementById('title').value;
             const deadlineInput = document.getElementById('deadline').value;
             const description = document.getElementById('description').value;
+            const allowCrossDepartment = document.getElementById('allowCrossDepartment')?.checked || false;
 
             // Validation
             if (!title) {
@@ -3574,6 +3754,7 @@
                     formData.append('description', description);
                     formData.append('games', JSON.stringify(games));
                     formData.append('photo', photoFile);
+                    formData.append('allow_cross_department', allowCrossDepartment ? 'true' : 'false');
 
                     const response = await authFetch(`${API_URL}/admin/tournaments/${tournamentId}`, {
                         method: 'PUT',
@@ -3614,7 +3795,8 @@
                             // Use deadlineInput which is the raw datetime-local value
                             deadline: deadlineInput,
                             description,
-                            games
+                            games,
+                            allow_cross_department: allowCrossDepartment
                         })
                     });
 
@@ -3860,11 +4042,21 @@
         function openGameCategoryModal() {
             document.getElementById('gameCategoryModal').classList.add('active');
             document.getElementById('gc_gameSelect').value = "";
-            document.getElementById('gc_entryFee').value = 100;
             document.getElementById('gc_customGameField').style.display = 'none';
             document.getElementById('gc_customTeamSizeRow').style.display = 'none';
             document.getElementById('gc_teamSize').value = "";
             document.getElementById('gc_customGame').value = "";
+
+            // Check if entry fee is enabled at tournament level
+            const chargeEntryFee = document.getElementById('chargeEntryFee')?.checked ?? true;
+            const entryFeeField = document.getElementById('gc_entryFeeField');
+            if (chargeEntryFee) {
+                entryFeeField.style.display = 'block';
+                document.getElementById('gc_entryFee').value = 100;
+            } else {
+                entryFeeField.style.display = 'none';
+                document.getElementById('gc_entryFee').value = 0;
+            }
 
             // reset Men/Women
             const personPills = document.querySelectorAll('#gc_personGroup .pill-check');
@@ -3947,7 +4139,9 @@
             gc_resetFormats();
             teamSizeRow.style.display = 'none';
             teamSizeInput.value = "";
-            document.getElementById('gc_entryFee').value = 100;
+            // Respect the entry fee toggle
+            const chargeEntryFee = document.getElementById('chargeEntryFee')?.checked ?? true;
+            document.getElementById('gc_entryFee').value = chargeEntryFee ? 100 : 0;
 
             // always enable Men/Women when game changes
             const personPills = document.querySelectorAll('#gc_personGroup .pill-check');
@@ -4081,6 +4275,11 @@
                 alert('Please select at least one tournament format.');
                 return;
             }
+            if (squad && (!teamSize || isNaN(parseInt(teamSize)) || parseInt(teamSize) < 2)) {
+                alert('Please enter team size (minimum 2 players) for Squad / NvN format.');
+                document.getElementById('gc_teamSize').focus();
+                return;
+            }
 
             let name = gameKey === 'custom' ? customName : gameKey;
             if (!name) {
@@ -4172,7 +4371,7 @@
                     <div style="background: #f9fafb; padding: 12px; border-radius: 6px; margin-bottom: 8px; border: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <strong>${game.name}</strong> <span style="color: #6b7280; font-size: 12px;">(${game.category})</span><br>
-                            <span style="font-size: 12px; color: #6b7280;">Type: ${game.type} • Fee: ${game.fee} BDT</span><br>
+                            <span style="font-size: 12px; color: #6b7280;">Type: ${game.type} • ${game.fee > 0 ? 'Fee: ' + game.fee + ' BDT' : '<span style="color:#10b981;font-weight:600;">Free</span>'}</span><br>
                             <span style="font-size: 11px; color: #374151; background: #e0f2fe; border-radius: 4px; padding: 2px 6px; display:inline-block; margin-top:3px;">${roles}${crossLabel}</span>
                         </div>
                         <button onclick="removeGame(${index})" style="background: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">Delete</button>
@@ -4407,12 +4606,12 @@
                 <div class="field">
                     <label>Gender</label>
                     <div class="pill-group" id="gc_personGroup">
-                        <label class="pill-check active" onclick="gc_togglePill(this)">
+                        <label class="pill-check active" onclick="gc_togglePill(this); event.preventDefault();">
                             <input type="checkbox" checked />
                             <span class="dot"></span>
                             Men
                         </label>
-                        <label class="pill-check active" onclick="gc_togglePill(this)">
+                        <label class="pill-check active" onclick="gc_togglePill(this); event.preventDefault();">
                             <input type="checkbox" checked />
                             <span class="dot"></span>
                             Women
@@ -4462,22 +4661,22 @@
                 <div class="field">
                     <label>Tournament format</label>
                     <div class="pill-group">
-                        <label class="pill-check" id="gc_fmtSolo" onclick="gc_toggleFormatPill(this)">
+                        <label class="pill-check" id="gc_fmtSolo" onclick="gc_toggleFormatPill(this); event.preventDefault();">
                             <input type="checkbox" id="gc_formatSolo" />
                             <span class="dot"></span>
                             Solo
                         </label>
-                        <label class="pill-check" id="gc_fmtDuo" onclick="gc_toggleFormatPill(this)">
+                        <label class="pill-check" id="gc_fmtDuo" onclick="gc_toggleFormatPill(this); event.preventDefault();">
                             <input type="checkbox" id="gc_formatDuo" />
                             <span class="dot"></span>
                             Duo
                         </label>
-                        <label class="pill-check" id="gc_fmtMixDuo" onclick="gc_toggleFormatPill(this)">
+                        <label class="pill-check" id="gc_fmtMixDuo" onclick="gc_toggleFormatPill(this); event.preventDefault();">
                             <input type="checkbox" id="gc_formatMixDuo" />
                             <span class="dot"></span>
                             Duo (Mixed)
                         </label>
-                        <label class="pill-check" id="gc_fmtSquad" onclick="gc_toggleFormatPill(this)">
+                        <label class="pill-check" id="gc_fmtSquad" onclick="gc_toggleFormatPill(this); event.preventDefault();">
                             <input type="checkbox" id="gc_formatSquad" />
                             <span class="dot"></span>
                             Squad / Team (NVN)
@@ -4495,7 +4694,7 @@
                     </div>
                 </div>
 
-                <div class="field">
+                <div class="field" id="gc_entryFeeField">
                     <label for="gc_entryFee">Entry fee per person (৳)</label>
                     <input id="gc_entryFee" type="number" min="0" value="100" />
                     <small>Default is <strong>100 taka per person</strong>. Change if needed.</small>
@@ -5306,6 +5505,434 @@
       setTimeout(_updateAdminBadges, 1500); // wait for db init
     });
     </script>
+
+<!-- ════════════════════════════════════════════════════════════
+     USER MANAGEMENT MODULE
+     ════════════════════════════════════════════════════════════ -->
+<script>
+(function() {
+    'use strict';
+
+    var umCurrentPage = 1;
+    var umTotalPages = 1;
+    var umAllUsers = []; // cached for CSV export
+    var umSearchTimer = null;
+    var umDepartmentsLoaded = false;
+
+    // ── Debounced search ──
+    window.debounceUserSearch = function() {
+        clearTimeout(umSearchTimer);
+        umSearchTimer = setTimeout(function() {
+            umCurrentPage = 1;
+            loadUserManagement();
+        }, 350);
+    };
+
+    // ── Page change ──
+    window.umChangePage = function(delta) {
+        umCurrentPage += delta;
+        if (umCurrentPage < 1) umCurrentPage = 1;
+        if (umCurrentPage > umTotalPages) umCurrentPage = umTotalPages;
+        loadUserManagement();
+    };
+
+    // ── Main load function ──
+    window.loadUserManagement = async function() {
+        var search = (document.getElementById('umSearch') || {}).value || '';
+        var gender = (document.getElementById('umFilterGender') || {}).value || 'all';
+        var dept = (document.getElementById('umFilterDept') || {}).value || 'all';
+        var profile = (document.getElementById('umFilterProfile') || {}).value || 'all';
+        var sortVal = (document.getElementById('umSort') || {}).value || 'created_at:desc';
+        var parts = sortVal.split(':');
+        var sortField = parts[0];
+        var sortOrder = parts[1] || 'desc';
+
+        var params = new URLSearchParams({
+            page: umCurrentPage,
+            limit: 50,
+            sort: sortField,
+            order: sortOrder
+        });
+        if (search.trim()) params.set('search', search.trim());
+        if (gender !== 'all') params.set('gender', gender);
+        if (dept !== 'all') params.set('department', dept);
+        if (profile !== 'all') params.set('profileCompleted', profile);
+
+        var tbody = document.getElementById('umTableBody');
+        if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:#9ca3af;">Loading users...</td></tr>';
+
+        try {
+            var res = await authFetch(API_URL + '/admin/users?' + params.toString());
+            var data = await res.json();
+
+            if (!data.success) throw new Error(data.message || 'Failed to load');
+
+            // Update stats
+            if (data.stats) {
+                var s = data.stats;
+                setText('umStatTotal', s.total);
+                setText('umStatMale', s.male);
+                setText('umStatFemale', s.female);
+                setText('umStatCompleted', s.profileCompleted);
+                setText('umStatRecent', s.recentSignups);
+            }
+
+            // Populate department dropdown (once)
+            if (!umDepartmentsLoaded && data.departments && data.departments.length) {
+                var deptSelect = document.getElementById('umFilterDept');
+                if (deptSelect) {
+                    var currentVal = deptSelect.value;
+                    deptSelect.innerHTML = '<option value="all">All Departments</option>';
+                    data.departments.forEach(function(d) {
+                        var opt = document.createElement('option');
+                        opt.value = d;
+                        opt.textContent = d;
+                        deptSelect.appendChild(opt);
+                    });
+                    deptSelect.value = currentVal;
+                    umDepartmentsLoaded = true;
+                }
+            }
+
+            // Store for CSV
+            umAllUsers = data.users || [];
+
+            // Render table
+            renderUsersTable(data.users || []);
+
+            // Update pagination
+            if (data.pagination) {
+                umTotalPages = data.pagination.totalPages || 1;
+                var total = data.pagination.total || 0;
+                var start = (data.pagination.page - 1) * data.pagination.limit + 1;
+                var end = Math.min(start + data.pagination.limit - 1, total);
+                setText('umPageInfo', total === 0 ? 'No users found' : 'Showing ' + start + '–' + end + ' of ' + total + ' users');
+
+                var prevBtn = document.getElementById('umPrevBtn');
+                var nextBtn = document.getElementById('umNextBtn');
+                if (prevBtn) prevBtn.disabled = (data.pagination.page <= 1);
+                if (nextBtn) nextBtn.disabled = (data.pagination.page >= umTotalPages);
+            }
+        } catch (err) {
+            console.error('loadUserManagement error:', err);
+            if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:#ef4444;">Error loading users: ' + err.message + '</td></tr>';
+        }
+    };
+
+    // ── Render table rows ──
+    function renderUsersTable(users) {
+        var tbody = document.getElementById('umTableBody');
+        if (!tbody) return;
+
+        if (!users.length) {
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:#9ca3af;">No users found matching your filters.</td></tr>';
+            return;
+        }
+
+        var html = '';
+        users.forEach(function(u) {
+            var genderBadge = u.gender === 'Male'
+                ? '<span style="padding:3px 8px;border-radius:4px;background:#dcfce7;color:#166534;font-size:11px;font-weight:600;">♂ Male</span>'
+                : u.gender === 'Female'
+                ? '<span style="padding:3px 8px;border-radius:4px;background:#fce7f3;color:#9d174d;font-size:11px;font-weight:600;">♀ Female</span>'
+                : '<span style="padding:3px 8px;border-radius:4px;background:#f3f4f6;color:#6b7280;font-size:11px;font-weight:600;">—</span>';
+
+            var profileBadge = u.profile_completed
+                ? '<span style="padding:3px 8px;border-radius:4px;background:#dcfce7;color:#166534;font-size:11px;font-weight:600;">✓ Done</span>'
+                : '<span style="padding:3px 8px;border-radius:4px;background:#fef3c7;color:#92400e;font-size:11px;font-weight:600;">✗ Pending</span>';
+
+            var joined = u.created_at ? new Date(u.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
+
+            var initials = (u.full_name || '?').split(' ').map(function(w){ return w[0]; }).join('').substring(0,2).toUpperCase();
+            var colors = ['#3b82f6','#8b5cf6','#ec4899','#f59e0b','#10b981','#06b6d4'];
+            var bgColor = colors[((u.id || 0) % colors.length)];
+
+            html += '<tr style="border-bottom:1px solid #f3f4f6;cursor:pointer;transition:background 0.15s;" onclick="openUserDetail(' + u.id + ')" onmouseenter="this.style.background=\'#f9fafb\'" onmouseleave="this.style.background=\'transparent\'">'
+                + '<td style="padding:10px 12px;font-weight:600;color:#1e40af;">' + (u.student_id || '—') + '</td>'
+                + '<td style="padding:10px 12px;">'
+                + '  <div style="display:flex;align-items:center;gap:8px;">'
+                + '    <div style="width:30px;height:30px;border-radius:50%;background:' + bgColor + ';color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">' + initials + '</div>'
+                + '    <span style="font-weight:500;color:#1f2937;">' + (u.full_name || '<em style="color:#9ca3af;">Not set</em>') + '</span>'
+                + '  </div>'
+                + '</td>'
+                + '<td style="padding:10px 12px;color:#6b7280;font-size:12px;">' + (u.email || '—') + '</td>'
+                + '<td style="padding:10px 12px;">' + genderBadge + '</td>'
+                + '<td style="padding:10px 12px;font-size:12px;color:#4b5563;">' + (u.department || '—') + '</td>'
+                + '<td style="padding:10px 12px;font-size:12px;color:#4b5563;">' + (u.phone_number || '—') + '</td>'
+                + '<td style="padding:10px 12px;text-align:center;">' + profileBadge + '</td>'
+                + '<td style="padding:10px 12px;font-size:12px;color:#6b7280;">' + joined + '</td>'
+                + '<td style="padding:10px 12px;text-align:center;">'
+                + '  <button onclick="event.stopPropagation();openUserDetail(' + u.id + ')" style="padding:5px 12px;background:#3b82f6;color:#fff;border:none;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;">View</button>'
+                + '</td>'
+                + '</tr>';
+        });
+
+        tbody.innerHTML = html;
+    }
+
+    var umCurrentUserId = null;
+
+    // ── User Detail Modal (Editable) ──
+    window.openUserDetail = async function(userId) {
+        var modal = document.getElementById('umDetailModal');
+        var content = document.getElementById('umDetailContent');
+        if (!modal || !content) return;
+
+        umCurrentUserId = userId;
+        modal.style.display = 'flex';
+        content.innerHTML = '<p style="text-align:center;padding:30px;color:#9ca3af;">Loading user details...</p>';
+
+        try {
+            var res = await authFetch(API_URL + '/admin/users/' + userId);
+            var data = await res.json();
+            if (!data.success) throw new Error(data.message);
+
+            var u = data.user;
+            var title = document.getElementById('umDetailTitle');
+            if (title) title.textContent = (u.full_name || u.student_id || 'User') + ' — Edit';
+
+            var joined = u.created_at ? new Date(u.created_at).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
+            var lastLogin = u.last_login ? new Date(u.last_login).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : 'Never';
+
+            var iS = 'width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;outline:none;background:#fff;color:#1f2937;';
+            var lS = 'font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.03em;margin-bottom:4px;display:block;';
+            var fW = 'padding:8px 12px;background:#f9fafb;border-radius:6px;';
+            var rS = 'font-size:14px;font-weight:500;color:#1f2937;';
+
+            var html = '';
+
+            // ── Editable Profile ──
+            html += '<div style="margin-bottom:20px;">';
+            html += '<h4 style="font-size:14px;font-weight:700;color:#374151;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.05em;">✏️ Edit Profile</h4>';
+            html += '<div id="umSaveMsg" style="display:none;padding:8px 12px;border-radius:6px;margin-bottom:12px;font-size:13px;font-weight:600;"></div>';
+            html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">';
+
+            // Read-only
+            html += '<div style="' + fW + '"><label style="' + lS + '">Student ID</label><div style="' + rS + '">' + esc(u.student_id) + '</div></div>';
+            html += '<div style="' + fW + '"><label style="' + lS + '">Email</label><div style="' + rS + 'font-size:12px;">' + esc(u.email) + '</div></div>';
+
+            // Editable
+            html += '<div style="' + fW + '"><label style="' + lS + '">Full Name</label><input id="umEditName" style="' + iS + '" value="' + escA(u.full_name) + '"></div>';
+
+            html += '<div style="' + fW + '"><label style="' + lS + '">Gender</label><select id="umEditGender" style="' + iS + '">'
+                + '<option value="">—</option>'
+                + '<option value="Male"' + (u.gender==='Male'?' selected':'') + '>Male</option>'
+                + '<option value="Female"' + (u.gender==='Female'?' selected':'') + '>Female</option>'
+                + '</select></div>';
+
+            html += '<div style="' + fW + '"><label style="' + lS + '">Phone</label><input id="umEditPhone" style="' + iS + '" value="' + escA(u.phone_number) + '"></div>';
+
+            html += '<div style="' + fW + '"><label style="' + lS + '">Blood Group</label><select id="umEditBlood" style="' + iS + '"><option value="">—</option>';
+            ['A+','A-','B+','B-','AB+','AB-','O+','O-'].forEach(function(bg) {
+                html += '<option value="' + bg + '"' + (u.blood_group===bg?' selected':'') + '>' + bg + '</option>';
+            });
+            html += '</select></div>';
+
+            html += '<div style="' + fW + '"><label style="' + lS + '">Department</label><input id="umEditDept" style="' + iS + '" value="' + escA(u.department) + '"></div>';
+
+            html += '<div style="' + fW + '"><label style="' + lS + '">Program Level</label><select id="umEditProgram" style="' + iS + '"><option value="">—</option>';
+            ['Undergraduate','Graduate','Postgraduate'].forEach(function(pl) {
+                html += '<option value="' + pl + '"' + (u.program_level===pl?' selected':'') + '>' + pl + '</option>';
+            });
+            html += '</select></div>';
+
+            // Profile complete checkbox
+            var chkId = 'umEditProfileDone';
+            html += '<div style="' + fW + 'display:flex;align-items:center;gap:10px;">'
+                + '<label style="' + lS + 'margin-bottom:0;">Profile Complete</label>'
+                + '<input type="checkbox" id="' + chkId + '"' + (u.profile_completed?' checked':'') + ' style="width:18px;height:18px;cursor:pointer;accent-color:#10b981;">'
+                + '</div>';
+
+            // Name edits + reset
+            html += '<div style="' + fW + 'display:flex;align-items:center;justify-content:space-between;">'
+                + '<div><label style="' + lS + '">Name Edits</label><div style="' + rS + '">' + (u.name_edit_count||0) + ' / 3</div></div>'
+                + '<button onclick="resetNameEdits(' + u.id + ')" style="padding:5px 12px;background:#f59e0b;color:#fff;border:none;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;">🔄 Reset</button>'
+                + '</div>';
+
+            html += '<div style="' + fW + '"><label style="' + lS + '">Joined</label><div style="' + rS + '">' + joined + '</div></div>';
+            html += '<div style="' + fW + '"><label style="' + lS + '">Last Login</label><div style="' + rS + '">' + lastLogin + '</div></div>';
+
+            html += '</div>'; // grid
+
+            // Save / Cancel buttons
+            html += '<div style="margin-top:16px;display:flex;gap:10px;">';
+            html += '<button id="umSaveBtn" onclick="saveUserChanges(' + u.id + ')" style="flex:1;padding:10px 20px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">💾 Save Changes</button>';
+            html += '<button onclick="closeUserDetailModal()" style="padding:10px 20px;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">Cancel</button>';
+            html += '</div>';
+            html += '</div>';
+
+            // ── Registrations ──
+            var regs = data.registrations || [];
+            html += '<div style="margin-bottom:24px;border-top:1px solid #e5e7eb;padding-top:20px;">';
+            html += '<h4 style="font-size:14px;font-weight:700;color:#374151;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.05em;">🎮 Registrations (' + regs.length + ')</h4>';
+            if (!regs.length) {
+                html += '<p style="color:#9ca3af;font-size:13px;">No registrations.</p>';
+            } else {
+                html += '<div style="display:flex;flex-direction:column;gap:8px;">';
+                regs.forEach(function(r) {
+                    var g = r.tournament_games || {}; var t = g.tournaments || {};
+                    var sc = (r.payment_status==='PAID'||r.payment_status==='CONFIRMED')?'#10b981':r.payment_status==='PENDING'?'#f59e0b':'#ef4444';
+                    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;">'
+                        + '<div><div style="font-weight:600;color:#1f2937;">' + esc(g.game_name) + '</div>'
+                        + '<div style="font-size:11px;color:#6b7280;">' + esc(t.title) + ' · ' + esc(g.category) + ' · ' + esc(g.game_type) + '</div></div>'
+                        + '<span style="padding:3px 8px;border-radius:4px;background:' + sc + '18;color:' + sc + ';font-size:11px;font-weight:600;">' + (r.payment_status||'—') + '</span></div>';
+                });
+                html += '</div>';
+            }
+            html += '</div>';
+
+            // ── Teams ──
+            var tms = data.teamMemberships || []; var lts = data.ledTeams || [];
+            html += '<div style="border-top:1px solid #e5e7eb;padding-top:20px;">';
+            html += '<h4 style="font-size:14px;font-weight:700;color:#374151;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.05em;">👥 Teams (' + (tms.length+lts.length) + ')</h4>';
+            if (!tms.length && !lts.length) {
+                html += '<p style="color:#9ca3af;font-size:13px;">No team memberships.</p>';
+            } else {
+                html += '<div style="display:flex;flex-direction:column;gap:8px;">';
+                lts.forEach(function(t) {
+                    var g = t.tournament_games||{}; var tn = g.tournaments||{};
+                    html += '<div style="padding:10px 12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;font-size:13px;">'
+                        + '<div style="font-weight:600;color:#1f2937;">' + esc(t.team_name) + ' <span style="padding:2px 6px;border-radius:3px;background:#3b82f6;color:#fff;font-size:10px;font-weight:700;">LEADER</span></div>'
+                        + '<div style="font-size:11px;color:#6b7280;">' + esc(g.game_name) + ' · ' + esc(tn.title) + '</div></div>';
+                });
+                tms.forEach(function(tm) {
+                    var team = tm.teams||{}; var g = team.tournament_games||{}; var tn = g.tournaments||{};
+                    var rb = tm.role==='leader' ? '<span style="padding:2px 6px;border-radius:3px;background:#3b82f6;color:#fff;font-size:10px;font-weight:700;">LEADER</span>' : '<span style="padding:2px 6px;border-radius:3px;background:#e5e7eb;color:#374151;font-size:10px;font-weight:700;">MEMBER</span>';
+                    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;">'
+                        + '<div><div style="font-weight:600;color:#1f2937;">' + esc(team.team_name) + ' ' + rb + '</div>'
+                        + '<div style="font-size:11px;color:#6b7280;">' + esc(g.game_name) + ' · ' + esc(tn.title) + '</div></div>'
+                        + '<span style="padding:3px 8px;border-radius:4px;background:' + (tm.status==='accepted'?'#dcfce7':'#fef3c7') + ';color:' + (tm.status==='accepted'?'#166534':'#92400e') + ';font-size:11px;font-weight:600;">' + (tm.status||'pending') + '</span></div>';
+                });
+                html += '</div>';
+            }
+            html += '</div>';
+
+            content.innerHTML = html;
+        } catch (err) {
+            console.error('openUserDetail error:', err);
+            content.innerHTML = '<p style="text-align:center;color:#ef4444;padding:30px;">Error: ' + err.message + '</p>';
+        }
+    };
+
+    // ── Save user changes ──
+    window.saveUserChanges = async function(userId) {
+        var btn = document.getElementById('umSaveBtn');
+        var msgEl = document.getElementById('umSaveMsg');
+        if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+
+        var body = {
+            full_name: (document.getElementById('umEditName')||{}).value||'',
+            gender: (document.getElementById('umEditGender')||{}).value||'',
+            phone_number: (document.getElementById('umEditPhone')||{}).value||'',
+            blood_group: (document.getElementById('umEditBlood')||{}).value||'',
+            department: (document.getElementById('umEditDept')||{}).value||'',
+            program_level: (document.getElementById('umEditProgram')||{}).value||'',
+            profile_completed: !!(document.getElementById('umEditProfileDone')||{}).checked
+        };
+
+        try {
+            var res = await authFetch(API_URL + '/admin/users/' + userId, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            var data = await res.json();
+            if (!data.success) throw new Error(data.message);
+
+            if (msgEl) { msgEl.style.display='block'; msgEl.style.background='#dcfce7'; msgEl.style.color='#166534'; msgEl.textContent='✓ User updated successfully!'; }
+            if (btn) { btn.textContent='✓ Saved!'; btn.style.background='#10b981'; }
+            setTimeout(function(){ loadUserManagement(); }, 500);
+            setTimeout(function(){ if(btn){btn.disabled=false;btn.textContent='💾 Save Changes';btn.style.background='';} }, 2000);
+        } catch (err) {
+            if (msgEl) { msgEl.style.display='block'; msgEl.style.background='#fef2f2'; msgEl.style.color='#dc2626'; msgEl.textContent='✗ Error: ' + err.message; }
+            if (btn) { btn.disabled=false; btn.textContent='💾 Save Changes'; }
+        }
+    };
+
+    // ── Reset name edits ──
+    window.resetNameEdits = async function(userId) {
+        if (!confirm('Reset name edit count to 0?\nThe user will be able to edit their name again.')) return;
+        try {
+            var res = await authFetch(API_URL + '/admin/users/' + userId + '/reset-name-edits', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }
+            });
+            var data = await res.json();
+            if (!data.success) throw new Error(data.message);
+            alert('✓ Name edit count reset to 0');
+            openUserDetail(userId);
+        } catch (err) { alert('Error: ' + err.message); }
+    };
+
+    window.closeUserDetailModal = function() {
+        var modal = document.getElementById('umDetailModal');
+        if (modal) modal.style.display = 'none';
+    };
+
+    // Close on backdrop click
+    document.addEventListener('click', function(e) {
+        var modal = document.getElementById('umDetailModal');
+        if (e.target === modal) modal.style.display = 'none';
+    });
+
+    // ── CSV Export ──
+    window.exportUsersCSV = function() {
+        if (!umAllUsers || !umAllUsers.length) {
+            alert('No user data to export. Please load the User Management section first.');
+            return;
+        }
+
+        var headers = ['Student ID', 'Full Name', 'Email', 'Gender', 'Phone', 'Blood Group', 'Department', 'Program Level', 'Profile Complete', 'Joined'];
+        var rows = umAllUsers.map(function(u) {
+            return [
+                u.student_id || '',
+                (u.full_name || '').replace(/,/g, ' '),
+                u.email || '',
+                u.gender || '',
+                u.phone_number || '',
+                u.blood_group || '',
+                (u.department || '').replace(/,/g, ' '),
+                u.program_level || '',
+                u.profile_completed ? 'Yes' : 'No',
+                u.created_at ? new Date(u.created_at).toISOString().slice(0, 10) : ''
+            ].map(function(v) { return '"' + v + '"'; }).join(',');
+        });
+
+        var csv = headers.join(',') + '\n' + rows.join('\n');
+        var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        var url = URL.createObjectURL(blob);
+        var link = document.createElement('a');
+        link.href = url;
+        link.download = 'aiub_sports_users_' + new Date().toISOString().slice(0, 10) + '.csv';
+        link.click();
+        URL.revokeObjectURL(url);
+    };
+
+    // ── Helpers ──
+    function profileField(label, value) {
+        return '<div style="padding:8px 12px;background:#f9fafb;border-radius:6px;">'
+            + '<div style="font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.03em;margin-bottom:2px;">' + label + '</div>'
+            + '<div style="font-size:14px;font-weight:500;color:#1f2937;">' + (value || '<span style="color:#d1d5db;">—</span>') + '</div>'
+            + '</div>';
+    }
+
+    function setText(id, val) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = val;
+    }
+
+    function esc(v) {
+        if (!v) return '—';
+        return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function escA(v) {
+        if (!v) return '';
+        return String(v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+})();
+</script>
+
 </body>
 
-</html>
+</html>

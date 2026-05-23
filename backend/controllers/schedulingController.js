@@ -1239,15 +1239,23 @@ const updateMatchStatus = async (req, res) => {
         const { matchId } = req.params;
         const { status, winner_user_id, winner_team_id, winner_label, score_a, score_b, admin_notes, admin_hold_reason } = req.body;
 
+        console.log('[updateMatchStatus] Received body:', JSON.stringify(req.body));
+
         const updateData = { updated_at: new Date().toISOString() };
         if (status) updateData.status = status;
-        if (winner_user_id !== undefined) updateData.winner_user_id = winner_user_id;
-        if (winner_team_id !== undefined) updateData.winner_team_id = winner_team_id;
-        if (winner_label !== undefined) updateData.winner_label = winner_label;
         if (score_a !== undefined) updateData.score_a = score_a;
         if (score_b !== undefined) updateData.score_b = score_b;
         if (admin_notes !== undefined) updateData.admin_notes = admin_notes;
         if (admin_hold_reason !== undefined) updateData.admin_hold_reason = admin_hold_reason;
+
+        // Always set winner fields explicitly (set to value or null to clear)
+        if (winner_label !== undefined) {
+            updateData.winner_label = winner_label;
+            updateData.winner_user_id = winner_user_id || null;
+            updateData.winner_team_id = winner_team_id || null;
+        }
+
+        console.log('[updateMatchStatus] Update payload:', JSON.stringify(updateData));
 
         const { data, error } = await supabase
             .from('scheduled_matches')
@@ -1256,7 +1264,17 @@ const updateMatchStatus = async (req, res) => {
             .select()
             .single();
 
-        if (error) throw error;
+        if (error) {
+            console.error('[updateMatchStatus] Supabase error:', error);
+            throw error;
+        }
+
+        console.log('[updateMatchStatus] Saved match', matchId, '→ winner_label:', data?.winner_label, ', status:', data?.status);
+
+        // Verify the winner_label was actually saved
+        if (winner_label && data && data.winner_label !== winner_label) {
+            console.warn('[updateMatchStatus] WARNING: winner_label mismatch! Sent:', winner_label, 'Got:', data?.winner_label);
+        }
 
         res.json({ success: true, match: data });
     } catch (error) {
@@ -1334,6 +1352,35 @@ const getBracketData = async (req, res) => {
         if (allMatches.length === 0) {
             return res.json({ success: true, game, rounds: [], totalMatches: 0 });
         }
+
+        // Debug: log winner_label status for each match
+        allMatches.forEach(m => {
+            console.log(`[getBracketData] Match ${m.id}: status=${m.status}, winner_label=${m.winner_label || 'NULL'}, winner_user_id=${m.winner_user_id || 'NULL'}`);
+        });
+
+        // Fallback: if a match is PLAYED but winner_label is missing,
+        // try to infer it from winner_user_id/winner_team_id
+        allMatches.forEach(m => {
+            if (m.status === 'PLAYED' && !m.winner_label) {
+                if (m.winner_user_id) {
+                    // Match winner by user_id to participant labels
+                    if (m.winner_user_id === m.participant_a_user_id) {
+                        m.winner_label = m.participant_a_label;
+                    } else if (m.winner_user_id === m.participant_b_user_id) {
+                        m.winner_label = m.participant_b_label;
+                    }
+                } else if (m.winner_team_id) {
+                    if (m.winner_team_id === m.participant_a_team_id) {
+                        m.winner_label = m.participant_a_label;
+                    } else if (m.winner_team_id === m.participant_b_team_id) {
+                        m.winner_label = m.participant_b_label;
+                    }
+                }
+                if (m.winner_label) {
+                    console.log(`[getBracketData] Fallback winner for match ${m.id}: ${m.winner_label}`);
+                }
+            }
+        });
 
         // All real matches go into Round 1 (the first round of the bracket)
         const round1Matches = allMatches.map((m, idx) => ({

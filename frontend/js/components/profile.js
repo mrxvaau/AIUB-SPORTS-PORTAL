@@ -95,7 +95,7 @@ function updateUserPhotoUI(user) {
     var navImg  = document.getElementById('navAvatarImg');
     var navName = document.getElementById('navAvatarName');
     if (navImg)  { navImg.src = photoUrl; navImg.onerror = function(){ navImg.src = FALLBACK; }; }
-    if (navName) { navName.textContent = (user.full_name || user.student_id || 'User').split(' ')[0]; }
+    if (navName) { navName.textContent = user.full_name || user.student_id || 'User'; }
 
     var sideImg  = document.getElementById('sidebarUserPhoto');
     var sideName = document.getElementById('sidebarUserName');

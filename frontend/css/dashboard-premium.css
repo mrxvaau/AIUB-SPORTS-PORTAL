@@ -398,6 +398,7 @@ body {
   color: var(--text-1) !important;
   font-size: 13px !important;
   font-weight: 600 !important;
+  max-width: 220px !important;
 }
 
 /* ════════════════════════════════════════════════════

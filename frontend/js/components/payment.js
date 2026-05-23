@@ -14,7 +14,7 @@ async function loadPaymentView() {
 
         if (data.success) {
             if (data.registrations.length === 0) {
-                container.innerHTML = '<p style="text-align:center;padding:20px;">No registrations found.</p>';
+                container.innerHTML = '<p style="text-align:center;padding:20px;color:var(--text-2);">No registrations found.</p>';
                 return;
             }
 
@@ -24,13 +24,13 @@ async function loadPaymentView() {
             });
 
             var html = '<div style="overflow-x:auto;">'
-                     + '<table style="width:100%;border-collapse:collapse;background:white;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.1);">'
-                     + '<thead style="background:#f3f4f6;border-bottom:2px solid #e5e7eb;"><tr>'
-                     + '<th style="padding:12px;text-align:left;font-weight:600;color:#374151;">Game</th>'
-                     + '<th style="padding:12px;text-align:left;font-weight:600;color:#374151;">Tournament</th>'
-                     + '<th style="padding:12px;text-align:left;font-weight:600;color:#374151;">Status</th>'
-                     + '<th style="padding:12px;text-align:left;font-weight:600;color:#374151;">Amount</th>'
-                     + '<th style="padding:12px;text-align:right;font-weight:600;color:#374151;">Action</th>'
+                     + '<table style="width:100%;border-collapse:collapse;background:var(--bg-surface,rgba(255,255,255,0.04));border:1px solid var(--glass-border,rgba(255,255,255,0.08));border-radius:12px;overflow:hidden;box-shadow:var(--shadow-sm,0 1px 3px rgba(0,0,0,.1));">'
+                     + '<thead style="background:var(--bg-surface-2,rgba(255,255,255,0.07));border-bottom:1px solid var(--glass-border-2,rgba(255,255,255,0.12));"><tr>'
+                     + '<th style="padding:14px 12px;text-align:left;font-weight:600;color:var(--text-2,#6b7280);font-size:12px;text-transform:uppercase;letter-spacing:0.05em;">Game</th>'
+                     + '<th style="padding:14px 12px;text-align:left;font-weight:600;color:var(--text-2,#6b7280);font-size:12px;text-transform:uppercase;letter-spacing:0.05em;">Tournament</th>'
+                     + '<th style="padding:14px 12px;text-align:left;font-weight:600;color:var(--text-2,#6b7280);font-size:12px;text-transform:uppercase;letter-spacing:0.05em;">Status</th>'
+                     + '<th style="padding:14px 12px;text-align:left;font-weight:600;color:var(--text-2,#6b7280);font-size:12px;text-transform:uppercase;letter-spacing:0.05em;">Amount</th>'
+                     + '<th style="padding:14px 12px;text-align:right;font-weight:600;color:var(--text-2,#6b7280);font-size:12px;text-transform:uppercase;letter-spacing:0.05em;">Action</th>'
                      + '</tr></thead><tbody>';
 
             data.registrations.forEach(function(reg) {
@@ -43,25 +43,29 @@ async function loadPaymentView() {
                 var tourneyName = reg.game ? reg.game.tournamentTitle : (reg.tournament_games && reg.tournament_games.tournaments && reg.tournament_games.tournaments.title || 'N/A');
 
                 var actionHtml = (statusText === 'PENDING' || statusText === 'UNPAID')
-                    ? '<button onclick="openBkashModal(' + (fee || 0) + ')" style="padding:6px 12px;background:#e2136e;color:white;border:none;border-radius:4px;cursor:pointer;font-size:12px;">Pay Now</button>'
-                    : '<span style="color:#6b7280;font-size:12px;">Paid</span>';
+                    ? '<button onclick="openBkashModal(' + (fee || 0) + ')" style="padding:6px 14px;background:#e2136e;color:white;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:all 0.2s;">Pay Now</button>'
+                    : (fee > 0
+                        ? '<span style="color:var(--success,#10b981);font-size:12px;font-weight:600;">✓ Paid</span>'
+                        : '<span style="color:var(--success,#10b981);font-size:12px;font-weight:600;">✓ Free</span>');
 
-                html += '<tr style="border-bottom:1px solid #f3f4f6;">'
-                      + '<td style="padding:12px;">' + gameName + '</td>'
-                      + '<td style="padding:12px;">' + tourneyName + '</td>'
-                      + '<td style="padding:12px;"><span style="padding:4px 8px;border-radius:4px;background:' + statusColor + '20;color:' + statusColor + ';font-size:12px;font-weight:600;">' + statusText + '</span></td>'
-                      + '<td style="padding:12px;">৳' + fee + '</td>'
-                      + '<td style="padding:12px;text-align:right;">' + actionHtml + '</td>'
+                html += '<tr style="border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.08));transition:background 0.15s;"'
+                      + ' onmouseenter="this.style.background=\'var(--bg-surface-2,rgba(255,255,255,0.07))\'"'
+                      + ' onmouseleave="this.style.background=\'transparent\'">'
+                      + '<td style="padding:14px 12px;color:var(--text-1,#f1f5f9);font-weight:500;">' + gameName + '</td>'
+                      + '<td style="padding:14px 12px;color:var(--text-2,rgba(255,255,255,0.65));">' + tourneyName + '</td>'
+                      + '<td style="padding:14px 12px;"><span style="padding:4px 10px;border-radius:6px;background:' + statusColor + '18;color:' + statusColor + ';font-size:12px;font-weight:600;border:1px solid ' + statusColor + '30;">' + statusText + '</span></td>'
+                      + '<td style="padding:14px 12px;color:var(--text-1,#f1f5f9);font-weight:600;">' + (fee > 0 ? '৳' + fee : '<span style="color:var(--success,#10b981);">Free</span>') + '</td>'
+                      + '<td style="padding:14px 12px;text-align:right;">' + actionHtml + '</td>'
                       + '</tr>';
             });
 
             html += '</tbody></table></div>';
             container.innerHTML = html;
         } else {
-            container.innerHTML = '<p>Failed to load registrations.</p>';
+            container.innerHTML = '<p style="color:var(--text-2);">Failed to load registrations.</p>';
         }
     } catch (err) {
         console.error('Error loading payment history:', err);
-        container.innerHTML = '<p>Error loading payment history.</p>';
+        container.innerHTML = '<p style="color:var(--danger,#ef4444);">Error loading payment history.</p>';
     }
 }

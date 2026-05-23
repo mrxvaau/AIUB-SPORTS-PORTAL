@@ -426,7 +426,8 @@ const addTeamMember = async (req, res) => {
                 team_name,
                 leader_user_id,
                 status,
-                tournament_games(game_name, game_type, fee_per_person, category)
+                tournament_game_id,
+                tournament_games(game_name, game_type, fee_per_person, category, tournament_id, tournaments(allow_cross_department))
             `)
             .eq('id', teamId)
             .single();
@@ -469,7 +470,7 @@ const addTeamMember = async (req, res) => {
         console.log(`Looking up user with student_id: ${memberSid}`);
         const { data: userToAdd, error: userError } = await supabase
             .from('users')
-            .select('id, student_id, full_name, email, gender')
+            .select('id, student_id, full_name, email, gender, department')
             .eq('student_id', memberSid)
             .single();
 
@@ -526,6 +527,29 @@ const addTeamMember = async (req, res) => {
                             });
                         }
                         console.log(`Mix category validated: Leader is ${leaderGender}, Member is ${newMemberGender} ✓`);
+                    }
+                }
+            }
+
+            // Department validation — only when cross-department is NOT allowed
+            const allowCrossDept = team.tournament_games?.tournaments?.allow_cross_department ?? false;
+            if (!allowCrossDept) {
+                const { data: leaderDeptData } = await supabase
+                    .from('users')
+                    .select('department')
+                    .eq('id', team.leader_user_id)
+                    .single();
+
+                if (leaderDeptData && leaderDeptData.department && userToAdd.department) {
+                    if (leaderDeptData.department !== userToAdd.department) {
+                        return res.status(400).json({
+                            success: false,
+                            message: `This tournament requires same-department teams. ${userToAdd.full_name} is from ${userToAdd.department}, but the team leader is from ${leaderDeptData.department}.`,
+                            errorType: 'department_mismatch',
+                            memberName: userToAdd.full_name,
+                            memberDepartment: userToAdd.department,
+                            leaderDepartment: leaderDeptData.department
+                        });
                     }
                 }
             }
@@ -1128,7 +1152,6 @@ const replaceMember = async (req, res) => {
             });
         }
 
-        // Get the team and verify leader
         const { data: team, error: teamError } = await supabase
             .from('teams')
             .select(`
@@ -1140,7 +1163,7 @@ const replaceMember = async (req, res) => {
                     game_name,
                     fee_per_person,
                     category,
-                    tournaments(registration_deadline)
+                    tournaments(registration_deadline, allow_cross_department)
                 )
             `)
             .eq('id', teamId)
@@ -1210,7 +1233,7 @@ const replaceMember = async (req, res) => {
         // Get the new member's user ID
         const { data: newUser, error: newUserError } = await supabase
             .from('users')
-            .select('id, full_name, email, gender')
+            .select('id, full_name, email, gender, department')
             .eq('student_id', newMemberStudentId)
             .single();
 
@@ -1265,6 +1288,29 @@ const replaceMember = async (req, res) => {
                         });
                     }
                     console.log(`Mix category validated: Leader is ${leaderGender}, Member is ${newMemberGender} ✓`);
+                }
+            }
+        }
+
+        // Department validation — only when cross-department is NOT allowed
+        const allowCrossDept = team.tournament_games?.tournaments?.allow_cross_department ?? false;
+        if (!allowCrossDept) {
+            const { data: leaderDeptData } = await supabase
+                .from('users')
+                .select('department')
+                .eq('id', team.leader_user_id)
+                .single();
+
+            if (leaderDeptData && leaderDeptData.department && newUser.department) {
+                if (leaderDeptData.department !== newUser.department) {
+                    return res.status(400).json({
+                        success: false,
+                        message: `This tournament requires same-department teams. ${newUser.full_name} is from ${newUser.department}, but the team leader is from ${leaderDeptData.department}.`,
+                        errorType: 'department_mismatch',
+                        memberName: newUser.full_name,
+                        memberDepartment: newUser.department,
+                        leaderDepartment: leaderDeptData.department
+                    });
                 }
             }
         }
@@ -1478,7 +1524,7 @@ const validateMember = async (req, res) => {
         // Get the game details including category
         const { data: game, error: gameError } = await supabase
             .from('tournament_games')
-            .select('id, game_name, category')
+            .select('id, game_name, category, tournament_id, tournaments!inner(allow_cross_department)')
             .eq('id', gameId)
             .single();
 
@@ -1492,7 +1538,7 @@ const validateMember = async (req, res) => {
         // Get the member's details
         const { data: member, error: memberError } = await supabase
             .from('users')
-            .select('id, student_id, full_name, gender')
+            .select('id, student_id, full_name, gender, department')
             .eq('student_id', memberStudentId)
             .single();
 
@@ -1549,6 +1595,29 @@ const validateMember = async (req, res) => {
                         memberName: member.full_name,
                         memberGender: member.gender,
                         requiredGender: requiredGender
+                    });
+                }
+            }
+        }
+
+        // Department validation — only when cross-department is NOT allowed
+        const allowCrossDept = game.tournaments?.allow_cross_department ?? false;
+        if (!allowCrossDept && leaderStudentId) {
+            const { data: leader, error: leaderDeptError } = await supabase
+                .from('users')
+                .select('department')
+                .eq('student_id', leaderStudentId)
+                .single();
+
+            if (leader && leader.department && member.department) {
+                if (leader.department !== member.department) {
+                    return res.status(400).json({
+                        success: false,
+                        message: `This tournament requires same-department teams. ${member.full_name} is from ${member.department}, but your department is ${leader.department}.`,
+                        errorType: 'department_mismatch',
+                        memberName: member.full_name,
+                        memberDepartment: member.department,
+                        leaderDepartment: leader.department
                     });
                 }
             }

@@ -15,4 +15,7 @@ router.get('/my/:studentId', requireAuth, registrationController.getUserRegistra
 // DELETE /api/registration/:gameId/:studentId - Cancel a game registration
 router.delete('/:gameId/:studentId', requireAuth, registrationController.cancelGameRegistration);
 
+// POST /api/registration/confirm-free - Confirm registration for free tournaments (no payment needed)
+router.post('/confirm-free', requireAuth, registrationController.confirmFreeRegistration);
+
 module.exports = router;

@@ -95,8 +95,9 @@
             display: flex;
             gap: 0;
             overflow-x: auto;
-            padding: 20px;
+            padding: 20px 20px 20px 20px;
             min-height: 400px;
+            position: relative;
         }
 
         .bracket-container::-webkit-scrollbar {
@@ -116,40 +117,15 @@
         .bracket-round {
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            min-width: 280px;
+            min-width: 260px;
             position: relative;
-        }
-
-        /* Connector lines between rounds */
-        .bracket-round:not(:last-child) .match-node {
-            position: relative;
-        }
-
-        .bracket-round:not(:last-child) .match-node::after {
-            content: '';
-            position: absolute;
-            right: -16px;
-            top: 50%;
-            width: 16px;
-            height: 2px;
-            background: rgba(99, 102, 241, 0.35);
-        }
-
-        .bracket-round:not(:first-child) .match-node::before {
-            content: '';
-            position: absolute;
-            left: -16px;
-            top: 50%;
-            width: 16px;
-            height: 2px;
-            background: rgba(99, 102, 241, 0.35);
+            flex-shrink: 0;
         }
 
         .round-header {
             text-align: center;
             padding: 10px;
-            margin-bottom: 16px;
+            margin-bottom: 8px;
         }
 
         .round-header h3 {
@@ -165,7 +141,21 @@
             flex-direction: column;
             justify-content: space-around;
             flex: 1;
-            gap: 12px;
+        }
+
+        /* SVG connector layer */
+        .bracket-connectors {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bracket-round {
+            z-index: 1;
         }
 
         /* Match Node */
@@ -174,7 +164,7 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 10px;
             padding: 0;
-            margin: 6px 16px;
+            margin: 4px 24px;
             overflow: visible;
             cursor: pointer;
             transition: all 0.2s;
@@ -689,7 +679,8 @@
                 return;
             }
 
-            container.innerHTML = rounds.map(round => `
+            // Build rounds HTML
+            let roundsHtml = rounds.map(round => `
                 <div class="bracket-round">
                     <div class="round-header">
                         <h3>${round.label}</h3>
@@ -699,6 +690,16 @@
                     </div>
                 </div>
             `).join('');
+
+            // Add SVG overlay for connector lines
+            roundsHtml += '<svg class="bracket-connectors" id="bracketSVG"></svg>';
+            container.innerHTML = roundsHtml;
+
+            // Step 1: Align matches → Step 2: Draw connectors (after layout settles)
+            requestAnimationFrame(() => {
+                alignBracketMatches();
+                requestAnimationFrame(() => drawConnectors());
+            });
         }
 
         function renderMatchNode(m) {
@@ -748,6 +749,146 @@
                 </div>
             `;
         }
+
+        // ============================================================
+        // ALIGN BRACKET MATCHES — position each match at the midpoint
+        // of its two feeder matches from the previous round
+        // ============================================================
+        function alignBracketMatches() {
+            const container = document.getElementById('bracketContainer');
+            const roundEls = Array.from(container.querySelectorAll('.bracket-round'));
+            if (roundEls.length < 2) return;
+
+            const rounds = roundEls.map(r => Array.from(r.querySelectorAll('.match-node')));
+
+            // Reset previous alignment offsets
+            rounds.forEach(rMatches => {
+                rMatches.forEach(m => { m.style.position = ''; m.style.top = ''; });
+            });
+
+            // Force reflow to get accurate base positions
+            container.offsetHeight;
+
+            // Process each round starting from round 1
+            // Use position:relative + top so we shift visually without affecting siblings
+            for (let r = 1; r < rounds.length; r++) {
+                const prev = rounds[r - 1];
+                const curr = rounds[r];
+
+                for (let i = 0; i < curr.length; i++) {
+                    const feederA = prev[i * 2];
+                    const feederB = prev[i * 2 + 1];
+                    if (!feederA) continue;
+
+                    // Get feeder center Y positions
+                    const aRect = feederA.getBoundingClientRect();
+                    const aCenterY = aRect.top + aRect.height / 2;
+
+                    let targetCenterY;
+                    if (feederB) {
+                        const bRect = feederB.getBoundingClientRect();
+                        const bCenterY = bRect.top + bRect.height / 2;
+                        targetCenterY = (aCenterY + bCenterY) / 2;
+                    } else {
+                        targetCenterY = aCenterY;
+                    }
+
+                    // Where is this match currently?
+                    const currRect = curr[i].getBoundingClientRect();
+                    const currCenterY = currRect.top + currRect.height / 2;
+
+                    // Offset to shift it to the target center
+                    const offset = targetCenterY - currCenterY;
+
+                    curr[i].style.position = 'relative';
+                    curr[i].style.top = offset + 'px';
+                }
+            }
+        }
+
+        // ============================================================
+        // SVG CONNECTOR LINES BETWEEN ROUNDS
+        // ============================================================
+        function drawConnectors() {
+            const svg = document.getElementById('bracketSVG');
+            const container = document.getElementById('bracketContainer');
+            if (!svg || !container) return;
+
+            const rounds = container.querySelectorAll('.bracket-round');
+            if (rounds.length < 2) { svg.innerHTML = ''; return; }
+
+            // Size SVG to container
+            svg.setAttribute('width', container.scrollWidth);
+            svg.setAttribute('height', container.scrollHeight);
+            svg.style.width = container.scrollWidth + 'px';
+            svg.style.height = container.scrollHeight + 'px';
+
+            const containerRect = container.getBoundingClientRect();
+            const scrollLeft = container.scrollLeft;
+            const scrollTop = container.scrollTop;
+
+            let paths = '';
+            const lineColor = 'rgba(99, 102, 241, 0.35)';
+            const lineWidth = 2;
+
+            for (let r = 0; r < rounds.length - 1; r++) {
+                const currentMatches = rounds[r].querySelectorAll('.match-node');
+                const nextMatches = rounds[r + 1].querySelectorAll('.match-node');
+
+                for (let n = 0; n < nextMatches.length; n++) {
+                    const nextMatch = nextMatches[n];
+                    const nextRect = nextMatch.getBoundingClientRect();
+                    const nextMidY = nextRect.top + nextRect.height / 2 - containerRect.top + scrollTop;
+                    const nextLeftX = nextRect.left - containerRect.left + scrollLeft;
+
+                    // The two feeder matches for this next-round match
+                    const feederA = currentMatches[n * 2];
+                    const feederB = currentMatches[n * 2 + 1];
+
+                    if (feederA) {
+                        const aRect = feederA.getBoundingClientRect();
+                        const aMidY = aRect.top + aRect.height / 2 - containerRect.top + scrollTop;
+                        const aRightX = aRect.right - containerRect.left + scrollLeft;
+
+                        // Horizontal line from feeder A to midpoint
+                        const midX = (aRightX + nextLeftX) / 2;
+                        paths += `<line x1="${aRightX}" y1="${aMidY}" x2="${midX}" y2="${aMidY}" stroke="${lineColor}" stroke-width="${lineWidth}"/>`;
+
+                        if (feederB) {
+                            const bRect = feederB.getBoundingClientRect();
+                            const bMidY = bRect.top + bRect.height / 2 - containerRect.top + scrollTop;
+                            const bRightX = bRect.right - containerRect.left + scrollLeft;
+
+                            // Horizontal line from feeder B to midpoint
+                            paths += `<line x1="${bRightX}" y1="${bMidY}" x2="${midX}" y2="${bMidY}" stroke="${lineColor}" stroke-width="${lineWidth}"/>`;
+
+                            // Vertical line connecting A and B at midpoint
+                            paths += `<line x1="${midX}" y1="${aMidY}" x2="${midX}" y2="${bMidY}" stroke="${lineColor}" stroke-width="${lineWidth}"/>`;
+
+                            // Horizontal line from midpoint of vertical to next match
+                            const vertMidY = (aMidY + bMidY) / 2;
+                            paths += `<line x1="${midX}" y1="${vertMidY}" x2="${nextLeftX}" y2="${vertMidY}" stroke="${lineColor}" stroke-width="${lineWidth}"/>`;
+                        } else {
+                            // Only one feeder — draw straight line
+                            paths += `<line x1="${midX}" y1="${aMidY}" x2="${nextLeftX}" y2="${nextMidY}" stroke="${lineColor}" stroke-width="${lineWidth}"/>`;
+                        }
+                    }
+                }
+            }
+
+            svg.innerHTML = paths;
+        }
+
+        // Redraw on scroll and resize
+        function redrawBracket() {
+            if (!bracketData) return;
+            alignBracketMatches();
+            requestAnimationFrame(() => drawConnectors());
+        }
+        window.addEventListener('resize', redrawBracket);
+        document.getElementById('bracketContainer')?.addEventListener('scroll', () => {
+            if (bracketData) drawConnectors();
+        });
 
         // ============================================================
         // RESULT MODAL
@@ -813,11 +954,18 @@
         async function submitResult() {
             if (!currentMatchId) return;
 
+            const statusVal = document.getElementById('statusSelect').value;
             const winnerRaw = document.getElementById('winnerSelect').value;
             const winner = winnerRaw ? JSON.parse(winnerRaw) : null;
 
+            // Require winner selection for PLAYED status
+            if (statusVal === 'PLAYED' && !winner) {
+                showToast('Please select a winner before saving.', 'error');
+                return;
+            }
+
             const body = {
-                status: document.getElementById('statusSelect').value,
+                status: statusVal,
                 score_a: document.getElementById('scoreA').value || null,
                 score_b: document.getElementById('scoreB').value || null,
                 admin_notes: document.getElementById('adminNotes').value || null
@@ -829,6 +977,8 @@
                 body.winner_team_id = winner.team_id || null;
             }
 
+            console.log('[bracket] Submitting result for match', currentMatchId, body);
+
             try {
                 const res = await fetch(`${API_BASE}/scheduling/match/${currentMatchId}/status`, {
                     method: 'POST',
@@ -839,10 +989,11 @@
                 const data = await res.json();
                 if (!data.success) throw new Error(data.message);
 
-                showToast('Result saved!', 'success');
+                console.log('[bracket] Server response:', data);
+                showToast('Result saved! Winner: ' + (winner ? winner.label : 'N/A'), 'success');
                 closeModal();
 
-                // Reload bracket
+                // Reload bracket to show updated data
                 loadBracket(currentGameId);
             } catch (err) {
                 showToast('Failed to save result: ' + err.message, 'error');

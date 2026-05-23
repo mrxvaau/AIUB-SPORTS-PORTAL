@@ -152,6 +152,217 @@ router.post('/check-admin', requireAuth, async (req, res) => {
         });
     }
 });
+// ════════════════════════════════════════════════════════════
+// USER MANAGEMENT ENDPOINTS
+// ════════════════════════════════════════════════════════════
+
+// GET /api/admin/users — List all users with search, filter, pagination & stats
+router.get('/users', requireAdmin, async (req, res) => {
+    try {
+        const { search, gender, department, profileCompleted, sort, order, page, limit } = req.query;
+        const pageNum = parseInt(page) || 1;
+        const limitNum = parseInt(limit) || 50;
+        const offset = (pageNum - 1) * limitNum;
+
+        // ── Build query ──
+        let query = supabase
+            .from('users')
+            .select('id, student_id, email, full_name, gender, phone_number, blood_group, program_level, department, profile_completed, is_first_login, created_at, last_login, name_edit_count', { count: 'exact' });
+
+        // Search filter (name, email, student_id)
+        if (search && search.trim()) {
+            const s = search.trim();
+            query = query.or(`full_name.ilike.%${s}%,email.ilike.%${s}%,student_id.ilike.%${s}%`);
+        }
+
+        // Gender filter
+        if (gender && gender !== 'all') {
+            query = query.eq('gender', gender);
+        }
+
+        // Department filter
+        if (department && department !== 'all') {
+            query = query.eq('department', department);
+        }
+
+        // Profile completed filter
+        if (profileCompleted === 'true') {
+            query = query.eq('profile_completed', true);
+        } else if (profileCompleted === 'false') {
+            query = query.eq('profile_completed', false);
+        }
+
+        // Sorting
+        const sortField = sort || 'created_at';
+        const sortOrder = order === 'asc' ? true : false;
+        query = query.order(sortField, { ascending: sortOrder });
+
+        // Pagination
+        query = query.range(offset, offset + limitNum - 1);
+
+        const { data: users, error, count } = await query;
+
+        if (error) throw error;
+
+        // ── Stats queries (run in parallel) ──
+        const [totalRes, maleRes, femaleRes, completedRes, recentRes, deptRes] = await Promise.all([
+            supabase.from('users').select('id', { count: 'exact', head: true }),
+            supabase.from('users').select('id', { count: 'exact', head: true }).eq('gender', 'Male'),
+            supabase.from('users').select('id', { count: 'exact', head: true }).eq('gender', 'Female'),
+            supabase.from('users').select('id', { count: 'exact', head: true }).eq('profile_completed', true),
+            supabase.from('users').select('id', { count: 'exact', head: true }).gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()),
+            supabase.from('users').select('department').not('department', 'is', null)
+        ]);
+
+        // Unique departments for filter dropdown
+        const departments = [...new Set((deptRes.data || []).map(d => d.department).filter(Boolean))].sort();
+
+        res.json({
+            success: true,
+            users: users || [],
+            pagination: {
+                page: pageNum,
+                limit: limitNum,
+                total: count || 0,
+                totalPages: Math.ceil((count || 0) / limitNum)
+            },
+            stats: {
+                total: totalRes.count || 0,
+                male: maleRes.count || 0,
+                female: femaleRes.count || 0,
+                profileCompleted: completedRes.count || 0,
+                recentSignups: recentRes.count || 0
+            },
+            departments
+        });
+    } catch (error) {
+        console.error('Admin get users error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// GET /api/admin/users/:userId — Detailed user profile + registrations + teams
+router.get('/users/:userId', requireAdmin, async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        // Get user profile
+        const { data: user, error: userError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', userId)
+            .single();
+
+        if (userError || !user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // Get game registrations
+        const { data: registrations } = await supabase
+            .from('game_registrations')
+            .select(`
+                id, payment_status, created_at,
+                tournament_games (
+                    id, game_name, category, game_type, fee_per_person,
+                    tournaments ( id, title )
+                )
+            `)
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+
+        // Get team memberships
+        const { data: teamMemberships } = await supabase
+            .from('team_members')
+            .select(`
+                id, role, status, created_at,
+                teams (
+                    id, team_name, tournament_game_id,
+                    tournament_games ( game_name, category, tournaments ( title ) )
+                )
+            `)
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+
+        // Get teams where user is leader
+        const { data: ledTeams } = await supabase
+            .from('teams')
+            .select(`
+                id, team_name, tournament_game_id, created_at,
+                tournament_games ( game_name, category, tournaments ( title ) )
+            `)
+            .eq('leader_user_id', userId)
+            .order('created_at', { ascending: false });
+
+        res.json({
+            success: true,
+            user,
+            registrations: registrations || [],
+            teamMemberships: teamMemberships || [],
+            ledTeams: ledTeams || []
+        });
+    } catch (error) {
+        console.error('Admin get user detail error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// PUT /api/admin/users/:userId — Admin update user profile (bypasses name edit limit)
+router.put('/users/:userId', requireAdmin, async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { full_name, gender, phone_number, blood_group, department, program_level, profile_completed } = req.body;
+
+        // Build update object only with provided fields
+        const updates = {};
+        if (full_name !== undefined) updates.full_name = full_name;
+        if (gender !== undefined) updates.gender = gender;
+        if (phone_number !== undefined) updates.phone_number = phone_number;
+        if (blood_group !== undefined) updates.blood_group = blood_group;
+        if (department !== undefined) updates.department = department;
+        if (program_level !== undefined) updates.program_level = program_level;
+        if (profile_completed !== undefined) updates.profile_completed = profile_completed;
+        updates.updated_at = new Date().toISOString();
+
+        if (Object.keys(updates).length <= 1) {
+            return res.status(400).json({ success: false, message: 'No fields to update' });
+        }
+
+        const { data, error } = await supabase
+            .from('users')
+            .update(updates)
+            .eq('id', userId)
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        res.json({ success: true, user: data, message: 'User updated successfully' });
+    } catch (error) {
+        console.error('Admin update user error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// POST /api/admin/users/:userId/reset-name-edits — Reset name edit count to 0
+router.post('/users/:userId/reset-name-edits', requireAdmin, async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        const { data, error } = await supabase
+            .from('users')
+            .update({ name_edit_count: 0, updated_at: new Date().toISOString() })
+            .eq('id', userId)
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        res.json({ success: true, user: data, message: 'Name edit count reset to 0' });
+    } catch (error) {
+        console.error('Admin reset name edits error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
 
 // Assign role to admin
 router.post('/promote-user', requireAdmin, async (req, res) => {
@@ -372,7 +583,7 @@ router.post('/tournaments', requireAdmin, upload.single('photo'), handleMulterEr
         console.log('Create tournament request received');
         console.log('Req.body:', req.body);
         console.log('Req.file:', req.file);
-        let { title, deadline, games, description } = req.body;
+        let { title, deadline, games, description, allow_cross_department } = req.body;
         let photoPath = null;
 
         // Parse games if it's a string (from FormData)
@@ -461,7 +672,8 @@ router.post('/tournaments', requireAdmin, upload.single('photo'), handleMulterEr
                 photo_url: photoPath,
                 registration_deadline: formattedDeadline,
                 created_by: 1, // Assuming a default admin user ID
-                description: description || null
+                description: description || null,
+                allow_cross_department: allow_cross_department === true || allow_cross_department === 'true' || false
             }])
             .select()
             .single();
@@ -546,7 +758,7 @@ router.get('/tournaments', requireAdmin, async (req, res) => {
     try {
         const { data: tournaments, error } = await supabase
             .from('tournaments')
-            .select('id, title, photo_url, registration_deadline, status, created_at')
+            .select('id, title, photo_url, registration_deadline, status, created_at, allow_cross_department')
             .order('created_at', { ascending: false });
 
         if (error) {
@@ -576,7 +788,7 @@ router.get('/tournaments/:id/games', requireAdmin, async (req, res) => {
 
         const { data: games, error } = await supabase
             .from('tournament_games')
-            .select('id, category, game_name, game_type, fee_per_person, team_size, participant_roles, allow_cross_roles')
+            .select('id, category, game_name, game_type, fee_per_person, team_size, participant_roles, allow_cross_roles, tournaments!inner(allow_cross_department)')
             .eq('tournament_id', tournamentId)
             .order('category')
             .order('game_name');
@@ -585,7 +797,12 @@ router.get('/tournaments/:id/games', requireAdmin, async (req, res) => {
             console.error('Get games error:', error);
             res.status(500).json({ success: false, message: error.message });
         } else {
-            res.json({ success: true, games: games });
+            // Flatten tournament-level allow_cross_department onto each game
+            const enrichedGames = (games || []).map(g => {
+                const { tournaments, ...rest } = g;
+                return { ...rest, allow_cross_department: tournaments?.allow_cross_department ?? false };
+            });
+            res.json({ success: true, games: enrichedGames });
         }
     } catch (error) {
         console.error('Get games error:', error);
@@ -614,7 +831,7 @@ router.put('/tournaments/:id', requireAdmin, (req, res, next) => {
         console.log('Req.body:', req.body);
         console.log('Req.file:', req.file);
         const tournamentId = req.params.id;
-        let { title, deadline, description, games } = req.body;
+        let { title, deadline, description, games, allow_cross_department } = req.body;
         let photoPath = null;
 
         // Parse games if it's a string (from FormData)
@@ -752,6 +969,11 @@ router.put('/tournaments/:id', requireAdmin, (req, res, next) => {
             title: title,
             registration_deadline: formattedDeadline
         };
+
+        // Update allow_cross_department if provided
+        if (allow_cross_department !== undefined) {
+            updateData.allow_cross_department = allow_cross_department === true || allow_cross_department === 'true' || false;
+        }
 
         // Add description only if provided
         if (description !== undefined) {

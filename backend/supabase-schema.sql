@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS tournaments (
     status VARCHAR(20) DEFAULT 'ACTIVE',
     description TEXT,
     created_by INTEGER,
+    allow_cross_department BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

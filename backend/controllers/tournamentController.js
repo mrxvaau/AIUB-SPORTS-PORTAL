@@ -11,7 +11,7 @@ const getAvailableTournaments = async (req, res) => {
 
         const { data: tournaments, error } = await supabase
             .from('tournaments')
-            .select('id, title, photo_url, registration_deadline, status, created_at')
+            .select('id, title, photo_url, registration_deadline, status, created_at, allow_cross_department')
             .eq('status', 'ACTIVE')
             .gt('registration_deadline', nowFormatted)
             .order('registration_deadline', { ascending: true });
@@ -42,7 +42,7 @@ const getTournamentGames = async (req, res) => {
 
         const { data: games, error } = await supabase
             .from('tournament_games')
-            .select('id, category, game_name, game_type, fee_per_person, team_size')
+            .select('id, category, game_name, game_type, fee_per_person, team_size, tournaments!inner(allow_cross_department)')
             .eq('tournament_id', tournamentId)
             .order('category')
             .order('game_name');
@@ -51,7 +51,12 @@ const getTournamentGames = async (req, res) => {
             console.error('Error fetching tournament games:', error);
             res.status(500).json({ success: false, message: error.message });
         } else {
-            res.json({ success: true, games: games });
+            // Flatten tournament-level allow_cross_department onto each game
+            const enrichedGames = (games || []).map(g => {
+                const { tournaments, ...rest } = g;
+                return { ...rest, allow_cross_department: tournaments?.allow_cross_department ?? false };
+            });
+            res.json({ success: true, games: enrichedGames });
         }
     } catch (error) {
         console.error('Get tournament games error:', error);

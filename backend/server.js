@@ -247,6 +247,28 @@ async function startServer() {
         await initializeSupabase();
         logger.info('Supabase initialized successfully');
 
+        // Auto-ensure scheduled_matches has winner columns
+        try {
+            const { supabase } = require('./config/supabase');
+            // Try a test query to see if winner_label column exists
+            const { error: testErr } = await supabase
+                .from('scheduled_matches')
+                .select('winner_label')
+                .limit(1);
+            
+            if (testErr && testErr.message && testErr.message.includes('winner_label')) {
+                console.log('⚠️  winner_label column missing on scheduled_matches — run this SQL in Supabase:');
+                console.log('ALTER TABLE scheduled_matches ADD COLUMN IF NOT EXISTS winner_label TEXT;');
+                console.log('ALTER TABLE scheduled_matches ADD COLUMN IF NOT EXISTS winner_user_id BIGINT;');
+                console.log('ALTER TABLE scheduled_matches ADD COLUMN IF NOT EXISTS winner_team_id BIGINT;');
+            } else {
+                console.log('✅ scheduled_matches winner columns verified');
+            }
+        } catch (e) {
+            // Non-fatal — table might not exist yet
+            console.log('ℹ️  Could not verify scheduled_matches columns:', e.message);
+        }
+
         const server = app.listen(PORT, () => {
             logger.info({
                 port: PORT,

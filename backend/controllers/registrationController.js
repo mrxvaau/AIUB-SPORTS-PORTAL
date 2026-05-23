@@ -1137,6 +1137,143 @@ const checkoutCart = async (req, res) => {
     }
 };
 
+/**
+ * Confirm a free tournament registration (user-facing).
+ * Skips payment flow — marks registration as PAID if fee_per_person = 0.
+ * Supports both solo (registrationId) and team (teamId) confirmations.
+ */
+const confirmFreeRegistration = async (req, res) => {
+    try {
+        const { studentId, gameId, teamId } = req.body;
+
+        if (!studentId || !gameId) {
+            return res.status(400).json({ success: false, message: 'studentId and gameId are required' });
+        }
+
+        // 1. Verify the game exists and is actually free
+        const { data: game, error: gameError } = await supabase
+            .from('tournament_games')
+            .select('id, fee_per_person, team_size')
+            .eq('id', gameId)
+            .single();
+
+        if (gameError || !game) {
+            return res.status(404).json({ success: false, message: 'Game not found' });
+        }
+
+        if (game.fee_per_person && game.fee_per_person > 0) {
+            return res.status(400).json({ success: false, message: 'This game is not free. Please use the payment flow.' });
+        }
+
+        // 2. Get the user
+        const { data: user, error: userError } = await supabase
+            .from('users')
+            .select('id')
+            .eq('student_id', studentId)
+            .single();
+
+        if (userError || !user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        if (teamId) {
+            // ── TEAM confirmation ──
+            // Verify user is the team leader
+            const { data: team, error: teamError } = await supabase
+                .from('teams')
+                .select('id, leader_user_id')
+                .eq('id', teamId)
+                .single();
+
+            if (teamError || !team) {
+                return res.status(404).json({ success: false, message: 'Team not found' });
+            }
+
+            if (team.leader_user_id !== user.id) {
+                return res.status(403).json({ success: false, message: 'Only the team leader can confirm registration' });
+            }
+
+            // Get all team members
+            const { data: members, error: membersError } = await supabase
+                .from('team_members')
+                .select('user_id')
+                .eq('team_id', teamId);
+
+            if (membersError) throw membersError;
+
+            // Update/create registrations for all members
+            for (const member of members) {
+                const { data: existReg } = await supabase
+                    .from('game_registrations')
+                    .select('id')
+                    .eq('user_id', member.user_id)
+                    .eq('game_id', gameId)
+                    .maybeSingle();
+
+                if (existReg) {
+                    await supabase.from('game_registrations')
+                        .update({
+                            payment_status: 'PAID',
+                            payment_method: 'FREE',
+                            transaction_id: `FREE-${Date.now()}`
+                        })
+                        .eq('id', existReg.id);
+                } else {
+                    await supabase.from('game_registrations')
+                        .insert([{
+                            user_id: member.user_id,
+                            game_id: gameId,
+                            team_id: teamId,
+                            payment_status: 'PAID',
+                            payment_method: 'FREE',
+                            transaction_id: `FREE-${Date.now()}`,
+                            registration_date: new Date().toISOString()
+                        }]);
+                }
+            }
+
+            // Update team and members status to CONFIRMED
+            await supabase.from('teams')
+                .update({ status: 'CONFIRMED' })
+                .eq('id', teamId);
+
+            await supabase.from('team_members')
+                .update({ status: 'CONFIRMED' })
+                .eq('team_id', teamId);
+
+        } else {
+            // ── SOLO confirmation ──
+            const { data: existReg } = await supabase
+                .from('game_registrations')
+                .select('id')
+                .eq('user_id', user.id)
+                .eq('game_id', gameId)
+                .maybeSingle();
+
+            if (existReg) {
+                await supabase.from('game_registrations')
+                    .update({
+                        payment_status: 'PAID',
+                        payment_method: 'FREE',
+                        transaction_id: `FREE-${Date.now()}`
+                    })
+                    .eq('id', existReg.id);
+            } else {
+                return res.status(404).json({ success: false, message: 'Registration not found. Please register first.' });
+            }
+        }
+
+        res.json({
+            success: true,
+            message: 'Registration confirmed! You are all set.'
+        });
+
+    } catch (error) {
+        console.error('Confirm free registration error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 module.exports = {
     registerForGame,
     getUserRegistrations,
@@ -1146,5 +1283,6 @@ module.exports = {
     updatePaymentStatus,
     updateTeamMemberPayment,
     confirmRegistration,
-    checkoutCart
+    checkoutCart,
+    confirmFreeRegistration
 };
