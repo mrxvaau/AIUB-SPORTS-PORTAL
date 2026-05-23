@@ -1,0 +1,101 @@
+<!-- ======================================================
+     PARTIAL: Registration Modals
+     - Confirm modal (#confirmModal)
+     - Team registration modal (#teamModal)
+     - Replace member modal (#replaceMemberModal)
+     ====================================================== -->
+
+<!-- Confirm Modal -->
+<div id="confirmModal" class="modal-backdrop">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title" id="confirmModalTitle">Confirmation</div>
+            <button class="modal-close" type="button" onclick="closeConfirmModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="field">
+                <p id="confirmModalMessage">Are you sure you want to proceed?</p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn secondary" type="button" onclick="closeConfirmModal()">Cancel</button>
+            <button class="btn primary" type="button" id="confirmModalConfirmBtn">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- Team Registration Modal -->
+<div id="teamModal" class="team-modal">
+    <div class="team-modal-content">
+        <div class="team-modal-header">
+            <div>
+                <span>Create Team for <span id="modalGameName"></span></span>
+                <div class="team-modal-subtitle"
+                    style="font-size: 13px; font-weight: 400; margin-top: 5px; opacity: 0.7;"></div>
+            </div>
+            <button class="team-modal-close" onclick="closeTeamModal()">&times;</button>
+        </div>
+        <div class="team-modal-body">
+            <div class="team-form-group">
+                <label class="team-form-label">Team Name</label>
+                <input type="text" id="teamName" class="team-form-input" placeholder="Enter team name" required>
+                <span id="teamNameError" style="display:none;color:#ef4444;font-size:13px;margin-top:5px;">
+                    ⚠️ Team name is required
+                </span>
+            </div>
+            <div class="team-members-container">
+                <h3>Team Members</h3>
+                <div id="teamMembersList"></div>
+                <p class="team-required-msg"
+                    style="margin-top:14px;padding:12px;background:rgba(245,158,11,0.12);border-radius:8px;color:#f59e0b;font-size:13px;border:1px solid rgba(245,158,11,0.3);">
+                </p>
+            </div>
+        </div>
+        <div class="team-modal-buttons">
+            <button class="btn-cancel" onclick="closeTeamModal()">Cancel</button>
+            <button class="btn-confirm" onclick="createTeam()">Create Team &amp; Register</button>
+        </div>
+    </div>
+</div>
+
+<!-- Replace Member Modal -->
+<div id="replaceMemberModal" class="modal-backdrop" style="display:none;">
+    <div class="modal" style="max-width:440px;">
+        <div class="modal-header" style="background:linear-gradient(135deg,#f59e0b,#d97706);">
+            <div class="modal-title">🔄 Replace Team Member</div>
+            <button class="modal-close" type="button" onclick="closeReplaceMemberModal()">&times;</button>
+        </div>
+        <div class="modal-body" style="padding:20px;">
+            <div id="currentMemberInfo"
+                style="background:rgba(245,158,11,0.1);padding:12px;border-radius:8px;margin-bottom:14px;border:1px solid rgba(245,158,11,0.3);">
+                <p style="margin:0;font-size:14px;">
+                    <strong>Replacing:</strong> <span id="currentMemberName">Loading...</span>
+                </p>
+            </div>
+            <div class="field" style="margin-bottom:14px;">
+                <label style="display:block;font-weight:600;margin-bottom:7px;font-size:14px;">New Member's Student ID:</label>
+                <input type="text" id="newMemberStudentId" placeholder="e.g., 23-54919-3"
+                    style="width:100%;padding:11px 12px;border:2px solid var(--border-color);border-radius:8px;font-size:14px;background:var(--bg-input);color:var(--text-primary);transition:border-color 0.2s;outline:none;"
+                    onfocus="this.style.borderColor='#f59e0b'" onblur="this.style.borderColor='var(--border-color)'">
+                <p id="newMemberInfo"
+                    style="margin-top:9px;padding:9px 12px;background:rgba(16,185,129,0.1);border-radius:6px;color:#10b981;display:none;font-size:13px;"></p>
+                <p id="newMemberError"
+                    style="margin-top:9px;padding:9px 12px;background:rgba(239,68,68,0.1);border-radius:6px;color:#ef4444;display:none;font-size:13px;"></p>
+            </div>
+            <div id="replaceConfirmation"
+                style="background:rgba(245,158,11,0.1);padding:14px;border-radius:8px;border-left:4px solid #f59e0b;display:none;">
+                <p style="margin:0;font-size:13px;">
+                    ⚠️ <strong>Are you sure?</strong><br>
+                    <span id="confirmationText">This will remove the current member and invite the new member.</span>
+                </p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn secondary" type="button" onclick="closeReplaceMemberModal()">Cancel</button>
+            <button class="btn primary" type="button" id="confirmReplaceBtn" onclick="confirmReplaceMember()"
+                style="background:#f59e0b;">
+                🔄 Replace Member
+            </button>
+        </div>
+    </div>
+</div>
