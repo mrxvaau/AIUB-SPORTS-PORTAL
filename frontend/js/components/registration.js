@@ -70,7 +70,7 @@ async function loadUserRegistrationStatus() {
 }
 
 // Home widget button — go into registration section
-function goToRegistration() { showSection('registrationSection'); }
+function goToRegistration() { window.location.href = 'registration.html?v=' + Date.now(); }
 
 // ── Main Registration View ────────────────────────────────────
 async function loadRegistrationView() {
