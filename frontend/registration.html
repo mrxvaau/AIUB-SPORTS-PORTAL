@@ -5,8 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tournament Registration – AIUB Sports Portal</title>
-    <meta name="description" content="Register for AIUB Sports Portal tournaments. Browse active tournaments and sign up for your sport.">
+    <meta name="description" content="Register for AIUB Sports Portal tournaments.">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
     <link rel="icon" type="image/svg+xml" href="images/logo.svg">
+    <!-- Force fresh load if browser served a cached redirect version -->
+    <script>
+        if (!window.location.search.includes('v=')) {
+            window.location.replace('registration.html?v=' + Date.now());
+        }
+    </script>
 
     <!-- Page CSS — dark/light theme via CSS variables -->
     <link rel="stylesheet" href="css/registration.css">
