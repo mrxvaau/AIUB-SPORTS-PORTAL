@@ -151,9 +151,7 @@ function createTournamentCard(tournament, games) {
         (maleGames.length   > 0 ? createCategorySection('Male',   maleGames)   : '') +
         (femaleGames.length > 0 ? createCategorySection('Female', femaleGames) : '') +
         (mixGames.length    > 0 ? createCategorySection('Mix',    mixGames)    : '') +
-        '<div style="margin-top:18px;text-align:center;">' +
-        '<button class="request-game-btn" onclick="requestGameForCurrentTournament(' + tournament.id + ', \'' + safeTitle + '\')">Request New Game</button>' +
-        '</div></div>';
+        '</div>';
 }
 
 function createCategorySection(category, games) {
@@ -730,27 +728,6 @@ async function confirmReplaceMember() {
     }
 }
 
-// ── Request Game ──────────────────────────────────────────────
-function requestGameForCurrentTournament(tournamentId, tournamentTitle) {
-    if (!confirm('Request a new game for "' + tournamentTitle + '"?')) return;
-    var gameName = prompt('Game name:');
-    var category = prompt('Category (Male/Female/Mix):');
-    var gameType = prompt('Game type (Solo/Duo/Custom):');
-    if (!gameName || !category || !gameType) { alert('All fields are required.'); return; }
-
-    var studentId = localStorage.getItem('studentId');
-    authFetch(API_URL + '/tournaments/request-game', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ studentId: studentId, tournamentId: tournamentId, gameName: gameName, category: category, gameType: gameType })
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(data){
-        if (data.success) alert('Game request submitted successfully!');
-        else alert('Error: ' + data.message);
-    })
-    .catch(function(err){ console.error(err); alert('Error submitting request.'); });
-}
 
 // ── Event Delegation ──────────────────────────────────────────
 document.addEventListener('click', function(e) {
