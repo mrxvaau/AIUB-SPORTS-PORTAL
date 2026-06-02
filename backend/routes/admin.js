@@ -671,7 +671,7 @@ router.post('/tournaments', requireAdmin, upload.single('photo'), handleMulterEr
                 title: title,
                 photo_url: photoPath,
                 registration_deadline: formattedDeadline,
-                created_by: 1, // Assuming a default admin user ID
+                created_by: req.user.id, // Use authenticated admin's user ID
                 description: description || null,
                 allow_cross_department: allow_cross_department === true || allow_cross_department === 'true' || false
             }])

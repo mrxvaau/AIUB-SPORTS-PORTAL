@@ -91,14 +91,13 @@ function extractTokenFromHeader(authHeader) {
  */
 async function requireAuth(req, res, next) {
     try {
-        // Try to get token from Authorization header
-        const authHeader = req.headers.authorization;
-        let token = extractTokenFromHeader(authHeader);
-
-        // If no token in header, check cookies (for future implementation)
-        if (!token) {
-            token = req.cookies?.accessToken;
-        }
+        // Token resolution priority:
+        // 1. HttpOnly cookie 'access_token' (new, secure default)
+        // 2. HttpOnly cookie 'accessToken' (legacy name, backward compat)
+        // 3. Authorization: Bearer <token> header (for API clients / backward compat)
+        let token = req.cookies?.access_token
+                 || req.cookies?.accessToken
+                 || extractTokenFromHeader(req.headers.authorization);
 
         if (!token) {
             return res.status(401).json({
@@ -160,13 +159,9 @@ async function requireAdmin(req, res, next) {
     try {
         // First ensure user is authenticated
         if (!req.user) {
-            // Try to get token from header
-            const authHeader = req.headers.authorization;
-            let token = extractTokenFromHeader(authHeader);
-
-            if (!token) {
-                token = req.cookies?.accessToken;
-            }
+            let token = req.cookies?.access_token
+                     || req.cookies?.accessToken
+                     || extractTokenFromHeader(req.headers.authorization);
 
             if (!token) {
                 return res.status(401).json({
@@ -269,12 +264,9 @@ async function requireAdmin(req, res, next) {
  */
 async function optionalAuth(req, res, next) {
     try {
-        const authHeader = req.headers.authorization;
-        let token = extractTokenFromHeader(authHeader);
-
-        if (!token) {
-            token = req.cookies?.accessToken;
-        }
+        let token = req.cookies?.access_token
+                 || req.cookies?.accessToken
+                 || extractTokenFromHeader(req.headers.authorization);
 
         if (!token) {
             return next(); // No token, continue without user

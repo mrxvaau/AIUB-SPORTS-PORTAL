@@ -1,4 +1,4 @@
-﻿// Authentication Routes
+// Authentication Routes
 // Version 3.0 — Security hardened: all write operations require JWT auth
 
 const express = require('express');
@@ -12,43 +12,44 @@ const { requireAuth } = require('../middleware/auth');
 // POST /api/auth/login - Login or register user (entry point — must stay public)
 router.post('/login', userController.login);
 
-// ── Read-only (GET) — auth added in Phase 2 alongside frontend JWT updates ───
+// ── Read (GET) — all require JWT authentication ────────────────────────────
 
 // GET /api/auth/profile/:studentId - Get user profile
-router.get('/profile/:studentId', userController.getProfile);
+router.get('/profile/:studentId', requireAuth, userController.getProfile);
 
 // GET /api/auth/name-edit-count/:studentId - Get name edit count
-router.get('/name-edit-count/:studentId', userController.getNameEditCount);
+router.get('/name-edit-count/:studentId', requireAuth, userController.getNameEditCount);
 
 // GET /api/auth/tournaments - Get available tournaments for registration
-router.get('/tournaments', userController.getAvailableTournaments);
+router.get('/tournaments', requireAuth, userController.getAvailableTournaments);
 
 // GET /api/auth/tournaments/:id/games - Get games for a specific tournament
-router.get('/tournaments/:id/games', userController.getTournamentGames);
+router.get('/tournaments/:id/games', requireAuth, userController.getTournamentGames);
 
 // GET /api/auth/registrations/:studentId - Get user's registrations
-router.get('/registrations/:studentId', userController.getUserRegistrations);
+router.get('/registrations/:studentId', requireAuth, userController.getUserRegistrations);
 
 // GET /api/auth/team/:teamId - Get team details
-router.get('/team/:teamId', userController.getTeamDetails);
+router.get('/team/:teamId', requireAuth, userController.getTeamDetails);
 
 // GET /api/auth/team-by-game/:gameId/:studentId - Get team by game and student
-router.get('/team-by-game/:gameId/:studentId', userController.getTeamByGame);
+router.get('/team-by-game/:gameId/:studentId', requireAuth, userController.getTeamByGame);
 
 // GET /api/auth/notifications/:studentId - Get user notifications
-router.get('/notifications/:studentId', userController.getNotifications);
+router.get('/notifications/:studentId', requireAuth, userController.getNotifications);
 
 // GET /api/auth/pending-invitations/:studentId - Get pending team invitations
-router.get('/pending-invitations/:studentId', userController.getPendingTeamInvitations);
+router.get('/pending-invitations/:studentId', requireAuth, userController.getPendingTeamInvitations);
 
 // GET /api/auth/cart/:studentId - Get user's cart
-router.get('/cart/:studentId', userController.getCart);
+router.get('/cart/:studentId', requireAuth, userController.getCart);
 
 // GET /api/auth/game-requests/:studentId - Get user's game requests
-router.get('/game-requests/:studentId', userController.getUserGameRequests);
+router.get('/game-requests/:studentId', requireAuth, userController.getUserGameRequests);
 
 // GET /api/auth/tournament-requests/:studentId - Get user's tournament requests
-router.get('/tournament-requests/:studentId', userController.getUserTournamentRequests);
+router.get('/tournament-requests/:studentId', requireAuth, userController.getUserTournamentRequests);
+
 
 // ── Protected writes (POST/PUT/DELETE) — require valid JWT ────────────────────
 

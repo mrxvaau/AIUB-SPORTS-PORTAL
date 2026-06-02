@@ -1,7 +1,9 @@
 /**
  * AIUB Sports Portal - Authenticated Fetch Utility
- * Wraps fetch() to automatically include JWT Authorization headers
- * and handle 401 responses by redirecting to login.
+ * Version 2.0 - Secure Cookie-Based Auth
+ *
+ * Primary:  HttpOnly cookie 'access_token' (set by /api/msauth/callback)
+ * Fallback: Bearer token from localStorage (backward compat, will be removed)
  *
  * Cross-browser safe: uses try-catch around all storage access to handle
  * browsers that block or sandbox localStorage (Opera, Firefox strict, Safari ITP).
@@ -30,34 +32,61 @@ function redirectToLogin() {
 }
 
 /**
- * Fetch wrapper that attaches the JWT token from localStorage.
- * On 401 responses, clears auth state and redirects to login.
+ * Clear all locally stored session data (non-sensitive display data).
+ * Tokens are stored in HttpOnly cookies and cleared by the /logout endpoint.
+ */
+function clearLocalSession() {
+    const keys = [
+        'isAuthenticated', 'jwtToken', 'msAccessToken', 'jwtRefreshToken',
+        'studentId', 'userEmail', 'userName', 'userRole', 'azureId',
+        'profilePhotoUrl', 'userData', 'needsRoleSelection', 'isAdmin'
+    ];
+    keys.forEach(safeRemoveItem);
+}
+
+/**
+ * Logout: clear cookies via API + local session data.
+ */
+async function logout() {
+    try {
+        await fetch(buildApiUrl ? buildApiUrl('/api/msauth/logout') : '/api/msauth/logout', {
+            method: 'POST',
+            credentials: 'include'
+        });
+    } catch (e) {
+        // Ignore network errors on logout
+    }
+    clearLocalSession();
+    window.location.href = 'login.html';
+}
+
+/**
+ * Authenticated fetch — sends HttpOnly cookies automatically.
+ * Falls back to Authorization header for backward compatibility.
  *
  * @param {string} url - The URL to fetch
  * @param {object} [options={}] - Standard fetch options
  * @returns {Promise<Response|undefined>} The fetch response, or undefined on redirect
  */
 async function authFetch(url, options = {}) {
-    const token = safeGetItem('jwtToken') || safeGetItem('msAccessToken');
-    if (!token) {
-        redirectToLogin();
-        return;
-    }
-
-    const headers = {
-        ...options.headers,
-        'Authorization': `Bearer ${token}`
+    // Always send cookies (HttpOnly access_token is the primary auth mechanism)
+    const fetchOptions = {
+        ...options,
+        credentials: 'include',
+        headers: { ...options.headers }
     };
 
-    const response = await fetch(url, { ...options, headers });
+    // Backward-compat: if a legacy JWT is still in localStorage, send it too
+    // This ensures no-one is logged out during the transition.
+    const legacyToken = safeGetItem('jwtToken') || safeGetItem('msAccessToken');
+    if (legacyToken && !fetchOptions.headers['Authorization']) {
+        fetchOptions.headers['Authorization'] = `Bearer ${legacyToken}`;
+    }
+
+    const response = await fetch(url, fetchOptions);
 
     if (response.status === 401) {
-        safeRemoveItem('isAuthenticated');
-        safeRemoveItem('jwtToken');
-        safeRemoveItem('msAccessToken');
-        safeRemoveItem('studentId');
-        safeRemoveItem('userEmail');
-        safeRemoveItem('userName');
+        clearLocalSession();
         redirectToLogin();
         return;
     }

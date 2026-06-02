@@ -4,6 +4,7 @@
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
+const crypto = require('crypto'); // Use Node.js built-in crypto for secure random values
 const { supabase } = require('../config/supabase');
 const { generateTokens, requireAuth } = require('../middleware/auth');
 require('dotenv').config();
@@ -23,6 +24,18 @@ const TOKEN_ENDPOINT = `${AUTHORITY}/oauth2/v2.0/token`;
 const GRAPH_ME_ENDPOINT = 'https://graph.microsoft.com/v1.0/me';
 const GRAPH_PHOTO_ENDPOINT = 'https://graph.microsoft.com/v1.0/me/photo/$value';
 
+// Shared cookie options for auth tokens
+function tokenCookieOptions(maxAgeMs) {
+    const isProd = process.env.NODE_ENV === 'production';
+    return {
+        httpOnly: true,
+        secure: isProd,
+        sameSite: isProd ? 'strict' : 'lax',
+        maxAge: maxAgeMs,
+        path: '/'
+    };
+}
+
 // Generate authorization URL
 router.get('/login', (req, res) => {
     const state = generateRandomString(32);
@@ -39,6 +52,15 @@ router.get('/login', (req, res) => {
         prompt: 'select_account'
     });
 
+    // Store state in a short-lived HttpOnly cookie for CSRF validation
+    res.cookie('oauth_state', state, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+        maxAge: 10 * 60 * 1000,
+        path: '/api/msauth'
+    });
+
     res.json({
         success: true,
         authUrl: `${AUTHORIZE_ENDPOINT}?${params.toString()}`,
@@ -49,11 +71,25 @@ router.get('/login', (req, res) => {
 // Handle OAuth callback - main auth entry point
 router.post('/callback', async (req, res) => {
     try {
-        const { code } = req.body;
+        const { code, state: clientState } = req.body;
 
         if (!code) {
             return res.status(400).json({ success: false, message: 'Authorization code is required' });
         }
+
+        // ── CSRF: Validate OAuth state parameter ──
+        const cookieState = req.cookies?.oauth_state;
+        if (!cookieState || !clientState || cookieState !== clientState) {
+            console.warn('[msauth] OAuth state mismatch — possible CSRF attempt', {
+                hasCookie: !!cookieState, hasClient: !!clientState
+            });
+            return res.status(403).json({
+                success: false,
+                message: 'Invalid OAuth state. Please try logging in again.'
+            });
+        }
+        // Clear state cookie immediately — one-time use
+        res.clearCookie('oauth_state', { path: '/api/msauth' });
 
         // 1. Exchange code for MS access token
         const tokenResponse = await axios.post(TOKEN_ENDPOINT,
@@ -223,7 +259,12 @@ router.post('/callback', async (req, res) => {
         // 7. Generate JWT tokens
         const { accessToken: jwtAccessToken, refreshToken: jwtRefreshToken, expiresIn } = generateTokens(user);
 
-        // 8. Return unified response
+        // 8. Deliver tokens as HttpOnly cookies (not in the response body)
+        //    This prevents XSS from stealing tokens via localStorage.
+        res.cookie('access_token', jwtAccessToken, tokenCookieOptions(expiresIn * 1000));
+        res.cookie('refresh_token', jwtRefreshToken, tokenCookieOptions(7 * 24 * 60 * 60 * 1000)); // 7 days
+
+        // 9. Return user profile only (tokens are in cookies — not in body)
         return res.json({
             success: true,
             user: {
@@ -236,28 +277,35 @@ router.post('/callback', async (req, res) => {
                 profilePhotoUrl: user.profile_photo_url,
                 profileCompleted: user.profile_completed,
                 isFirstLogin: user.is_first_login,
-                needsRoleSelection: !isStudent && !user.role  // true for @aiub.edu with no role yet
+                needsRoleSelection: !isStudent && !user.role
             },
-            accessToken: jwtAccessToken,
-            refreshToken: jwtRefreshToken,
             expiresIn,
             tokenType: 'Bearer'
         });
 
     } catch (error) {
+        const isProduction = process.env.NODE_ENV === 'production';
         console.error('[msauth] OAuth callback error:', error.response?.data || error.message);
         res.status(500).json({
             success: false,
             message: 'Authentication failed',
-            error: error.response?.data?.error_description || error.message
+            error: isProduction ? undefined : (error.response?.data?.error_description || error.message)
         });
     }
 });
 
-// Verify JWT token
+// Logout — clear auth cookies
+router.post('/logout', (req, res) => {
+    res.clearCookie('access_token', { path: '/' });
+    res.clearCookie('refresh_token', { path: '/' });
+    res.json({ success: true, message: 'Logged out successfully' });
+});
+
+// Verify JWT token (reads from cookie OR Authorization header for backward compat)
 router.post('/verify', async (req, res) => {
     try {
-        const { accessToken } = req.body;
+        // Prefer cookie; fall back to body for backward compatibility
+        const accessToken = req.cookies?.access_token || req.body?.accessToken;
 
         if (!accessToken) {
             return res.status(401).json({ success: false, message: 'Access token is required' });
@@ -308,14 +356,9 @@ router.post('/refresh', async (req, res) => {
     }
 });
 
-// Helper: generate random string
+// Helper: generate cryptographically secure random string
 function generateRandomString(length) {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-    for (let i = 0; i < length; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
+    return crypto.randomBytes(Math.ceil(length / 2)).toString('hex').slice(0, length);
 }
 
 module.exports = router;

@@ -4,6 +4,7 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const path = require('path');
 require('dotenv').config();
@@ -19,6 +20,17 @@ const PORT = process.env.PORT || 3000;
 const SERVER_NAME = process.env.SERVER_NAME || 'app-server-1';
 const APP_VERSION = process.env.APP_VERSION || require('./package.json').version;
 const NODE_ENV = process.env.NODE_ENV || 'development';
+const COOKIE_SECRET = process.env.COOKIE_SECRET;
+
+// Warn loudly in dev, exit in production, if COOKIE_SECRET is missing
+if (!COOKIE_SECRET) {
+    if (NODE_ENV === 'production') {
+        console.error('\u274c FATAL: COOKIE_SECRET not set in environment variables!');
+        process.exit(1);
+    } else {
+        console.warn('\u26a0\ufe0f  COOKIE_SECRET not set — using insecure fallback for development only.');
+    }
+}
 
 // ──────────────────────────────────────────────
 // Trust Proxy (required behind Cloudflare/Nginx/LB)
@@ -118,6 +130,11 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     exposedHeaders: ['X-Request-ID']
 }));
+
+// ──────────────────────────────────────────────
+// Cookie Parser (signed cookies for auth state)
+// ──────────────────────────────────────────────
+app.use(cookieParser(COOKIE_SECRET || 'dev-insecure-fallback'));
 
 // ──────────────────────────────────────────────
 // Body Parsing
@@ -250,19 +267,21 @@ async function startServer() {
         // Auto-ensure scheduled_matches has winner columns
         try {
             const { supabase } = require('./config/supabase');
-            // Try a test query to see if winner_label column exists
+            // Try a test query to see if winner_label and feeder columns exist
             const { error: testErr } = await supabase
                 .from('scheduled_matches')
-                .select('winner_label')
+                .select('winner_label, feeder_match_a_id')
                 .limit(1);
             
-            if (testErr && testErr.message && testErr.message.includes('winner_label')) {
-                console.log('⚠️  winner_label column missing on scheduled_matches — run this SQL in Supabase:');
+            if (testErr && testErr.message) {
+                console.log('⚠️  Missing columns on scheduled_matches — run migrations/add_feeder_columns.sql in Supabase:');
                 console.log('ALTER TABLE scheduled_matches ADD COLUMN IF NOT EXISTS winner_label TEXT;');
                 console.log('ALTER TABLE scheduled_matches ADD COLUMN IF NOT EXISTS winner_user_id BIGINT;');
                 console.log('ALTER TABLE scheduled_matches ADD COLUMN IF NOT EXISTS winner_team_id BIGINT;');
+                console.log('ALTER TABLE scheduled_matches ADD COLUMN IF NOT EXISTS feeder_match_a_id BIGINT;');
+                console.log('ALTER TABLE scheduled_matches ADD COLUMN IF NOT EXISTS feeder_match_b_id BIGINT;');
             } else {
-                console.log('✅ scheduled_matches winner columns verified');
+                console.log('✅ scheduled_matches columns verified (winner + feeder)');
             }
         } catch (e) {
             // Non-fatal — table might not exist yet

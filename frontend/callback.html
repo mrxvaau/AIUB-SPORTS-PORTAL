@@ -134,6 +134,7 @@
             try {
                 const urlParams = new URLSearchParams(window.location.search);
                 const code = urlParams.get('code');
+                const state = urlParams.get('state');   // For CSRF validation
                 const error = urlParams.get('error');
                 const errorDescription = urlParams.get('error_description');
 
@@ -149,11 +150,14 @@
 
                 updateStatus('Exchanging authorization code...');
 
-                // Single call to msauth/callback — handles all upsert + identity logic server-side
+                // Single call to msauth/callback — handles all upsert + identity logic server-side.
+                // credentials:'include' ensures the oauth_state cookie is sent for CSRF validation.
+                // Tokens are returned as HttpOnly cookies (not in the JSON body).
                 const callbackResponse = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.MS_AUTH_CALLBACK), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code })
+                    credentials: 'include',                   // Send oauth_state cookie for CSRF check
+                    body: JSON.stringify({ code, state })     // state validated server-side
                 });
 
                 const callbackData = await callbackResponse.json();
@@ -167,7 +171,9 @@
 
                 updateStatus('Setting up your session...');
 
-                // Store trusted identity data from server
+                // Store only non-sensitive display data in localStorage.
+                // Access and refresh tokens are delivered as HttpOnly cookies by the server
+                // and are NOT accessible via JavaScript.
                 localStorage.setItem('isAuthenticated', 'true');
                 localStorage.setItem('userEmail', user.email);
                 localStorage.setItem('studentId', user.studentId);
@@ -176,14 +182,9 @@
                 localStorage.setItem('userRole', user.role || '');
                 localStorage.setItem('profilePhotoUrl', user.profilePhotoUrl || '');
                 localStorage.setItem('needsRoleSelection', user.needsRoleSelection ? 'true' : 'false');
-                localStorage.setItem('msAccessToken', callbackData.accessToken);
                 localStorage.setItem('userData', JSON.stringify(user));
 
-                // Store JWT for API calls
-                localStorage.setItem('jwtToken', callbackData.accessToken);
-                if (callbackData.refreshToken) {
-                    localStorage.setItem('jwtRefreshToken', callbackData.refreshToken);
-                }
+                // NOTE: tokens are now in HttpOnly cookies — do NOT store them here
 
                 // Decide destination
                 if (user.profileCompleted === true) {
@@ -199,6 +200,7 @@
                 showError('An unexpected error occurred. Please try again.');
             }
         }
+
 
         function updateStatus(message) {
             document.getElementById('statusMessage').textContent = message;

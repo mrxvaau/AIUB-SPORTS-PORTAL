@@ -29,9 +29,19 @@ router.get('/', (req, res) => {
 
 /**
  * Detailed health check — includes DB, Storage, memory.
- * Protected in production (should be behind admin auth or IP whitelist).
+ * Protected in production: requires a valid HEALTH_CHECK_TOKEN env var bearer token,
+ * or is accessible only in development/staging environments.
  */
 router.get('/detailed', async (req, res) => {
+    // In production, require a pre-shared token to prevent info disclosure
+    if ((process.env.NODE_ENV === 'production') && process.env.HEALTH_CHECK_TOKEN) {
+        const authHeader = req.headers.authorization;
+        const expected = `Bearer ${process.env.HEALTH_CHECK_TOKEN}`;
+        if (!authHeader || authHeader !== expected) {
+            return res.status(401).json({ status: 'unauthorized', message: 'Health check token required' });
+        }
+    }
+
     const checks = {
         status: 'ok',
         timestamp: new Date().toISOString(),

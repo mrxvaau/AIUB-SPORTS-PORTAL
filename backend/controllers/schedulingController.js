@@ -233,20 +233,27 @@ function findFreeSlot(venue, fromTime, matchDurationMs, breakMs, dailyStartHHMM,
 async function runSchedulingAlgorithm(tournamentId, schedConfig, games, configMap) {
 
     // ================================================================
-    // Phase 1: Generate match pools per game
+    // Phase 1: Generate Round 1 match pools per game
     // ================================================================
-    const allMatches = {};
+    const allR1Matches = {};
     for (const game of games) {
-        allMatches[game.id] = await generateMatchPool(game, tournamentId);
+        allR1Matches[game.id] = await generateMatchPool(game, tournamentId);
     }
 
     // ================================================================
-    // Phase 2: Build player participation map
+    // Phase 2: Build full bracket structure for each game (all rounds)
     // ================================================================
-    // playerGameCount[playerId] = number of distinct games this player is in
+    const allBrackets = {};
+    for (const game of games) {
+        allBrackets[game.id] = generateFullBracket(allR1Matches[game.id], game.id);
+    }
+
+    // ================================================================
+    // Phase 3: Build player participation map (Round 1 only)
+    // ================================================================
     const playerGameCount = {};
     for (const game of games) {
-        for (const match of allMatches[game.id] || []) {
+        for (const match of allR1Matches[game.id] || []) {
             getPlayerIds(match).forEach(pid => {
                 playerGameCount[pid] = (playerGameCount[pid] || 0) + 1;
             });
@@ -254,35 +261,29 @@ async function runSchedulingAlgorithm(tournamentId, schedConfig, games, configMa
     }
 
     // ================================================================
-    // Phase 3: Sort games by priority; sort matches by conflict risk
+    // Phase 4: Sort games by priority; sort R1 matches by conflict risk
     // ================================================================
     const sortedGames = [...games].sort((a, b) => {
         const pA = configMap[a.id]?.priority || 0;
         const pB = configMap[b.id]?.priority || 0;
         if (pB !== pA) return pB - pA;
-        return (allMatches[b.id]?.length || 0) - (allMatches[a.id]?.length || 0);
+        return (allR1Matches[b.id]?.length || 0) - (allR1Matches[a.id]?.length || 0);
     });
 
-    // Within each game, schedule high-risk matches first (players in multiple games)
-    // so they get the most scheduling flexibility (more open slots available)
     for (const game of games) {
-        const matches = allMatches[game.id] || [];
+        const matches = allR1Matches[game.id] || [];
         matches.sort((a, b) => {
             if (a.isBye !== b.isBye) return a.isBye ? 1 : -1;
             const riskA = getPlayerIds(a).reduce((s, p) => s + (playerGameCount[p] || 1), 0);
             const riskB = getPlayerIds(b).reduce((s, p) => s + (playerGameCount[p] || 1), 0);
-            return riskB - riskA; // Higher risk first
+            return riskB - riskA;
         });
     }
 
     // ================================================================
-    // Phase 4: Build interleaved match queue (round-robin across games)
+    // Phase 5: Build interleaved Round 1 queue
     // ================================================================
-    // Instead of scheduling ALL of Game A, then ALL of Game B (which
-    // causes conflicts for shared players), we alternate: 1 from A,
-    // 1 from B, 1 from C, back to A, etc. This naturally spreads
-    // each game's matches across the timeline.
-    const matchQueue = [];
+    const r1Queue = [];
     const ptrs = {};
     sortedGames.forEach(g => { ptrs[g.id] = 0; });
 
@@ -290,9 +291,9 @@ async function runSchedulingAlgorithm(tournamentId, schedConfig, games, configMa
     while (more) {
         more = false;
         for (const game of sortedGames) {
-            const matches = allMatches[game.id] || [];
+            const matches = allR1Matches[game.id] || [];
             if (ptrs[game.id] < matches.length) {
-                matchQueue.push({ match: matches[ptrs[game.id]], game });
+                r1Queue.push({ match: matches[ptrs[game.id]], game });
                 ptrs[game.id]++;
                 more = true;
             }
@@ -300,15 +301,13 @@ async function runSchedulingAlgorithm(tournamentId, schedConfig, games, configMa
     }
 
     // ================================================================
-    // Phase 5: Time grid setup
+    // Phase 6: Time grid setup
     // ================================================================
     const dailyStartHHMM = schedConfig.daily_start_time.split(':').slice(0, 2).join(':');
     const dailyEndHHMM = schedConfig.daily_end_time.split(':').slice(0, 2).join(':');
-    // Use the raw date strings from config to avoid timezone round-trip bugs
     const firstDayStart = makeTime(schedConfig.start_date, dailyStartHHMM);
     const endDateTime = makeTime(schedConfig.end_date, dailyEndHHMM);
 
-    // Per-game venue trackers with occupied interval lists
     const venueData = {};
     for (const game of games) {
         const cfg = configMap[game.id];
@@ -318,32 +317,30 @@ async function runSchedulingAlgorithm(tournamentId, schedConfig, games, configMa
         for (let v = 0; v < parallelCount; v++) {
             venueData[game.id].push({
                 venueName: venueNames[v] || `Venue ${v + 1}`,
-                occupied: [] // [{start: ms, end: ms}] sorted by start
+                occupied: []
             });
         }
     }
 
     // ================================================================
-    // Phase 6: Assign matches with active conflict avoidance
+    // Phase 7: Schedule Round 1 with active conflict avoidance
     // ================================================================
-    // For each match we try up to CANDIDATES_PER_VENUE time slots on
-    // each venue. If a slot has a player conflict, we skip ahead to
-    // the next free slot. We pick the slot with zero conflicts (if
-    // any), otherwise the slot with the minimum conflict weight.
-
     const globalPlayerTimeline = {};
     const scheduledMatches = [];
     const slotsToInsert = [];
     const CANDIDATES_PER_VENUE = 15;
+    const latestEndPerGameRound = {};
+    let globalMatchOrder = 0;
 
-    for (const { match, game } of matchQueue) {
+    for (const { match, game } of r1Queue) {
         const cfg = configMap[game.id];
         const durationMs = cfg.match_duration * 60 * 1000;
         const breakMs = cfg.break_duration * 60 * 1000;
         const venues = venueData[game.id];
         const pIds = getPlayerIds(match);
+        const totalRounds = allBrackets[game.id].rounds.length;
 
-        // --- BYE handling (no venue blocking, no conflict possible) ---
+        // BYE handling
         if (match.isBye) {
             const byeStart = findFreeSlot(
                 venues[0], firstDayStart, durationMs, breakMs,
@@ -360,6 +357,7 @@ async function runSchedulingAlgorithm(tournamentId, schedConfig, games, configMa
             scheduledMatches.push({
                 tournament_id: parseInt(tournamentId), game_id: game.id,
                 _slot_ref: slotsToInsert.length - 1, _playerIds: pIds,
+                _bracketIdx: match._bracketIdx,
                 participant_a_user_id: match.a_user_id || null,
                 participant_a_team_id: match.a_team_id || null,
                 participant_b_user_id: null, participant_b_team_id: null,
@@ -367,17 +365,21 @@ async function runSchedulingAlgorithm(tournamentId, schedConfig, games, configMa
                 scheduled_start: byeStart.toISOString(),
                 scheduled_end: byeEnd.toISOString(),
                 venue_name: venues[0].venueName,
-                round_number: 1, round_label: 'Round 1',
-                match_order: scheduledMatches.length,
+                round_number: 1, round_label: getRoundLabel(0, totalRounds),
+                match_order: globalMatchOrder++,
                 status: 'SCHEDULED',
+                winner_label: match.a_label,
+                winner_user_id: match.a_user_id || null,
+                winner_team_id: match.a_team_id || null,
                 conflict_type: null, conflict_player_ids: null,
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
             });
+            trackLatestEnd(latestEndPerGameRound, game.id, 1, byeEnd);
             continue;
         }
 
-        // --- Regular match: search for the best slot ---
+        // Regular match: search for best slot
         let bestCandidate = null;
 
         for (let vi = 0; vi < venues.length; vi++) {
@@ -389,54 +391,41 @@ async function runSchedulingAlgorithm(tournamentId, schedConfig, games, configMa
                     dailyStartHHMM, dailyEndHHMM, endDateTime
                 );
                 if (!slotStart) break;
-
                 const slotEnd = new Date(slotStart.getTime() + durationMs);
 
-                // Score this slot by checking player timeline conflicts
                 const conflict = calculateConflictFromTimeline(
                     slotStart, slotEnd, match, game.id, globalPlayerTimeline
                 );
-
                 const candidate = {
                     venueIdx: vi, venueName: venues[vi].venueName,
                     start: slotStart, end: slotEnd, conflict
                 };
 
-                // Zero conflict → perfect, take it immediately
-                if (conflict.weight === 0) {
-                    bestCandidate = candidate;
-                    break;
-                }
+                if (conflict.weight === 0) { bestCandidate = candidate; break; }
 
-                // Track minimum-conflict slot as fallback
                 if (!bestCandidate ||
                     conflict.weight < bestCandidate.conflict.weight ||
                     (conflict.weight === bestCandidate.conflict.weight &&
                      slotStart.getTime() < bestCandidate.start.getTime())) {
                     bestCandidate = candidate;
                 }
-
-                // Advance search past this slot to try the next one
                 searchFrom = new Date(slotStart.getTime() + durationMs + breakMs);
             }
-
-            // If we already found a perfect slot, stop searching venues
             if (bestCandidate && bestCandidate.conflict.weight === 0) break;
         }
 
-        if (!bestCandidate) continue; // No room at all
+        if (!bestCandidate) continue;
 
-        // --- Assign the match to the best slot ---
         slotsToInsert.push({
             tournament_id: parseInt(tournamentId), game_id: game.id,
             slot_start: bestCandidate.start.toISOString(),
             slot_end: bestCandidate.end.toISOString(),
             venue_name: bestCandidate.venueName, capacity: 1, used: 1
         });
-
         scheduledMatches.push({
             tournament_id: parseInt(tournamentId), game_id: game.id,
             _slot_ref: slotsToInsert.length - 1, _playerIds: pIds,
+            _bracketIdx: match._bracketIdx,
             participant_a_user_id: match.a_user_id || null,
             participant_a_team_id: match.a_team_id || null,
             participant_b_user_id: match.b_user_id || null,
@@ -446,8 +435,8 @@ async function runSchedulingAlgorithm(tournamentId, schedConfig, games, configMa
             scheduled_start: bestCandidate.start.toISOString(),
             scheduled_end: bestCandidate.end.toISOString(),
             venue_name: bestCandidate.venueName,
-            round_number: 1, round_label: 'Round 1',
-            match_order: scheduledMatches.length,
+            round_number: 1, round_label: getRoundLabel(0, allBrackets[game.id].rounds.length),
+            match_order: globalMatchOrder++,
             status: bestCandidate.conflict.weight > 0 ? 'SCHEDULED_OVERLAP' : 'SCHEDULED',
             conflict_type: bestCandidate.conflict.type || null,
             conflict_player_ids: bestCandidate.conflict.playerIds || null,
@@ -455,49 +444,130 @@ async function runSchedulingAlgorithm(tournamentId, schedConfig, games, configMa
             updated_at: new Date().toISOString()
         });
 
-        // Mark venue slot as occupied
         venues[bestCandidate.venueIdx].occupied.push({
-            start: bestCandidate.start.getTime(),
-            end: bestCandidate.end.getTime()
+            start: bestCandidate.start.getTime(), end: bestCandidate.end.getTime()
         });
         venues[bestCandidate.venueIdx].occupied.sort((a, b) => a.start - b.start);
-
-        // Update global player timeline
         updatePlayerTimeline(globalPlayerTimeline, match, bestCandidate.start, bestCandidate.end, game.id);
+        trackLatestEnd(latestEndPerGameRound, game.id, 1, bestCandidate.end);
     }
 
     // ================================================================
-    // Phase 7: Post-optimization swap pass
+    // Phase 8: Post-optimization swap pass (Round 1 only)
     // ================================================================
-    // For each remaining SCHEDULED_OVERLAP match, try swapping its
-    // time slot with a non-conflicting match of the same game. If the
-    // swap eliminates both matches' conflicts, apply it.
     runSwapOptimization(scheduledMatches, slotsToInsert, globalPlayerTimeline);
 
     // ================================================================
-    // Phase 8: Build report
+    // Phase 9: Schedule Round 2+ matches (chronologically after prev round)
+    // ================================================================
+    for (const game of sortedGames) {
+        const bracket = allBrackets[game.id];
+        if (bracket.rounds.length <= 1) continue;
+
+        const cfg = configMap[game.id];
+        const durationMs = cfg.match_duration * 60 * 1000;
+        const breakMs = cfg.break_duration * 60 * 1000;
+        const venues = venueData[game.id];
+        const totalRounds = bracket.rounds.length;
+
+        for (let r = 1; r < totalRounds; r++) {
+            const roundMatches = bracket.rounds[r];
+            const prevRoundEnd = getLatestEnd(latestEndPerGameRound, game.id, r);
+
+            // Round N+1 starts after Round N ends + break
+            let roundStartFrom = prevRoundEnd
+                ? new Date(prevRoundEnd.getTime() + breakMs)
+                : new Date(firstDayStart);
+
+            const roundLabel = getRoundLabel(r, totalRounds);
+
+            for (const placeholder of roundMatches) {
+                let slotStart = null;
+                let venueName = null;
+
+                for (let vi = 0; vi < venues.length; vi++) {
+                    slotStart = findFreeSlot(
+                        venues[vi], roundStartFrom, durationMs, breakMs,
+                        dailyStartHHMM, dailyEndHHMM, endDateTime
+                    );
+                    if (slotStart) {
+                        venueName = venues[vi].venueName;
+                        const slotEnd = new Date(slotStart.getTime() + durationMs);
+                        venues[vi].occupied.push({
+                            start: slotStart.getTime(), end: slotEnd.getTime()
+                        });
+                        venues[vi].occupied.sort((a, b) => a.start - b.start);
+                        break;
+                    }
+                }
+
+                if (!slotStart) {
+                    console.warn(`[scheduler] No slot for ${game.game_name} Round ${r + 1}`);
+                    continue;
+                }
+
+                const slotEnd = new Date(slotStart.getTime() + durationMs);
+
+                slotsToInsert.push({
+                    tournament_id: parseInt(tournamentId), game_id: game.id,
+                    slot_start: slotStart.toISOString(), slot_end: slotEnd.toISOString(),
+                    venue_name: venueName, capacity: 1, used: 1
+                });
+                scheduledMatches.push({
+                    tournament_id: parseInt(tournamentId), game_id: game.id,
+                    _slot_ref: slotsToInsert.length - 1, _playerIds: [],
+                    _bracketIdx: placeholder._bracketIdx,
+                    _feederA_bracketIdx: placeholder.feederA_bracketIdx,
+                    _feederB_bracketIdx: placeholder.feederB_bracketIdx,
+                    participant_a_user_id: null,
+                    participant_a_team_id: null,
+                    participant_b_user_id: null,
+                    participant_b_team_id: null,
+                    participant_a_label: placeholder.a_label,
+                    participant_b_label: placeholder.b_label,
+                    scheduled_start: slotStart.toISOString(),
+                    scheduled_end: slotEnd.toISOString(),
+                    venue_name: venueName,
+                    round_number: r + 1, round_label: roundLabel,
+                    match_order: globalMatchOrder++,
+                    status: 'PENDING',
+                    conflict_type: null, conflict_player_ids: null,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                });
+                trackLatestEnd(latestEndPerGameRound, game.id, r + 1, slotEnd);
+            }
+        }
+    }
+
+    // ================================================================
+    // Phase 10: Build report
     // ================================================================
     const dayBreakdown = buildDayBreakdown(scheduledMatches, games, configMap);
-    const totalConflicts = scheduledMatches.filter(m => m.status === 'SCHEDULED_OVERLAP').length;
-    const sameSportConflicts = scheduledMatches.filter(m =>
+    const r1Matches = scheduledMatches.filter(m => m.round_number === 1);
+    const totalConflicts = r1Matches.filter(m => m.status === 'SCHEDULED_OVERLAP').length;
+    const sameSportConflicts = r1Matches.filter(m =>
         m.status === 'SCHEDULED_OVERLAP' && m.conflict_type === 'SAME_SPORT'
     ).length;
-    const crossSportConflicts = scheduledMatches.filter(m =>
+    const crossSportConflicts = r1Matches.filter(m =>
         m.status === 'SCHEDULED_OVERLAP' && m.conflict_type === 'CROSS_SPORT'
     ).length;
-    const totalMatchesNeeded = Object.values(allMatches).reduce((sum, m) => sum + m.length, 0);
+    const totalAllRounds = scheduledMatches.length;
 
     return {
         scheduledMatches,
         slotsToInsert,
         games,
         configMap,
-        allMatches,
+        allMatches: allR1Matches,
+        allBrackets,
         dayBreakdown,
         report: {
-            total_matches: scheduledMatches.length,
-            total_matches_needed: totalMatchesNeeded,
-            unscheduled: totalMatchesNeeded - scheduledMatches.length,
+            total_matches: totalAllRounds,
+            total_r1_matches: r1Matches.length,
+            total_later_round_matches: totalAllRounds - r1Matches.length,
+            total_matches_needed: Object.values(allR1Matches).reduce((sum, m) => sum + m.length, 0),
+            unscheduled: 0,
             total_conflicts: totalConflicts,
             same_sport_conflicts: sameSportConflicts,
             cross_sport_conflicts: crossSportConflicts,
@@ -505,13 +575,77 @@ async function runSchedulingAlgorithm(tournamentId, schedConfig, games, configMa
                 id: g.id,
                 name: g.game_name,
                 category: g.category,
-                total_matches: allMatches[g.id]?.length || 0,
+                total_r1_matches: allR1Matches[g.id]?.length || 0,
+                total_all_rounds: scheduledMatches.filter(m => m.game_id === g.id).length,
+                total_rounds: allBrackets[g.id]?.rounds.length || 1,
                 scheduled: scheduledMatches.filter(m => m.game_id === g.id).length,
                 conflicts: scheduledMatches.filter(m => m.game_id === g.id && m.status === 'SCHEDULED_OVERLAP').length
             }))
         }
     };
 }
+
+// ================================================================
+// Generate full bracket structure (all rounds) from Round 1 matches
+// ================================================================
+function generateFullBracket(r1Matches, gameId) {
+    if (!r1Matches || r1Matches.length === 0) return { rounds: [] };
+
+    r1Matches.forEach((m, idx) => { m._bracketIdx = `${gameId}_r1_${idx}`; });
+
+    const rounds = [r1Matches];
+    let currentRound = r1Matches;
+    let roundNum = 2;
+
+    while (currentRound.length > 1) {
+        const nextRound = [];
+        for (let i = 0; i < currentRound.length; i += 2) {
+            const m1 = currentRound[i];
+            const m2 = currentRound[i + 1];
+
+            let aLabel = m1.isBye ? m1.a_label : `Winner of M${i + 1}`;
+            let bLabel = !m2 ? 'BYE' : (m2.isBye ? m2.a_label : `Winner of M${i + 2}`);
+
+            nextRound.push({
+                _bracketIdx: `${gameId}_r${roundNum}_${nextRound.length}`,
+                feederA_bracketIdx: m1._bracketIdx,
+                feederB_bracketIdx: m2 ? m2._bracketIdx : null,
+                a_label: aLabel,
+                b_label: bLabel,
+                isBye: !m2
+            });
+        }
+        rounds.push(nextRound);
+        currentRound = nextRound;
+        roundNum++;
+        if (roundNum > 10) break;
+    }
+    return { rounds };
+}
+
+// Round label helper
+function getRoundLabel(roundIdx, totalRounds) {
+    const fromEnd = totalRounds - roundIdx;
+    if (fromEnd === 1) return 'Final';
+    if (fromEnd === 2) return 'Semi Final';
+    if (fromEnd === 3) return 'Quarter Final';
+    if (fromEnd === 4) return 'Round of 16';
+    return `Round ${roundIdx + 1}`;
+}
+
+// Track latest end time per game per round
+function trackLatestEnd(map, gameId, roundNum, endTime) {
+    if (!map[gameId]) map[gameId] = {};
+    if (!map[gameId][roundNum] || endTime > map[gameId][roundNum]) {
+        map[gameId][roundNum] = endTime;
+    }
+}
+
+function getLatestEnd(map, gameId, roundNum) {
+    return map[gameId]?.[roundNum] || null;
+}
+
+
 
 // ---- Swap Optimization Engine ----
 // Iteratively tries to swap conflicting matches with non-conflicting
@@ -718,18 +852,35 @@ const shuffleAndSchedule = async (req, res) => {
             }
         }
 
-        // Map slot refs to actual IDs
+        // Map slot refs to actual IDs, strip internal fields
         const matchesToInsert = result.scheduledMatches.map(m => {
-            const { _slot_ref, _playerIds, ...rest } = m;
+            const { _slot_ref, _playerIds, _bracketIdx, _feederA_bracketIdx, _feederB_bracketIdx, ...rest } = m;
             rest.slot_id = insertedSlots[_slot_ref]?.id || null;
+            // Store bracketIdx temporarily for feeder resolution
+            rest._bracketIdx = _bracketIdx;
+            rest._feederA_bracketIdx = _feederA_bracketIdx || null;
+            rest._feederB_bracketIdx = _feederB_bracketIdx || null;
             return rest;
         });
 
-        // Insert matches
+        // Insert matches (strip internal fields before DB insert)
         let insertedMatches = [];
         if (matchesToInsert.length > 0) {
+            // Save bracket indices for post-insert resolution
+            const bracketIdxMap = {};
+            matchesToInsert.forEach((m, idx) => {
+                bracketIdxMap[idx] = {
+                    _bracketIdx: m._bracketIdx,
+                    _feederA: m._feederA_bracketIdx,
+                    _feederB: m._feederB_bracketIdx
+                };
+            });
+
             for (let i = 0; i < matchesToInsert.length; i += 50) {
-                const batch = matchesToInsert.slice(i, i + 50);
+                const batch = matchesToInsert.slice(i, i + 50).map(m => {
+                    const { _bracketIdx, _feederA_bracketIdx, _feederB_bracketIdx, ...clean } = m;
+                    return clean;
+                });
                 const { data: ins, error: insErr } = await supabase
                     .from('scheduled_matches')
                     .insert(batch)
@@ -737,6 +888,41 @@ const shuffleAndSchedule = async (req, res) => {
                 if (insErr) throw insErr;
                 if (ins) insertedMatches = insertedMatches.concat(ins);
             }
+
+            // Build bracketIdx → DB ID map for feeder resolution
+            const bracketToDbId = {};
+            insertedMatches.forEach((dbMatch, idx) => {
+                const meta = bracketIdxMap[idx];
+                if (meta && meta._bracketIdx) {
+                    bracketToDbId[meta._bracketIdx] = dbMatch.id;
+                }
+            });
+
+            // Update feeder references on Round 2+ matches
+            for (let idx = 0; idx < insertedMatches.length; idx++) {
+                const meta = bracketIdxMap[idx];
+                if (!meta || (!meta._feederA && !meta._feederB)) continue;
+
+                const feederAId = meta._feederA ? bracketToDbId[meta._feederA] : null;
+                const feederBId = meta._feederB ? bracketToDbId[meta._feederB] : null;
+
+                if (feederAId || feederBId) {
+                    const updateData = {};
+                    if (feederAId) updateData.feeder_match_a_id = feederAId;
+                    if (feederBId) updateData.feeder_match_b_id = feederBId;
+
+                    await supabase
+                        .from('scheduled_matches')
+                        .update(updateData)
+                        .eq('id', insertedMatches[idx].id);
+
+                    // Also update local reference for response
+                    insertedMatches[idx].feeder_match_a_id = feederAId || null;
+                    insertedMatches[idx].feeder_match_b_id = feederBId || null;
+                }
+            }
+
+            console.log(`[scheduler] Inserted ${insertedMatches.length} matches across all rounds`);
         }
 
         // Insert report
@@ -1276,6 +1462,75 @@ const updateMatchStatus = async (req, res) => {
             console.warn('[updateMatchStatus] WARNING: winner_label mismatch! Sent:', winner_label, 'Got:', data?.winner_label);
         }
 
+        // ── Winner Propagation to Next Round ──
+        // If a winner was set, find the next-round match where this match
+        // is a feeder and update its participant label
+        if (data?.winner_label && status === 'PLAYED') {
+            try {
+                // Find next-round match where this match is feeder_match_a
+                const { data: nextMatchA } = await supabase
+                    .from('scheduled_matches')
+                    .select('*')
+                    .eq('feeder_match_a_id', matchId)
+                    .single();
+
+                if (nextMatchA) {
+                    const propagateA = {
+                        participant_a_label: data.winner_label,
+                        participant_a_user_id: data.winner_user_id || null,
+                        participant_a_team_id: data.winner_team_id || null,
+                        updated_at: new Date().toISOString()
+                    };
+
+                    // If both participants are now known, activate the match
+                    const bReady = nextMatchA.participant_b_label &&
+                                   !nextMatchA.participant_b_label.startsWith('Winner of');
+                    if (bReady && nextMatchA.status === 'PENDING') {
+                        propagateA.status = 'SCHEDULED';
+                    }
+
+                    await supabase
+                        .from('scheduled_matches')
+                        .update(propagateA)
+                        .eq('id', nextMatchA.id);
+
+                    console.log(`[updateMatchStatus] Propagated winner "${data.winner_label}" → match ${nextMatchA.id} (participant A)`);
+                }
+
+                // Find next-round match where this match is feeder_match_b
+                const { data: nextMatchB } = await supabase
+                    .from('scheduled_matches')
+                    .select('*')
+                    .eq('feeder_match_b_id', matchId)
+                    .single();
+
+                if (nextMatchB) {
+                    const propagateB = {
+                        participant_b_label: data.winner_label,
+                        participant_b_user_id: data.winner_user_id || null,
+                        participant_b_team_id: data.winner_team_id || null,
+                        updated_at: new Date().toISOString()
+                    };
+
+                    const aReady = nextMatchB.participant_a_label &&
+                                   !nextMatchB.participant_a_label.startsWith('Winner of');
+                    if (aReady && nextMatchB.status === 'PENDING') {
+                        propagateB.status = 'SCHEDULED';
+                    }
+
+                    await supabase
+                        .from('scheduled_matches')
+                        .update(propagateB)
+                        .eq('id', nextMatchB.id);
+
+                    console.log(`[updateMatchStatus] Propagated winner "${data.winner_label}" → match ${nextMatchB.id} (participant B)`);
+                }
+            } catch (propErr) {
+                // Non-fatal: log but don't fail the response
+                console.error('[updateMatchStatus] Winner propagation error:', propErr.message);
+            }
+        }
+
         res.json({ success: true, match: data });
     } catch (error) {
         console.error('updateMatchStatus error:', error);
@@ -1347,23 +1602,16 @@ const getBracketData = async (req, res) => {
             .eq('id', gameId)
             .single();
 
-        // Build a proper single-elimination bracket from the matches
         const allMatches = matches || [];
         if (allMatches.length === 0) {
             return res.json({ success: true, game, rounds: [], totalMatches: 0 });
         }
-
-        // Debug: log winner_label status for each match
-        allMatches.forEach(m => {
-            console.log(`[getBracketData] Match ${m.id}: status=${m.status}, winner_label=${m.winner_label || 'NULL'}, winner_user_id=${m.winner_user_id || 'NULL'}`);
-        });
 
         // Fallback: if a match is PLAYED but winner_label is missing,
         // try to infer it from winner_user_id/winner_team_id
         allMatches.forEach(m => {
             if (m.status === 'PLAYED' && !m.winner_label) {
                 if (m.winner_user_id) {
-                    // Match winner by user_id to participant labels
                     if (m.winner_user_id === m.participant_a_user_id) {
                         m.winner_label = m.participant_a_label;
                     } else if (m.winner_user_id === m.participant_b_user_id) {
@@ -1376,148 +1624,33 @@ const getBracketData = async (req, res) => {
                         m.winner_label = m.participant_b_label;
                     }
                 }
-                if (m.winner_label) {
-                    console.log(`[getBracketData] Fallback winner for match ${m.id}: ${m.winner_label}`);
-                }
             }
         });
 
-        // All real matches go into Round 1 (the first round of the bracket)
-        const round1Matches = allMatches.map((m, idx) => ({
-            ...m,
-            match_number: idx + 1
-        }));
-
-        // [BUG 1 FIX] Correct totalRounds: number of rounds in a single-elimination bracket
-        // with N first-round matches is ceil(log2(N)) + 1, but we need at least 1 round.
-        // For N=1 -> 1 round (Final only). For N=2 -> 2 rounds. For N=3,4 -> 3 rounds. etc.
-        const totalR1 = round1Matches.length;
-        let totalRounds;
-        if (totalR1 <= 1) {
-            totalRounds = 1;
-        } else {
-            // Number of rounds needed: keep halving R1 count until we reach 1
-            totalRounds = Math.ceil(Math.log2(totalR1)) + 1;
-        }
-
-        // Build round labels
-        function getRoundLabel(roundIdx, totalRounds) {
-            const fromEnd = totalRounds - roundIdx;
-            if (fromEnd === 1) return 'Final';
-            if (fromEnd === 2) return 'Semi Final';
-            if (fromEnd === 3) return 'Quarter Final';
-            if (fromEnd === 4) return 'Round of 16';
-            return `Round ${roundIdx + 1}`;
-        }
-
-        const rounds = [];
-
-        // Round 1: all real matches
-        const r1Label = totalRounds === 1 ? 'Final'
-            : totalRounds === 2 ? 'Semi Final'
-                : getRoundLabel(0, totalRounds);
-
-        rounds.push({
-            label: r1Label,
-            matches: round1Matches.map(m => ({
+        // Group matches by round_number
+        const roundMap = {};
+        allMatches.forEach((m, idx) => {
+            const rn = m.round_number || 1;
+            if (!roundMap[rn]) roundMap[rn] = [];
+            roundMap[rn].push({
                 ...m,
-                _matchNum: m.match_number,
-                _isBye: m.participant_b_label === 'BYE'
-            }))
+                match_number: idx + 1,
+                _matchNum: idx + 1,
+                _isBye: m.participant_b_label === 'BYE' || m.status === 'BYE_ADVANCE',
+                _isPlaceholder: m.status === 'PENDING' && !m.participant_a_user_id && !m.participant_a_team_id
+            });
         });
 
-        // [BUG 2 FIX] Running match number counter to prevent duplicates
-        let nextMatchNum = round1Matches.length + 1;
+        // Build rounds array sorted by round number
+        const roundNumbers = Object.keys(roundMap).map(Number).sort((a, b) => a - b);
+        const totalRounds = roundNumbers.length;
 
-        // Generate placeholder rounds for subsequent elimination stages
-        for (let r = 1; r < totalRounds; r++) {
-            const prevRoundMatches = rounds[r - 1].matches;
-            const nextRoundMatches = [];
-            const label = getRoundLabel(r, totalRounds);
-
-            for (let i = 0; i < prevRoundMatches.length; i += 2) {
-                const m1 = prevRoundMatches[i];
-                const m2 = prevRoundMatches[i + 1];
-
-                // Determine labels for this match's participants
-                let aLabel, bLabel;
-                let aUserId = null, bUserId = null;
-                let aTeamId = null, bTeamId = null;
-                let isAutoAdvance = false;
-
-                // [BUG 4 FIX] Check winner_label FIRST (even for BYE matches),
-                // fall back to participant_a_label only if no winner recorded
-                if (m1 && m1._isBye) {
-                    // BYE match — use winner_label if set, otherwise the non-BYE participant auto-advances
-                    aLabel = m1.winner_label || m1.participant_a_label;
-                    aUserId = m1.winner_user_id || m1.participant_a_user_id;
-                    aTeamId = m1.winner_team_id || m1.participant_a_team_id;
-                } else if (m1 && m1.winner_label) {
-                    aLabel = m1.winner_label;
-                    aUserId = m1.winner_user_id;
-                    aTeamId = m1.winner_team_id;
-                } else if (m1) {
-                    aLabel = `Winner of Match ${m1._matchNum}`;
-                } else {
-                    aLabel = 'TBD';
-                }
-
-                if (!m2) {
-                    // [BUG 3 FIX] Odd number of matches in previous round — this one auto-advances
-                    // Mark as auto-advance so the UI collapses it
-                    bLabel = 'BYE';
-                    isAutoAdvance = true;
-                } else if (m2._isBye) {
-                    // [BUG 4 FIX] Same as above — respect winner_label
-                    bLabel = m2.winner_label || m2.participant_a_label;
-                    bUserId = m2.winner_user_id || m2.participant_a_user_id;
-                    bTeamId = m2.winner_team_id || m2.participant_a_team_id;
-                } else if (m2.winner_label) {
-                    bLabel = m2.winner_label;
-                    bUserId = m2.winner_user_id;
-                    bTeamId = m2.winner_team_id;
-                } else {
-                    bLabel = `Winner of Match ${m2._matchNum}`;
-                }
-
-                // [BUG 2 FIX] Use running counter for unique match numbers
-                const matchNum = nextMatchNum++;
-
-                // [BUG 3 FIX] For auto-advance placeholders, pre-set winner so next round picks it up
-                let placeholderWinner = null;
-                if (isAutoAdvance) {
-                    placeholderWinner = aLabel;
-                }
-
-                nextRoundMatches.push({
-                    id: null, // placeholder — no DB record
-                    _matchNum: matchNum,
-                    _isBye: isAutoAdvance,
-                    _isPlaceholder: true,
-                    round_number: r + 1,
-                    round_label: label,
-                    participant_a_label: aLabel,
-                    participant_a_user_id: aUserId,
-                    participant_a_team_id: aTeamId,
-                    participant_b_label: bLabel,
-                    participant_b_user_id: bUserId,
-                    participant_b_team_id: bTeamId,
-                    scheduled_start: null,
-                    scheduled_end: null,
-                    venue_name: null,
-                    status: isAutoAdvance ? 'BYE_ADVANCE' : 'PENDING',
-                    score_a: null,
-                    score_b: null,
-                    winner_label: placeholderWinner,
-                    winner_user_id: isAutoAdvance ? aUserId : null,
-                    winner_team_id: isAutoAdvance ? aTeamId : null
-                });
-            }
-
-            // Stop generating rounds if we're down to 1 match (the Final)
-            rounds.push({ label, matches: nextRoundMatches });
-            if (nextRoundMatches.length <= 1) break;
-        }
+        const rounds = roundNumbers.map((rn, idx) => {
+            const roundMatches = roundMap[rn];
+            // Use the round_label from DB if available, otherwise compute
+            const label = roundMatches[0]?.round_label || getRoundLabel(idx, totalRounds);
+            return { label, matches: roundMatches };
+        });
 
         res.json({
             success: true,
@@ -1530,6 +1663,7 @@ const getBracketData = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
 
 const getScheduleReport = async (req, res) => {
     try {

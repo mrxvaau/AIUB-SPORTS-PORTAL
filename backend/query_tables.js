@@ -1,11 +1,19 @@
 const { Client } = require('pg');
+require('dotenv').config();
+
+// SECURITY: Never hardcode credentials. Load from environment variables.
+const pgPassword = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+if (!pgPassword) {
+  console.error('\u274c FATAL: No Supabase key found in environment variables for pg connection.');
+  process.exit(1);
+}
 
 const client = new Client({
-  host: 'aws-0-ap-southeast-1.pooler.supabase.com',
-  port: 6543,
-  database: 'postgres',
-  user: 'postgres',
-  password: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2dHBjd2xnZHdjd3pxYWF5Y29nIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTYzNzAwMywiZXhwIjoyMDgxMjEzMDAzfQ.3HBprdXa7U0gma0bq65ZbJVNbOTjODdDNsKduNxttjU',
+  host: process.env.SUPABASE_PG_HOST || 'aws-0-ap-southeast-1.pooler.supabase.com',
+  port: parseInt(process.env.SUPABASE_PG_PORT || '6543'),
+  database: process.env.SUPABASE_PG_DB || 'postgres',
+  user: process.env.SUPABASE_PG_USER || 'postgres',
+  password: pgPassword,
   ssl: { rejectUnauthorized: false }
 });
 

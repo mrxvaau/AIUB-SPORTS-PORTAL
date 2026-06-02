@@ -725,15 +725,18 @@
                 : isPlaceholder ? '⏳ Awaiting previous round'
                     : isBye ? '🔄 Auto-advance' : '—';
 
-            // [BUG 5 FIX] Disable clicks on BYE matches AND placeholders
-            const isClickable = !isPlaceholder && !isBye && !isByeAdvance;
+            // Matches are clickable if they have a DB id, are not BYE/BYE_ADVANCE,
+            // and if PENDING, both participants must be known (not "Winner of" placeholders)
+            const hasBothParticipants = !isAPlaceholder && !isBPlaceholder;
+            const isPending = m.status === 'PENDING';
+            const isClickable = m.id && !isBye && !isByeAdvance && (!isPending || hasBothParticipants);
             const clickHandler = isClickable ? `onclick="openResultModal(${m.id})"` : '';
             const byeClass = (isBye || isByeAdvance) ? 'bye-match' : '';
-            const placeholderStyle = isPlaceholder ? 'opacity: 0.55; cursor: default;' : '';
+            const notReadyStyle = (isPending && !hasBothParticipants) ? 'opacity: 0.55; cursor: default;' : '';
             const matchLabel = m._matchNum ? `M${m._matchNum}` : '';
 
             return `
-                <div class="match-node ${statusClass} ${byeClass}" ${clickHandler} data-match-id="${m.id || ''}" style="${placeholderStyle}">
+                <div class="match-node ${statusClass} ${byeClass}" ${clickHandler} data-match-id="${m.id || ''}" style="${notReadyStyle}">
                     <div class="match-participant-row ${isAWinner ? 'winner' : ''}">
                         <span class="participant-name ${isAPlaceholder ? 'bye' : ''}" title="${m.participant_a_label || 'TBD'}">${m.participant_a_label || 'TBD'}</span>
                         <span class="participant-score">${m.score_a || ''}</span>
