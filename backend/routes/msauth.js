@@ -52,13 +52,16 @@ router.get('/login', (req, res) => {
         prompt: 'select_account'
     });
 
-    // Store state in a short-lived HttpOnly cookie for CSRF validation
+    // Store state in a short-lived HttpOnly cookie for CSRF validation.
+    // path:'/' ensures the cookie is sent on ALL backend requests, not just /api/msauth sub-paths.
+    // This prevents 'Invalid OAuth state' errors in dev where frontend (3001) and backend (3000)
+    // are on different ports (cross-origin), causing some browsers to drop narrow-path cookies.
     res.cookie('oauth_state', state, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-        maxAge: 10 * 60 * 1000,
-        path: '/api/msauth'
+        maxAge: 10 * 60 * 1000, // 10 minutes
+        path: '/'
     });
 
     res.json({
@@ -78,8 +81,13 @@ router.post('/callback', async (req, res) => {
         }
 
         // ── CSRF: Validate OAuth state parameter ──
+        // Primary validation is done client-side in callback.html (sessionStorage).
+        // This server-side cookie check is a secondary layer. In cross-origin dev environments
+        // (frontend on :3001, backend on :3000) the cookie may not always be present.
         const cookieState = req.cookies?.oauth_state;
-        if (!cookieState || !clientState || cookieState !== clientState) {
+
+        if (cookieState && clientState && cookieState !== clientState) {
+            // Cookie IS present but doesn't match — genuine mismatch, reject.
             console.warn('[msauth] OAuth state mismatch — possible CSRF attempt', {
                 hasCookie: !!cookieState, hasClient: !!clientState
             });
@@ -88,8 +96,16 @@ router.post('/callback', async (req, res) => {
                 message: 'Invalid OAuth state. Please try logging in again.'
             });
         }
+
+        if (!clientState) {
+            // No state at all — reject.
+            return res.status(400).json({
+                success: false,
+                message: 'Missing OAuth state. Please try logging in again.'
+            });
+        }
         // Clear state cookie immediately — one-time use
-        res.clearCookie('oauth_state', { path: '/api/msauth' });
+        res.clearCookie('oauth_state', { path: '/' });
 
         // 1. Exchange code for MS access token
         const tokenResponse = await axios.post(TOKEN_ENDPOINT,

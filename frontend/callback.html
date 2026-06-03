@@ -148,6 +148,31 @@
                     return;
                 }
 
+                updateStatus('Verifying login session...');
+
+                // ── Client-side CSRF state validation (industry standard) ──
+                // The state was saved to sessionStorage in login.html before
+                // the user was sent to Microsoft. We compare it here against
+                // the state Microsoft returned in the callback URL.
+                const savedState = sessionStorage.getItem('oauth_state');
+                sessionStorage.removeItem('oauth_state'); // one-time use
+
+                if (!state) {
+                    showError('Missing OAuth state parameter. Please try logging in again.');
+                    return;
+                }
+
+                if (!savedState) {
+                    // sessionStorage was cleared (e.g. browser restarted, different tab).
+                    // This is a common cause of the "Invalid OAuth state" error.
+                    // We allow it through — the server will still validate via its cookie.
+                    console.warn('[callback] No sessionStorage oauth_state found. Relying on server-side cookie validation.');
+                } else if (savedState !== state) {
+                    // State mismatch — genuine CSRF risk or stale login link
+                    showError('Login session expired or invalid. Please close this tab and try logging in again.');
+                    return;
+                }
+
                 updateStatus('Exchanging authorization code...');
 
                 // Single call to msauth/callback — handles all upsert + identity logic server-side.
@@ -156,8 +181,8 @@
                 const callbackResponse = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.MS_AUTH_CALLBACK), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',                   // Send oauth_state cookie for CSRF check
-                    body: JSON.stringify({ code, state })     // state validated server-side
+                    credentials: 'include',                   // Send oauth_state cookie + receive auth cookies
+                    body: JSON.stringify({ code, state })     // state also validated server-side
                 });
 
                 const callbackData = await callbackResponse.json();

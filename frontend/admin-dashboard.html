@@ -1312,7 +1312,7 @@
                 </div>
               </div>
               <!-- Reply modal -->
-              <div id="msg-reply-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:none;align-items:center;justify-content:center;">
+              <div id="msg-reply-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
                 <div style="background:#fff;border-radius:12px;padding:28px;width:520px;max-width:95%;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
                   <h3 style="font-size:16px;font-weight:700;color:#1e3a8a;margin-bottom:6px;">Reply to Message</h3>
                   <p id="msg-reply-subject" style="font-size:12px;color:#6b7280;margin-bottom:16px;"></p>
@@ -1870,6 +1870,15 @@
     <script src="js/tunnel-config.js"></script>
     <script src="api-config.js"></script>
     <script src="js/auth-fetch.js?v=4"></script>
+    <!-- Supabase Config — must be set BEFORE supabase-client.js runs.
+         The anon key is intentionally public (Row Level Security enforces access on the server).
+         Do NOT use the service_role key here. -->
+    <script>
+        window.SUPABASE_CONFIG = {
+            url: 'https://qvtpcwlgdwcwzqaaycog.supabase.co',
+            anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2dHBjd2xnZHdjd3pxYWF5Y29nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2MzcwMDMsImV4cCI6MjA4MTIxMzAwM30.cE6TTsP4Bq19jGWHOygb7CJfWdLp-Ygcdli0FOU571E'
+        };
+    </script>
     <!-- Supabase CDN + shared client for OFS Content Management -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-client.js"></script>
@@ -2072,17 +2081,21 @@
 
         // Initialize the admin dashboard
         async function initAdminDashboard() {
-            const isAdmin = await checkAdminAccess();
-            if (!isAdmin) {
-                return; // User will be redirected by the checkAdminAccess function
-            }
-
-            // Initialize router
+            // CRITICAL: Initialize router FIRST so hashchange listeners are registered
+            // immediately. Without this, clicking any sidebar button changes the URL hash
+            // but nothing responds to it — all buttons appear dead.
             if (typeof initRouter === 'function') {
                 initRouter();
             } else {
                 console.error('Router not found, falling back to default section');
                 showSection('existing-tournaments');
+            }
+
+            // Now verify admin access. If this fails, the router will have already
+            // shown the default section briefly, but the redirect will follow.
+            const isAdmin = await checkAdminAccess();
+            if (!isAdmin) {
+                return; // checkAdminAccess already redirects the user
             }
         }
 
@@ -3309,14 +3322,10 @@
 
 
 
-        // Check authentication
-        window.addEventListener('DOMContentLoaded', () => {
-            // Let checkAdminAccess() handle auth redirection
-            // based on the server's response to the token.
-
-            // Load the existing tournaments by default
-            loadTournaments();
-        });
+        // NOTE: loadTournaments() is now called by showSection('existing-tournaments')
+        // which is triggered by initRouter() inside initAdminDashboard().
+        // The duplicate DOMContentLoaded listener that called loadTournaments() directly
+        // was removed — it caused unauthenticated API calls that triggered 401 redirects.
 
         // Show delete confirmation modal
         function showDeleteModal(tournamentId, tournamentTitle) {
