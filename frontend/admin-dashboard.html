@@ -1869,7 +1869,7 @@
 
     <script src="js/tunnel-config.js"></script>
     <script src="api-config.js"></script>
-    <script src="js/auth-fetch.js"></script>
+    <script src="js/auth-fetch.js?v=4"></script>
     <!-- Supabase CDN + shared client for OFS Content Management -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-client.js"></script>
@@ -1889,9 +1889,8 @@
         // Check if user is authenticated and has admin privileges
         async function checkAdminAccess() {
             const userEmail = localStorage.getItem('userEmail');
-            const token = localStorage.getItem('jwtToken');
 
-            if (!userEmail || !token) {
+            if (!userEmail) {
                 // alert('Access denied. Please log in first.');
                 window.location.href = 'login.html'; // Redirect to login
                 return false;
@@ -3308,20 +3307,12 @@
             }, 5000);
         }
 
-        // Logout
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                localStorage.clear();
-                window.location.href = 'login.html';
-            }
-        }
+
 
         // Check authentication
         window.addEventListener('DOMContentLoaded', () => {
-            if (localStorage.getItem('isAuthenticated') !== 'true' || localStorage.getItem('isAdmin') !== 'true') {
-                window.location.href = 'login.html';
-                return;
-            }
+            // Let checkAdminAccess() handle auth redirection
+            // based on the server's response to the token.
 
             // Load the existing tournaments by default
             loadTournaments();
@@ -5932,6 +5923,23 @@
 
 })();
 </script>
+
+<!-- Logout Modal -->
+<div id="logoutModal" class="modal-backdrop">
+    <div class="modal-content" style="width: 100%; max-width: 400px; text-align: center; margin: 0 20px;">
+        <div style="background: #fee2e2; color: #dc2626; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+        </div>
+        <h3 style="font-size: 20px; font-weight: 700; color: #1f2937; margin-bottom: 10px;">Sign Out</h3>
+        <p style="font-size: 15px; color: #6b7280; margin-bottom: 25px;">Are you sure you want to sign out of the AIUB Sports Portal?</p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <button onclick="closeLogoutModal()" class="cancel-btn" style="flex: 1; padding: 12px; font-weight: 600; cursor: pointer; border-radius: 8px;">Cancel</button>
+            <button onclick="performLogout()" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3);">Yes, Sign Out</button>
+        </div>
+    </div>
+</div>
 
 </body>
 

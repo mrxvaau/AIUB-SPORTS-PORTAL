@@ -45,9 +45,28 @@ function clearLocalSession() {
 }
 
 /**
+ * Show logout modal if available, otherwise fallback to native confirm
+ */
+function logout() {
+    const modal = document.getElementById('logoutModal');
+    if (modal) {
+        modal.classList.add('active');
+    } else if (confirm('Are you sure you want to logout?')) {
+        performLogout();
+    }
+}
+
+function closeLogoutModal() {
+    const modal = document.getElementById('logoutModal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+}
+
+/**
  * Logout: clear cookies via API + local session data.
  */
-async function logout() {
+async function performLogout() {
     try {
         await fetch(buildApiUrl ? buildApiUrl('/api/msauth/logout') : '/api/msauth/logout', {
             method: 'POST',

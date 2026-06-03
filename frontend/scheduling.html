@@ -1373,7 +1373,9 @@
         // ============================================================
         document.addEventListener('DOMContentLoaded', () => {
             // Admin auth guard — block direct access by non-authenticated users
-            if (!localStorage.getItem('jwtToken')) {
+            const userEmail = localStorage.getItem('userEmail');
+
+            if (!userEmail) {
                 document.body.innerHTML = '<p style="padding:40px;text-align:center;color:#ef4444;font-size:18px;">Access denied. Please log in as admin.</p>';
                 return;
             }

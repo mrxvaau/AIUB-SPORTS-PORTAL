@@ -47,7 +47,7 @@ const getNotifications = async (req, res) => {
         });
     } catch (error) {
         console.error('Get notifications error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 };
 
@@ -77,7 +77,7 @@ const markNotificationAsRead = async (req, res) => {
         });
     } catch (error) {
         console.error('Mark notification as read error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 };
 

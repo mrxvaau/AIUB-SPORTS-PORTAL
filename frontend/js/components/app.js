@@ -28,12 +28,7 @@ function showSection(sectionId) {
 }
 
 // ── Shared helpers ───────────────────────────────────────────
-function logout() {
-    if (confirm('Are you sure you want to logout?')) {
-        localStorage.clear();
-        window.location.href = 'login.html';
-    }
-}
+
 
 function goToAdmin() { window.location.href = 'admin-dashboard.html'; }
 

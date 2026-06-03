@@ -165,7 +165,7 @@ const createTeam = async (req, res) => {
         });
     } catch (error) {
         console.error('Create team error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 };
 
@@ -256,7 +256,7 @@ const getTeamDetails = async (req, res) => {
         });
     } catch (error) {
         console.error('Get team details error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 };
 
@@ -395,7 +395,7 @@ const getTeamByGame = async (req, res) => {
         });
     } catch (error) {
         console.error('Get team by game error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 };
 
@@ -665,7 +665,7 @@ const addTeamMember = async (req, res) => {
         }
     } catch (error) {
         console.error('Add team member error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 };
 
@@ -837,7 +837,7 @@ const acceptTeamInvitation = async (req, res) => {
         });
     } catch (error) {
         console.error('Accept team invitation error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 };
 
@@ -926,7 +926,7 @@ const confirmTeamRegistration = async (req, res) => {
         });
     } catch (error) {
         console.error('Confirm team registration error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 };
 
@@ -980,7 +980,7 @@ const getPendingTeamInvitations = async (req, res) => {
         });
     } catch (error) {
         console.error('Get pending team invitations error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 };
 
@@ -1110,7 +1110,7 @@ const removeTeamMember = async (req, res) => {
         });
     } catch (error) {
         console.error('Remove team member error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 };
 
@@ -1417,7 +1417,7 @@ const replaceMember = async (req, res) => {
 
     } catch (error) {
         console.error('Replace team member error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 };
 
@@ -1505,7 +1505,7 @@ const rejectTeamInvitation = async (req, res) => {
         });
     } catch (error) {
         console.error('Reject team invitation error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 };
 
@@ -1637,7 +1637,7 @@ const validateMember = async (req, res) => {
 
     } catch (error) {
         console.error('Validate member error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 };
 

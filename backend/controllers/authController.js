@@ -267,7 +267,7 @@ const login = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: 'Server error during login',
-            error: error.message
+            error: process.env.NODE_ENV === 'production' ? undefined : error.message
         });
     }
 };
@@ -296,7 +296,7 @@ const getProfile = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: 'Server error',
-            error: error.message
+            error: process.env.NODE_ENV === 'production' ? undefined : error.message
         });
     }
 };
@@ -390,7 +390,7 @@ const debugAdminCheck = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: 'Server error',
-            error: error.message
+            error: process.env.NODE_ENV === 'production' ? undefined : error.message
         });
     }
 };
@@ -600,7 +600,7 @@ const updateProfile = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: 'Server error during profile update',
-            error: error.message
+            error: process.env.NODE_ENV === 'production' ? undefined : error.message
         });
     }
 };
@@ -635,7 +635,7 @@ const getNameEditCount = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: 'Server error',
-            error: error.message
+            error: process.env.NODE_ENV === 'production' ? undefined : error.message
         });
     }
 };
@@ -689,7 +689,7 @@ const checkModeratorStatus = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: 'Server error',
-            error: error.message
+            error: process.env.NODE_ENV === 'production' ? undefined : error.message
         });
     }
 };
@@ -830,7 +830,7 @@ const completeProfileSetup = async (req, res) => {
 
     } catch (error) {
         console.error('[auth] completeProfileSetup error:', error);
-        return res.status(500).json({ success: false, message: 'Server error during profile setup', error: error.message });
+        return res.status(500).json({ success: false, message: 'Server error during profile setup', error: process.env.NODE_ENV === 'production' ? undefined : error.message });
     }
 };
 

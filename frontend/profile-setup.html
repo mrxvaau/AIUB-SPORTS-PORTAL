@@ -559,11 +559,10 @@
 
         /* ── Init ───────────────────────────────────────────── */
         window.addEventListener('DOMContentLoaded', async () => {
-            const jwtToken = localStorage.getItem('jwtToken') || localStorage.getItem('msAccessToken');
             const email = localStorage.getItem('userEmail');
             const studentId = localStorage.getItem('studentId');
 
-            if (!jwtToken || !email) {
+            if (!email) {
                 document.documentElement.style.display = '';
                 window.location.href = 'login.html';
                 return;

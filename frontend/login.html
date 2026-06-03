@@ -252,11 +252,14 @@
             try {
                 loginBtn.disabled = true;
                 loginBtnText.innerHTML = '<div class="spinner"></div> Connecting to Microsoft...';
-                const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.MS_AUTH_LOGIN));
+                const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.MS_AUTH_LOGIN), {
+                    credentials: 'include'
+                });
                 const data = await response.json();
                 if (data.success && data.authUrl) {
                     sessionStorage.setItem('oauth_state', data.state);
                     window.location.href = data.authUrl;
+
                 } else throw new Error('Failed to initiate login');
             } catch (error) {
                 console.error('Login error:', error);
@@ -272,21 +275,12 @@
             let isAuthenticated = false;
             try { isAuthenticated = localStorage.getItem('isAuthenticated') === 'true'; } catch (e) {}
 
-            // Only redirect to dashboard if BOTH isAuthenticated AND jwtToken exist
-            // This prevents a half-written storage state from causing a loop
+            // Only redirect to dashboard if isAuthenticated is true
             if (isAuthenticated) {
-                let hasToken = false;
-                try { hasToken = !!(localStorage.getItem('jwtToken') || localStorage.getItem('msAccessToken')); } catch (e) {}
-
-                if (hasToken) {
-                    // Guard: mark that we're redirecting so dashboard won't bounce back
-                    try { sessionStorage.setItem('redirectingToDashboard', 'true'); } catch (e) {}
-                    window.location.href = 'dashboard.html';
-                    return;
-                } else {
-                    // Token missing — clear stale auth flag to fix broken state
-                    try { localStorage.removeItem('isAuthenticated'); } catch (e) {}
-                }
+                // Guard: mark that we're redirecting so dashboard won't bounce back
+                try { sessionStorage.setItem('redirectingToDashboard', 'true'); } catch (e) {}
+                window.location.href = 'dashboard.html';
+                return;
             }
 
             const urlParams = new URLSearchParams(window.location.search);

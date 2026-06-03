@@ -41,7 +41,18 @@ app.set('trust proxy', process.env.TRUST_PROXY || 1);
 // Security Headers
 // ──────────────────────────────────────────────
 app.use(helmet({
-    contentSecurityPolicy: false,       // Frontend handles CSP
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com", "https://cdn.jsdelivr.net"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com"],
+            connectSrc: ["'self'", "https://*.supabase.co"],
+            imgSrc: ["'self'", "data:", "https://*.supabase.co", "https://*.microsoft.com", "blob:"],
+            objectSrc: ["'none'"],
+            upgradeInsecureRequests: [],
+        },
+    },
     crossOriginEmbedderPolicy: false,   // Allow Supabase CDN embeds
     crossOriginResourcePolicy: { policy: 'cross-origin' } // Allow cross-origin images
 }));

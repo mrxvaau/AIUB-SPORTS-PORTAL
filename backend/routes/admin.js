@@ -237,7 +237,7 @@ router.get('/users', requireAdmin, async (req, res) => {
         });
     } catch (error) {
         console.error('Admin get users error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 });
 
@@ -302,7 +302,7 @@ router.get('/users/:userId', requireAdmin, async (req, res) => {
         });
     } catch (error) {
         console.error('Admin get user detail error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 });
 
@@ -339,7 +339,7 @@ router.put('/users/:userId', requireAdmin, async (req, res) => {
         res.json({ success: true, user: data, message: 'User updated successfully' });
     } catch (error) {
         console.error('Admin update user error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 });
 
@@ -360,7 +360,7 @@ router.post('/users/:userId/reset-name-edits', requireAdmin, async (req, res) =>
         res.json({ success: true, user: data, message: 'Name edit count reset to 0' });
     } catch (error) {
         console.error('Admin reset name edits error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 });
 
@@ -441,7 +441,7 @@ router.post('/promote-user', requireAdmin, async (req, res) => {
         });
     } catch (error) {
         console.error('Assign role error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 });
 
@@ -488,7 +488,7 @@ router.delete('/demote-moderator/:userId', requireAdmin, async (req, res) => {
         });
     } catch (error) {
         console.error('Remove admin roles error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 });
 
@@ -512,7 +512,7 @@ router.get('/moderators', requireAdmin, async (req, res) => {
 
         if (error) {
             console.error('Get admins error:', error);
-            return res.status(500).json({ success: false, message: error.message });
+            return res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
         }
 
         // For each admin, get their roles and permissions
@@ -573,7 +573,7 @@ router.get('/moderators', requireAdmin, async (req, res) => {
         res.json({ success: true, moderators: adminsWithRoles });
     } catch (error) {
         console.error('Get admins error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 });
 
@@ -749,7 +749,7 @@ router.post('/tournaments', requireAdmin, upload.single('photo'), handleMulterEr
     } catch (error) {
         console.error('Create tournament error:', error);
         // No local temp file to clean up — uploads go directly to Supabase Storage
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 });
 
@@ -763,7 +763,7 @@ router.get('/tournaments', requireAdmin, async (req, res) => {
 
         if (error) {
             console.error('Get tournaments error:', error);
-            res.status(500).json({ success: false, message: error.message });
+            res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
         } else {
             // Format dates to match expected format
             const formattedTournaments = tournaments.map(tournament => ({
@@ -777,7 +777,7 @@ router.get('/tournaments', requireAdmin, async (req, res) => {
         }
     } catch (error) {
         console.error('Get tournaments error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 });
 
@@ -795,7 +795,7 @@ router.get('/tournaments/:id/games', requireAdmin, async (req, res) => {
 
         if (error) {
             console.error('Get games error:', error);
-            res.status(500).json({ success: false, message: error.message });
+            res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
         } else {
             // Flatten tournament-level allow_cross_department onto each game
             const enrichedGames = (games || []).map(g => {
@@ -806,7 +806,7 @@ router.get('/tournaments/:id/games', requireAdmin, async (req, res) => {
         }
     } catch (error) {
         console.error('Get games error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 });
 
@@ -1125,7 +1125,7 @@ router.put('/tournaments/:id', requireAdmin, (req, res, next) => {
         console.error('Update tournament error:', error);
         res.status(500).json({
             success: false,
-            message: error.message
+            message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message
         });
     }
 });
@@ -1221,7 +1221,7 @@ router.delete('/tournaments/:id', requireAdmin, async (req, res) => {
         console.error('Delete tournament error:', error);
         res.status(500).json({
             success: false,
-            message: error.message
+            message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message
         });
     }
 });
@@ -1236,13 +1236,13 @@ router.get('/roles', requireAdmin, async (req, res) => {
 
         if (error) {
             console.error('Get roles error:', error);
-            return res.status(500).json({ success: false, message: error.message });
+            return res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
         }
 
         res.json({ success: true, roles });
     } catch (error) {
         console.error('Get roles error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 });
 
@@ -1293,7 +1293,7 @@ router.post('/create-admin', requireAdmin, async (req, res) => {
         });
     } catch (error) {
         console.error('Create admin error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 });
 
@@ -1378,7 +1378,7 @@ router.post('/assign-role', requireAdmin, async (req, res) => {
         });
     } catch (error) {
         console.error('Assign role error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 });
 
@@ -1426,7 +1426,7 @@ router.delete('/remove-role/:adminId/:roleId', requireAdmin, async (req, res) =>
         });
     } catch (error) {
         console.error('Remove admin role error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 });
 
@@ -1440,13 +1440,13 @@ router.get('/permissions', requireAdmin, async (req, res) => {
 
         if (error) {
             console.error('Get permissions error:', error);
-            return res.status(500).json({ success: false, message: error.message });
+            return res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
         }
 
         res.json({ success: true, permissions });
     } catch (error) {
         console.error('Get permissions error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 });
 
@@ -1523,7 +1523,7 @@ router.post('/assign-permission', requireAdmin, async (req, res) => {
         });
     } catch (error) {
         console.error('Assign permission error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 });
 
@@ -1546,7 +1546,7 @@ router.get('/audit-logs', requireAdmin, async (req, res) => {
 
         if (error) {
             console.error('Get audit logs error:', error);
-            return res.status(500).json({ success: false, message: error.message });
+            return res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
         }
 
         // Format the logs
@@ -1568,7 +1568,7 @@ router.get('/audit-logs', requireAdmin, async (req, res) => {
         res.json({ success: true, logs: formattedLogs });
     } catch (error) {
         console.error('Get audit logs error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 });
 
@@ -1593,7 +1593,7 @@ router.get('/tournament-requests', requireAdmin, async (req, res) => {
 
         if (error) {
             console.error('Get tournament requests error:', error);
-            return res.status(500).json({ success: false, message: error.message });
+            return res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
         }
 
         // Format the requests
@@ -1616,7 +1616,7 @@ router.get('/tournament-requests', requireAdmin, async (req, res) => {
         res.json({ success: true, requests: formattedRequests });
     } catch (error) {
         console.error('Get tournament requests error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 });
 
@@ -1641,7 +1641,7 @@ router.get('/game-requests', requireAdmin, async (req, res) => {
 
         if (error) {
             console.error('Get game requests error:', error);
-            return res.status(500).json({ success: false, message: error.message });
+            return res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
         }
 
         // Format the requests
@@ -1664,7 +1664,7 @@ router.get('/game-requests', requireAdmin, async (req, res) => {
         res.json({ success: true, requests: formattedRequests });
     } catch (error) {
         console.error('Get game requests error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 });
 

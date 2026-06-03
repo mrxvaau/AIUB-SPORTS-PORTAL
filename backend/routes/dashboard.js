@@ -48,7 +48,7 @@ router.get('/profile/:studentId', requireAuth, async (req, res) => {
         return res.status(500).json({
             success: false,
             message: 'Server error',
-            error: error.message
+            error: process.env.NODE_ENV === 'production' ? undefined : error.message
         });
     }
 });
@@ -167,7 +167,7 @@ router.get('/tournaments/:studentId', requireAuth, async (req, res) => {
         return res.status(500).json({
             success: false,
             message: 'Server error',
-            error: error.message
+            error: process.env.NODE_ENV === 'production' ? undefined : error.message
         });
     }
 });
@@ -308,7 +308,7 @@ router.get('/overview/:studentId', requireAuth, async (req, res) => {
         return res.status(500).json({
             success: false,
             message: 'Server error',
-            error: error.message
+            error: process.env.NODE_ENV === 'production' ? undefined : error.message
         });
     }
 });
@@ -440,7 +440,7 @@ router.get('/schedule/:studentId', requireAuth, async (req, res) => {
         res.json({ success: true, matches: formatted });
     } catch (error) {
         console.error('Dashboard schedule error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 });
 
@@ -514,7 +514,7 @@ router.get('/leaderboard', requireAuth, async (req, res) => {
         });
     } catch (error) {
         console.error('Leaderboard error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message });
     }
 });
 

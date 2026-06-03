@@ -21,15 +21,7 @@ function showAlert(message, type) {
     }, 5000);
 }
 
-/**
- * Logout the user and redirect to login page
- */
-function logout() {
-    if (confirm('Are you sure you want to logout?')) {
-        localStorage.clear();
-        window.location.href = 'login.html';
-    }
-}
+
 
 /**
  * Build API URL using the configuration
